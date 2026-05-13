@@ -1,0 +1,1 @@
+ALTER TABLE `client_notification_history` MODIFY COLUMN `clientProtocolId` int;

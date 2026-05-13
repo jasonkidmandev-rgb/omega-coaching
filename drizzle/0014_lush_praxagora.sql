@@ -1,0 +1,1 @@
+ALTER TABLE `affiliate_partners` ADD `testimonial` text;

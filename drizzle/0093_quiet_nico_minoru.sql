@@ -1,0 +1,2 @@
+ALTER TABLE `client_protocol_items` ADD `fulfillmentSource` enum('coach','client') DEFAULT 'coach' NOT NULL;--> statement-breakpoint
+ALTER TABLE `protocol_items` ADD `fulfillmentSource` enum('coach','client') DEFAULT 'coach' NOT NULL;

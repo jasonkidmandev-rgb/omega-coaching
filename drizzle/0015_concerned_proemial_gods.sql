@@ -1,0 +1,1 @@
+ALTER TABLE `templates` ADD `hidePricing` boolean DEFAULT false NOT NULL;

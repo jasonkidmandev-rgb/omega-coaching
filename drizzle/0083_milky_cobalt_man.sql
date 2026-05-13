@@ -1,0 +1,1 @@
+ALTER TABLE `client_protocols` MODIFY COLUMN `paymentMethod` enum('venmo','cc','other','paypal') DEFAULT 'venmo';

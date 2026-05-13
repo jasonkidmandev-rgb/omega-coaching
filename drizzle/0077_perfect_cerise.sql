@@ -1,0 +1,1 @@
+ALTER TABLE `notifications` MODIFY COLUMN `type` enum('protocol_approved','protocol_viewed','payment_received','payment_failed','payment_refunded','profile_completed','packing_slip_created','protocol_option_selected','protocol_expiring','other') NOT NULL;

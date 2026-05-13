@@ -1,0 +1,21 @@
+Verification Results - Feb 10, 2026
+=====================================
+
+1. Coaching Sessions tab in Client Edit (Richard Feyh):
+   - Shows "Coaching Session Notes" header
+   - Shows "All coaching session notes for Richard Feyh"
+   - Has "+ Add Note" button in top right
+   - Has "+ Add First Note" button in empty state
+   - NO reference to "go to enrollment detail" - fully self-contained CRUD
+   - VERIFIED: Full CRUD available directly in client page
+
+2. Forms Editor Save:
+   - Changed "Financial Agreement" to "Financial Agreement SAVE TEST"
+   - Clicked Save Changes - dialog closed, title updated in table
+   - Reverted back to "Financial Agreement" - save worked again
+   - VERIFIED: Forms editor save is now working
+
+3. Session Notes removed from Enrollments:
+   - Need to verify this in the enrollment dialog
+   
+Next: Click "Add Note" to verify the add form works with templates

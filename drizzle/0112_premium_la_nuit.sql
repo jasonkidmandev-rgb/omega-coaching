@@ -1,0 +1,1 @@
+ALTER TABLE `automation_events` MODIFY COLUMN `status` enum('success','failed','skipped','completed') NOT NULL DEFAULT 'success';

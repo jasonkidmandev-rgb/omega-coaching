@@ -1,0 +1,1 @@
+ALTER TABLE `client_protocol_items` ADD `snapshotName` varchar(500);

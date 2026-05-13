@@ -1,0 +1,1 @@
+ALTER TABLE `client_protocols` ADD `sentAt` timestamp;

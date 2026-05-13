@@ -1,0 +1,19 @@
+FINDINGS:
+
+Issue #4 - Richard's payment not on transformation-payments page:
+- Richard paid via PayPal (coachingFeeStripePaymentId = "8YL693863M659913K" which is a PayPal order ID)
+- His enrollment (id=210005) has coachingFeePaid=1, coachingFeeAmount=2000.00, coachingFeePaidAt set
+- BUT the transformation-payments page queries the `transformation_pending_payments` table, NOT the enrollment table
+- The pending_payments table only has Venmo-style payments that need manual verification
+- Richard paid via PayPal which auto-verified, so he was never added to pending_payments
+- SOLUTION: The transformation-payments page needs to ALSO show PayPal/Stripe payments from the enrollment table, or rename itself to only be about Venmo pending payments
+
+Issue #5 - Richard not on pending-enrollments page:
+- Richard's status is "coaching_paid" - he's past the pending stage
+- Pending enrollments shows: enrolled, watching_videos, video_complete
+- Richard correctly should NOT be on pending-enrollments - he's paid and should be on the main enrollments page
+- This is working as designed. The user may have been confused about where to find him.
+
+Issue #1 - Client profile save bug:
+- FIXED: Router and db.ts both stripped empty strings, preventing field clearing
+- Now only undefined values are filtered out, empty strings pass through

@@ -1,0 +1,1 @@
+ALTER TABLE `inventory_items` ADD `isDiscountable` boolean DEFAULT false NOT NULL;

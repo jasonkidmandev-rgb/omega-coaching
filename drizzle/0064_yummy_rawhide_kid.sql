@@ -1,0 +1,2 @@
+ALTER TABLE `transformation_enrollments` ADD `intakeFormCompleted` boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE `transformation_enrollments` ADD `intakeFormCompletedAt` timestamp;

@@ -1,0 +1,1 @@
+ALTER TABLE `client_protocols` ADD `engagementLevel` enum('full_coaching','self_guided_checkins','protocol_only') DEFAULT 'protocol_only' NOT NULL;

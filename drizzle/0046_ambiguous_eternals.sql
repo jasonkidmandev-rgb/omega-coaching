@@ -1,0 +1,1 @@
+ALTER TABLE `protocol_items` ADD `loomVideoUrl` text;

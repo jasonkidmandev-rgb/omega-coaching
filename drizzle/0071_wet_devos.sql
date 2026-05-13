@@ -1,0 +1,1 @@
+ALTER TABLE `checkin_schedule_audit_log` MODIFY COLUMN `action` enum('created','updated','enabled','disabled','paused','resumed','bulk_updated','bulk_enabled','bulk_disabled') NOT NULL;

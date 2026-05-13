@@ -1,0 +1,3 @@
+ALTER TABLE `promo_code_usage` MODIFY COLUMN `tier` enum('elite','flagship','essentials','advanced','recovery','immunity','longevity','mitochondria','functional_health_elite') NOT NULL;--> statement-breakpoint
+ALTER TABLE `transformation_access_codes` MODIFY COLUMN `tier` enum('elite','flagship','essentials','advanced','recovery','immunity','longevity','mitochondria','functional_health_elite');--> statement-breakpoint
+ALTER TABLE `transformation_enrollments` MODIFY COLUMN `tier` enum('elite','flagship','essentials','advanced','recovery','immunity','longevity','mitochondria','functional_health_elite') NOT NULL DEFAULT 'flagship';

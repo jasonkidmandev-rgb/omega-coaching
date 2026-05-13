@@ -1,0 +1,15 @@
+Screenshot Analysis - Session Notes Issue:
+
+1. The enrollment dialog STILL shows "Session Notes (0)" as an accordion with "New Session Note" form
+   - This means my previous edit to Enrollments.tsx didn't fully remove the session notes section
+   - The user's screenshot shows the OLD code is still being served
+   - Possible: the code change was incomplete or there's a caching issue
+
+2. The Clients > Coaching Sessions tab says:
+   "To add new notes, go to the enrollment detail in the Coaching section."
+   - This is wrong - it should have full CRUD here
+   - The tab is read-only with no add button
+
+Actions needed:
+- Read the FULL Enrollments.tsx to find ALL session notes code and remove it completely
+- Update the ClientEdit Coaching Sessions tab to have full add/edit/delete/pin functionality

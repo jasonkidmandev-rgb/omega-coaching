@@ -1,0 +1,1 @@
+ALTER TABLE `transformation_enrollments` ADD `followUpReminderSentAt` timestamp;

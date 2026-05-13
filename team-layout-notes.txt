@@ -1,0 +1,16 @@
+Team.tsx layout issue analysis:
+
+Lines 538-671: The user card layout
+- Line 541: flex items-center justify-between p-4 — horizontal layout
+- Line 543: Left side: flex items-center gap-4 flex-1 (avatar + info)
+- Line 560: Right side: flex items-center gap-3 (role selector + notification toggle + email button)
+
+Problem: On mobile, the left side (avatar + name/email/date) and right side (role dropdown w-[140px] + bell + switch + email button) are all on ONE horizontal line. This causes:
+1. Email text overlaps with the toggle switch
+2. Role label "Admin" overlaps with email text
+3. Everything is crammed horizontally
+
+Fix needed:
+- Stack the card content vertically on mobile (flex-col on small screens)
+- Move role selector, notification toggle, and email button below the user info on mobile
+- Use responsive classes: flex-col sm:flex-row

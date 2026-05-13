@@ -1,0 +1,2 @@
+ALTER TABLE `client_protocols` ADD `paymentStatus` enum('pending','paid','failed','refunded') DEFAULT 'pending';--> statement-breakpoint
+ALTER TABLE `client_protocols` ADD `paymentReceivedAt` timestamp;

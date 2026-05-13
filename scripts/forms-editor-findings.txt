@@ -1,0 +1,20 @@
+Forms Editor Save Bug - FIXED AND VERIFIED
+============================================
+
+Root cause: MySQL tinyint (0/1) values for boolean fields (isRequired, requiresSignature, 
+requiresCheckbox, isActive) were being sent as numbers to the server, but the Zod schema 
+expected booleans. This caused a 400 validation error that was silently swallowed.
+
+Fix applied:
+1. Server: Added z.preprocess() to coerce numbers to booleans in the Zod schema
+2. Server: Added boolean casting in getIntakeFormContent query response  
+3. Frontend: Added !! and Boolean() casting in handleEdit and handleSave
+
+Verification: 
+- Changed "Financial Agreement" to "Financial Agreement SAVE TEST"
+- Clicked Save Changes
+- Dialog closed successfully
+- Title updated in the table to "Financial Agreement SAVE TEST"
+- The save is now working correctly!
+
+Now need to revert the test change.

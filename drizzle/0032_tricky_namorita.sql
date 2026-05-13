@@ -1,0 +1,1 @@
+ALTER TABLE `templates` ADD `autoSync` boolean DEFAULT false NOT NULL;

@@ -1,0 +1,74 @@
+FULL NAVIGATION INVENTORY - ADMIN SIDEBAR
+==========================================
+
+1. COACHING (12 items) - HeartPulse icon
+   - Enrollments (/admin/enrollments)
+   - Pending Enrollments (/admin/pending-enrollments)
+   - Access Codes (/admin/access-codes)
+   - Masterclass Videos (/admin/masterclass-videos)
+   - Forms Editor (/admin/forms-editor)
+   - Coaching Promos (/admin/promo-codes)
+   - Coaching Payments (/admin/transformation-payments)
+   - Lead Pipeline (/admin/prospects)
+   - Coaching Sessions (/admin/coaching-sessions)
+   - Booking Calendar (/admin/booking-calendar)
+   - Manage Check-Ins (/admin/checkins)
+   - Check-In Analytics (/admin/checkin-analytics)
+
+2. CLIENTS & PROTOCOLS (11 items) - Users icon
+   - Clients (/admin/clients)
+   - Client Protocols (/admin/client-protocols)
+   - Protocol Analytics (/admin/protocol-analytics)
+   - Client Projects (/admin/projects)
+   - Client Corner (/admin/client-corner)
+   - Templates (/admin/templates)
+   - Protocol Items (/admin/items)
+   - Product Management (/admin/product-management)
+   - Categories (/admin/categories)
+   - Programs (/admin/programs)
+   - Recommendations (/admin/recommendations)
+
+3. STORE & ORDERS (5 items) - ShoppingCart icon
+   - Store Orders (/admin/store-orders)
+   - Packing Slips (/admin/packing-slips)
+   - Store Waivers (/admin/store-waivers)
+   - Inventory (/admin/inventory)
+   - Sales Report (/admin/sales-report)
+
+4. PAYMENTS & FINANCE (2 items) - CreditCard icon
+   - Payment History (/admin/payments)
+   - Reports (/admin/reports)
+
+5. MARKETING & OUTREACH (6 items) - Megaphone icon
+   - Protocol Coupons (/admin/coupons)
+   - Store Promos (/admin/store-promos)
+   - Referrals (/admin/referrals)
+   - Referral Analytics (/admin/referral-analytics)
+   - Affiliate Partners (/admin/affiliate-partners)
+   - Affiliate Analytics (/admin/affiliate-analytics)
+
+6. EMAIL & NOTIFICATIONS (6 items) - Mail icon
+   - Email Branding (/admin/email-branding)
+   - Email Preview (/admin/email-preview)
+   - Email Engagement (/admin/email-engagement)
+   - Push Notifications (/admin/push-notifications)
+   - Notification Analysis (/admin/notification-analysis)
+   - Notification History (/admin/notification-history)
+
+7. CONTENT & RESOURCES (2 items) - BookOpen icon
+   - Launchpad Settings (/admin/launchpad-settings)
+   - Peptide Cheat Sheet (/admin/peptide-cheat-sheet)
+
+8. TEAM & SETTINGS (6 items) - Wrench icon
+   - Team (/admin/team)
+   - Site Settings (/admin/settings)
+   - Audit Logs (/admin/audit-logs)
+   - Onboarding Wizard (/admin/onboarding)
+   - QA Testing (/admin/qa-testing)
+   - Operations (/admin/operations)
+
+STANDALONE PAGES:
+   - Home (/admin)
+   - Dashboard (/admin/dashboard)
+
+TOTAL: 50 admin menu items + 2 standalone = 52 admin pages

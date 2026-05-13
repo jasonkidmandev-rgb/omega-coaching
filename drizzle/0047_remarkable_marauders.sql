@@ -1,0 +1,1 @@
+ALTER TABLE `templates` ADD `tags` text;

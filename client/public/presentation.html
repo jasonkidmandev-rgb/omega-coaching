@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Coach Protocol Manager - Solution Overview</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #10b981;
+      --accent: #f59e0b;
+      --bg-light: #f8fafc;
+      --bg-card: #ffffff;
+      --text-dark: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-light);
+      color: var(--text-dark);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 80px 0;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto 32px;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      margin-bottom: 24px;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: white;
+      color: var(--primary);
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Stats Section */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      padding: 60px 0;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      padding: 32px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Section Styles */
+    section {
+      padding: 80px 0;
+    }
+
+    section:nth-child(even) {
+      background: var(--bg-card);
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 48px;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: white;
+      font-size: 24px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Workflow Section */
+    .workflow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .workflow-step {
+      flex: 1;
+      min-width: 200px;
+      max-width: 250px;
+      text-align: center;
+      position: relative;
+    }
+
+    .workflow-step::after {
+      content: '→';
+      position: absolute;
+      right: -20px;
+      top: 40px;
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    .workflow-step:last-child::after {
+      display: none;
+    }
+
+    .step-number {
+      width: 60px;
+      height: 60px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 auto 16px;
+    }
+
+    .workflow-step h4 {
+      margin-bottom: 8px;
+    }
+
+    .workflow-step p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    /* Charts Section */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 32px;
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .chart-card h3 {
+      margin-bottom: 20px;
+      font-size: 1.125rem;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    /* Categories Table */
+    .categories-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .categories-table th,
+    .categories-table td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .categories-table th {
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    .categories-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .categories-table tr:hover {
+      background: var(--bg-light);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-primary {
+      background: #dbeafe;
+      color: var(--primary);
+    }
+
+    .badge-secondary {
+      background: #d1fae5;
+      color: var(--secondary);
+    }
+
+    .badge-accent {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    /* Comparison Section */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .comparison-card {
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .comparison-card.before {
+      background: #fef2f2;
+      border: 2px solid #fecaca;
+    }
+
+    .comparison-card.after {
+      background: #f0fdf4;
+      border: 2px solid #bbf7d0;
+    }
+
+    .comparison-card h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .comparison-card ul {
+      list-style: none;
+    }
+
+    .comparison-card li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .comparison-card.before li::before {
+      content: '✕';
+      color: #ef4444;
+      font-weight: bold;
+    }
+
+    .comparison-card.after li::before {
+      content: '✓';
+      color: #22c55e;
+      font-weight: bold;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--text-dark);
+      color: white;
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    footer p {
+      opacity: 0.8;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+
+      .workflow-step::after {
+        display: none;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">🚀 Streamline Your Health Coaching Practice</div>
+      <h1>Health Coach Protocol Manager</h1>
+      <p>Create, customize, and share comprehensive health protocols with your clients. Say goodbye to Excel spreadsheets and hello to a professional client experience.</p>
+      <a href="/admin" class="cta-button">Go to Dashboard →</a>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section>
+    <div class="container">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-number">12</div>
+          <div class="stat-label">Protocol Categories</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">100+</div>
+          <div class="stat-label">Protocol Items</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">3-12</div>
+          <div class="stat-label">Month Protocols</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">∞</div>
+          <div class="stat-label">Client Capacity</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Before/After Comparison -->
+  <section>
+    <div class="container">
+      <h2 class="section-title">Transform Your Workflow</h2>
+      <p class="section-subtitle">See how the Protocol Manager improves your client management process</p>
+      
+      <div class="comparison">
+        <div class="comparison-card before">
+          <h3>❌ Before (Excel)</h3>
+          <ul>
+            <li>140+ line spreadsheets to manage</li>
+            <li>Manual copy/paste for each client</li>
+            <li>No professional client view</li>
+            <li>Difficult to track approvals</li>
+            <li>No affiliate link integration</li>
+            <li>Error-prone calculations</li>
+          </ul>
+        </div>
+        <div class="comparison-card after">
+          <h3>✅ After (Protocol Manager)</h3>
+          <ul>
+            <li>One-click template cloning</li>
+            <li>Professional client portal</li>
+            <li>Built-in approval workflow</li>
+            <li>Integrated affiliate links</li>
+            <li>Auto-calculated pricing</li>
+            <li>Unique shareable links</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section>
+    <div class="container">
+      <h2 class="section-title">Powerful Features</h2>
+      <p class="section-subtitle">Everything you need to manage health coaching protocols efficiently</p>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3>Master Templates</h3>
+          <p>Create comprehensive master templates with all your protocol items. Clone them instantly for new clients and customize as needed.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <h3>Unique Client Links</h3>
+          <p>Each client gets a unique, shareable link to view their protocol. No login required - just share the link and they're ready to go.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💊</div>
+          <h3>Supplement Library</h3>
+          <p>Centralized supplement management with affiliate links. Mark items as recommended or optional, and clients can purchase directly.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">✅</div>
+          <h3>Approval Workflow</h3>
+          <p>Clients can review and approve their protocols directly in the app. Track approval status from your dashboard.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💰</div>
+          <h3>Auto-Calculated Pricing</h3>
+          <p>Automatic price calculations with support for discounts, Venmo payments, and credit card fees (+3.5%).</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Mobile Responsive</h3>
+          <p>Professional client experience on any device. Your clients can review their protocols on desktop, tablet, or phone.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Workflow Section -->
+  <section>
+    <div class="container">
+      <h2 class="section-title">Simple Workflow</h2>
+      <p class="section-subtitle">From template to approved protocol in 4 easy steps</p>
+      
+      <div class="workflow">
+        <div class="workflow-step">
+          <div class="step-number">1</div>
+          <h4>Create Template</h4>
+          <p>Build your master template with all protocol items</p>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">2</div>
+          <h4>Clone for Client</h4>
+          <p>One-click clone and customize for each client</p>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">3</div>
+          <h4>Share Link</h4>
+          <p>Send unique link to client for review</p>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">4</div>
+          <h4>Get Approval</h4>
+          <p>Client approves, transfer to PeptidePro</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section>
+    <div class="container">
+      <h2 class="section-title">Protocol Categories</h2>
+      <p class="section-subtitle">Comprehensive coverage for all health optimization needs</p>
+      
+      <table class="categories-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Items</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Wolverine Stack 2.0</strong></td>
+            <td>Healing and recovery peptides</td>
+            <td>5 items</td>
+            <td><span class="badge badge-primary">Peptides</span></td>
+          </tr>
+          <tr>
+            <td><strong>Cognition / Mental Energy</strong></td>
+            <td>Nootropics and sleep support</td>
+            <td>3 items</td>
+            <td><span class="badge badge-primary">Peptides</span></td>
+          </tr>
+          <tr>
+            <td><strong>Lean Muscle / Fat Loss</strong></td>
+            <td>Body composition optimization</td>
+            <td>5 items</td>
+            <td><span class="badge badge-primary">Peptides</span></td>
+          </tr>
+          <tr>
+            <td><strong>BioRegulator Peptides</strong></td>
+            <td>Organ-specific bioregulators</td>
+            <td>20+ items</td>
+            <td><span class="badge badge-primary">Peptides</span></td>
+          </tr>
+          <tr>
+            <td><strong>Adjuncts</strong></td>
+            <td>Troscriptions, BiOptimizers</td>
+            <td>4 items</td>
+            <td><span class="badge badge-secondary">Supplements</span></td>
+          </tr>
+          <tr>
+            <td><strong>Supplies</strong></td>
+            <td>Syringes, alcohol wipes, etc.</td>
+            <td>5 items</td>
+            <td><span class="badge badge-accent">Supplies</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Charts Section -->
+  <section>
+    <div class="container">
+      <h2 class="section-title">Protocol Analytics</h2>
+      <p class="section-subtitle">Visualize your protocol data and track client engagement</p>
+      
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Protocol Items by Category</h3>
+          <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Average Protocol Value by Duration</h3>
+          <div class="chart-container">
+            <canvas id="valueChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Item Types Distribution</h3>
+          <div class="chart-container">
+            <canvas id="typeChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Client Protocol Status</h3>
+          <div class="chart-container">
+            <canvas id="statusChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>Health Coach Protocol Manager - Built to streamline your health coaching practice</p>
+      <p style="margin-top: 8px; font-size: 0.875rem;">Replaces Excel spreadsheets with a professional, client-friendly experience</p>
+    </div>
+  </footer>
+
+  <script>
+    // Category Distribution Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Wolverine Stack', 'Cognition', 'Fat Loss', 'BioRegulators', 'Gut Health', 'Anti-Aging', 'Adjuncts', 'Supplies'],
+        datasets: [{
+          label: 'Number of Items',
+          data: [5, 3, 5, 20, 2, 8, 4, 5],
+          backgroundColor: [
+            '#2563eb',
+            '#3b82f6',
+            '#60a5fa',
+            '#93c5fd',
+            '#10b981',
+            '#34d399',
+            '#f59e0b',
+            '#fbbf24'
+          ],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // Protocol Value Chart
+    const valueCtx = document.getElementById('valueChart').getContext('2d');
+    new Chart(valueCtx, {
+      type: 'line',
+      data: {
+        labels: ['3 Month', '6 Month', '9 Month', '12 Month'],
+        datasets: [{
+          label: 'Average Protocol Value ($)',
+          data: [4500, 8200, 11500, 14800],
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#2563eb',
+          pointRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return '$' + value.toLocaleString();
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Item Types Chart
+    const typeCtx = document.getElementById('typeChart').getContext('2d');
+    new Chart(typeCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Peptides', 'Supplements', 'Supplies', 'Services'],
+        datasets: [{
+          data: [65, 20, 10, 5],
+          backgroundColor: [
+            '#2563eb',
+            '#10b981',
+            '#f59e0b',
+            '#8b5cf6'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Draft', 'Pending Approval', 'Approved', 'Active'],
+        datasets: [{
+          data: [30, 15, 25, 30],
+          backgroundColor: [
+            '#94a3b8',
+            '#f59e0b',
+            '#10b981',
+            '#2563eb'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
