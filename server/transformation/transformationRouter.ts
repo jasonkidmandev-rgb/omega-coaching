@@ -4346,21 +4346,20 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       const database = await getDb();
       if (!database) throw new Error('Database not available');
       
-      const updates: string[] = [];
-      const values: any[] = [];
-      
-      if (input.content !== undefined) { updates.push('content = ?'); values.push(input.content); }
-      if (input.sessionDate !== undefined) { updates.push('session_date = ?'); values.push(input.sessionDate); }
-      if (input.sessionType !== undefined) { updates.push('session_type = ?'); values.push(input.sessionType); }
-      if (input.isPinned !== undefined) { updates.push('is_pinned = ?'); values.push(input.isPinned ? 1 : 0); }
-      
-      if (updates.length === 0) throw new Error('No fields to update');
-      
-      updates.push('updated_at = NOW()');
-      
-      await database.execute(sql.raw(
-        `UPDATE coaching_session_notes SET ${updates.join(', ')} WHERE id = ${input.noteId}`
-      ));
+      const setParts: ReturnType<typeof sql>[] = [];
+
+      if (input.content !== undefined) setParts.push(sql`content = ${input.content}`);
+      if (input.sessionDate !== undefined) setParts.push(sql`session_date = ${input.sessionDate}`);
+      if (input.sessionType !== undefined) setParts.push(sql`session_type = ${input.sessionType}`);
+      if (input.isPinned !== undefined) setParts.push(sql`is_pinned = ${input.isPinned ? 1 : 0}`);
+
+      if (setParts.length === 0) throw new Error('No fields to update');
+
+      setParts.push(sql`updated_at = NOW()`);
+
+      await database.execute(
+        sql`UPDATE coaching_session_notes SET ${sql.join(setParts, sql`, `)} WHERE id = ${input.noteId}`
+      );
       
       return { success: true, message: 'Session note updated' };
     }),

@@ -170,14 +170,14 @@ async function syncLegacyColumns(contactId: number, contact: any) {
     `UPDATE appointments SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE contactId = ?`,
   ];
   
-  // Execute updates with appropriate params
+  // Execute updates with parameterized queries — never interpolate user data into raw SQL
   try {
-    await db.execute(sql.raw(`UPDATE client_protocols SET clientName = '${fullName.replace(/'/g, "''")}', clientEmail = '${email.replace(/'/g, "''")}' WHERE contactId = ${contactId}`));
-    await db.execute(sql.raw(`UPDATE prospects SET name = '${fullName.replace(/'/g, "''")}', email = '${email.replace(/'/g, "''")}' WHERE contactId = ${contactId}`));
-    await db.execute(sql.raw(`UPDATE client_projects SET clientName = '${fullName.replace(/'/g, "''")}', clientEmail = '${email.replace(/'/g, "''")}' WHERE contactId = ${contactId}`));
-    await db.execute(sql.raw(`UPDATE custom_orders SET clientName = '${fullName.replace(/'/g, "''")}', clientEmail = '${email.replace(/'/g, "''")}' WHERE contactId = ${contactId}`));
-    await db.execute(sql.raw(`UPDATE packing_slips SET clientName = '${fullName.replace(/'/g, "''")}', clientEmail = '${email.replace(/'/g, "''")}' WHERE contactId = ${contactId}`));
-    await db.execute(sql.raw(`UPDATE appointments SET clientName = '${fullName.replace(/'/g, "''")}', clientEmail = '${email.replace(/'/g, "''")}' WHERE contactId = ${contactId}`));
+    await db.execute(sql`UPDATE client_protocols SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
+    await db.execute(sql`UPDATE prospects SET name = ${fullName}, email = ${email} WHERE contactId = ${contactId}`);
+    await db.execute(sql`UPDATE client_projects SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
+    await db.execute(sql`UPDATE custom_orders SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
+    await db.execute(sql`UPDATE packing_slips SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
+    await db.execute(sql`UPDATE appointments SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
   } catch (err) {
     console.error("[ContactsHelper] Error syncing legacy columns for contact", contactId, err);
   }
