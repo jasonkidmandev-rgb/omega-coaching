@@ -12,6 +12,9 @@ if (process.env.SENTRY_DSN) {
     tracesSampleRate: 0.1,
     environment: process.env.NODE_ENV || "development",
   });
+  console.log("[Sentry] Initialized — error tracking active");
+} else {
+  console.warn("[Sentry] SENTRY_DSN not set — error tracking disabled");
 }
 
 import express from "express";
