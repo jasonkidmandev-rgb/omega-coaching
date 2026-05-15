@@ -52,6 +52,7 @@ import { initStrategySessionMonitorCron } from "../cron/strategySessionMonitorCr
 import { initBackorderAndTrackingCron } from "../cron/backorderAndTrackingCron";
 import { initTaskEscalationCron } from "../cron/taskEscalationCron";
 import { startEmailReplyPolling } from '../emailReplyBridge';
+import { initDbBackupCron } from '../cron/dbBackupCron';
 import calendlyWebhookRouter from "../calendly/webhook";
 import { generalLimiter, authLimiter, trackingLimiter, webhookLimiter, publicApiLimiter } from "./rateLimiter";
 import { recordEmailOpen, recordEmailClick } from "../emailTracking";
@@ -642,6 +643,9 @@ async function startServer() {
     
     // Email Reply Bridge - polls Gmail IMAP for client replies to chat notification emails
     startEmailReplyPolling();
+
+    // Daily DB backup to R2 at 3:00 AM UTC — keeps last 7 days
+    initDbBackupCron();
   });
 }
 
