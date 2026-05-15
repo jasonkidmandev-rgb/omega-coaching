@@ -3,6 +3,16 @@
 process.env.TZ = 'UTC';
 
 import "dotenv/config";
+import * as Sentry from "@sentry/node";
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [Sentry.expressIntegration()],
+    tracesSampleRate: 0.1,
+    environment: process.env.NODE_ENV || "development",
+  });
+}
 
 import express from "express";
 import helmet from "helmet";
@@ -535,6 +545,11 @@ async function startServer() {
       },
     });
   });
+
+  // Sentry error handler must come after all routes and before other error middleware
+  if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+  }
 
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
