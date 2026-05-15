@@ -506,6 +506,9 @@ async function startServer() {
     }
   });
   
+  // Temporary Sentry connectivity test — remove after confirming events appear in Sentry
+  app.get('/api/sentry-test', (_req, _res) => { throw new Error('Sentry test error — safe to ignore'); });
+
   // Email+Password auth routes (primary auth method)
   app.use('/api/auth', authLimiter);
   registerAuthRoutes(app);
