@@ -15,4 +15,6 @@ export const ENV = {
   twilioAccountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN ?? "",
   twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER ?? "",
+  calendlyApiToken: process.env.CALENDLY_API_TOKEN ?? "",
+  calendlyWebhookSigningKey: process.env.CALENDLY_WEBHOOK_SIGNING_KEY ?? "",
 };
