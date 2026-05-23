@@ -84,7 +84,7 @@ async function startServer() {
         imgSrc: ["'self'", "data:", "https:", "blob:", "https://maps.gstatic.com", "https://maps.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
         connectSrc: ["'self'", "https://maps.googleapis.com", "https://places.googleapis.com", "wss:", "ws:", "https://*.r2.cloudflarestorage.com"],
-        frameSrc: ["https://www.youtube.com"],
+        frameSrc: ["https://www.youtube.com", "https://www.youtube-nocookie.com"],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
       },
