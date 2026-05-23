@@ -74,4 +74,5 @@ const created = await calendly('POST', '/webhook_subscriptions', {
   scope: 'organization',
 });
 console.log(`\nDone. New subscription URI: ${created.resource.uri}`);
-console.log('Calendly will now send booking events to your production domain.');
+console.log(`Signing key: ${created.resource.signing_key}`);
+console.log('\nNext step: add this signing key to Railway Variables as CALENDLY_WEBHOOK_SIGNING_KEY');
