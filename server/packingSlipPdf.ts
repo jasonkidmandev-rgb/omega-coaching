@@ -134,13 +134,13 @@ export async function generatePackingSlipPdf(packingSlipId: number): Promise<Buf
       doc.moveDown(0.3);
       doc.fontSize(10).font('Helvetica');
       doc.text(`Signed by: ${(packingSlip as any).signedBy || 'Unknown'}`);
-      doc.text(`Date: ${new Date(packingSlip.signedAt).toLocaleString('en-US', { timeZone: 'America/Denver' })}`);
+      doc.text(`Date: ${new Date(packingSlip.signedAt).toLocaleString('en-US', { timeZone: process.env.COMPANY_TIMEZONE || 'America/Denver' })}`);
     }
 
     // Footer
     doc.fontSize(8).font('Helvetica');
     const footerY = doc.page.height - 50;
-    doc.text(`Generated: ${new Date().toLocaleString('en-US', { timeZone: 'America/Denver' })}`, 50, footerY, { align: 'center' });
+    doc.text(`Generated: ${new Date().toLocaleString('en-US', { timeZone: process.env.COMPANY_TIMEZONE || 'America/Denver' })}`, 50, footerY, { align: 'center' });
 
     doc.end();
   });
@@ -249,7 +249,7 @@ export async function generateBatchPackingSlipsPdf(packingSlipIds: number[]): Pr
       if (packingSlip.signedAt) {
         doc.moveDown(1);
         doc.fontSize(10).font('Helvetica');
-        doc.text(`Signed by: ${(packingSlip as any).signedBy || 'Unknown'} on ${new Date(packingSlip.signedAt).toLocaleDateString('en-US', { timeZone: 'America/Denver' })}`);
+        doc.text(`Signed by: ${(packingSlip as any).signedBy || 'Unknown'} on ${new Date(packingSlip.signedAt).toLocaleDateString('en-US', { timeZone: process.env.COMPANY_TIMEZONE || 'America/Denver' })}`);
       }
 
       // Page number

@@ -28,10 +28,10 @@ async function createPackingSlipForPayment(clientProtocolId: number) {
     const protocolItems = await db.getClientProtocolItems(clientProtocolId);
     const allItems = await db.getAllProtocolItems();
 
-    // Filter to only recommended items and get shippable types
+    // Filter to included, coach-fulfilled items with QTY > 0
     // Exclude services from packing slips - they don't need to be physically shipped
     const shippableItems = protocolItems
-      .filter((item: any) => item.isRecommended)
+      .filter((item: any) => item.isIncluded && item.quantity > 0 && item.fulfillmentSource !== 'client')
       .map((item: any) => {
         const protocolItem = allItems.find((i: any) => i.id === item.protocolItemId);
         return {

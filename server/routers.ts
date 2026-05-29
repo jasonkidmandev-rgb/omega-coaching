@@ -5496,10 +5496,19 @@ const packingSlipRouter = router({
       })),
     }))
     .mutation(async ({ input }) => {
+      if (input.clientProtocolId) {
+        const existing = await db.getPackingSlipByProtocolId(input.clientProtocolId);
+        if (existing && !(existing as any).archivedAt) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: `An active packing slip already exists for this protocol (ID: ${existing.id}). Archive the existing slip before creating a new one.`,
+          });
+        }
+      }
       const id = await db.createPackingSlip(input);
       return { id };
     }),
-  
+
   // Update item status (fulfill, backorder, etc.)
   updateItem: adminProcedure
     .input(z.object({
@@ -5513,7 +5522,30 @@ const packingSlipRouter = router({
       itemTrackingNumber: z.string().optional(),
       itemTrackingUrl: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const slip = await db.getPackingSlipByItemId(input.itemId);
+      if (slip?.isLocked || slip?.signedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This packing slip has been signed and locked. Unlock it before making changes.',
+        });
+      }
+      if (input.quantityFulfilled !== undefined || input.quantityBackordered !== undefined) {
+        const item = await db.getPackingSlipItemById(input.itemId);
+        if (item) {
+          const fulfilled = input.quantityFulfilled ?? item.quantityFulfilled;
+          const backordered = input.quantityBackordered ?? item.quantityBackordered;
+          if (fulfilled < 0 || backordered < 0) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'Quantities cannot be negative.' });
+          }
+          if (fulfilled + backordered > item.quantity) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: `Fulfilled (${fulfilled}) + backordered (${backordered}) cannot exceed ordered quantity (${item.quantity}).`,
+            });
+          }
+        }
+      }
       const { itemId, ...data } = input;
       // Auto-generate tracking URL if carrier + number provided but no URL
       if (data.itemTrackingNumber && data.itemTrackingCarrier && !data.itemTrackingUrl) {
@@ -5526,7 +5558,17 @@ const packingSlipRouter = router({
         };
         data.itemTrackingUrl = carrierUrls[data.itemTrackingCarrier] || undefined;
       }
-      return db.updatePackingSlipItem(itemId, data);
+      const result = await db.updatePackingSlipItem(itemId, data);
+      if (slip?.id) {
+        await db.createPackingSlipAuditEntry({
+          packingSlipId: slip.id,
+          action: 'item_status_changed',
+          performedBy: ctx.user.id,
+          performedByName: ctx.user.name || ctx.user.email,
+          details: { itemId, ...data } as Record<string, unknown>,
+        });
+      }
+      return result;
     }),
   
   // Sign off on packing slip
@@ -5566,7 +5608,8 @@ const packingSlipRouter = router({
         trackingNumber: input.trackingNumber,
         trackingUrl,
       });
-      
+      await db.lockPackingSlip(input.packingSlipId, ctx.user.id, ctx.user.name || 'Admin');
+
       // Send shipping notification email if enabled and client has email
       if (input.sendNotification && packingSlip?.clientEmail) {
         const { sendShippingNotification } = await import('./emailService');
@@ -5645,9 +5688,17 @@ const packingSlipRouter = router({
       shippingCountry: z.string().optional(),
       shippingPhone: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { packingSlipId, ...shippingData } = input;
-      return db.updatePackingSlipShipping(packingSlipId, shippingData);
+      const result = await db.updatePackingSlipShipping(packingSlipId, shippingData);
+      await db.createPackingSlipAuditEntry({
+        packingSlipId,
+        action: 'shipping_updated',
+        performedBy: ctx.user.id,
+        performedByName: ctx.user.name || ctx.user.email,
+        details: shippingData as Record<string, unknown>,
+      });
+      return result;
     }),
 
   // Update packing slip package dimensions
@@ -5659,29 +5710,54 @@ const packingSlipRouter = router({
       packageWidth: z.number().nullable(),
       packageHeight: z.number().nullable(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { packingSlipId, ...dimensionsData } = input;
-      return db.updatePackingSlipDimensions(packingSlipId, dimensionsData);
+      const result = await db.updatePackingSlipDimensions(packingSlipId, dimensionsData);
+      await db.createPackingSlipAuditEntry({
+        packingSlipId,
+        action: 'dimensions_updated',
+        performedBy: ctx.user.id,
+        performedByName: ctx.user.name || ctx.user.email,
+        details: dimensionsData as Record<string, unknown>,
+      });
+      return result;
     }),
 
   // Archive packing slip (soft delete)
   archive: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
-      return db.archivePackingSlip(input.id, ctx.user.id);
+      const result = await db.archivePackingSlip(input.id, ctx.user.id);
+      await db.createPackingSlipAuditEntry({
+        packingSlipId: input.id,
+        action: 'archived',
+        performedBy: ctx.user.id,
+        performedByName: ctx.user.name || ctx.user.email,
+      });
+      return result;
     }),
 
   // Restore archived packing slip
   restore: adminProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      return db.restorePackingSlip(input.id);
+    .mutation(async ({ input, ctx }) => {
+      const result = await db.restorePackingSlip(input.id);
+      await db.createPackingSlipAuditEntry({
+        packingSlipId: input.id,
+        action: 'restored',
+        performedBy: ctx.user.id,
+        performedByName: ctx.user.name || ctx.user.email,
+      });
+      return result;
     }),
 
   // Permanently delete packing slip
   permanentDelete: adminProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (ctx.user.role !== 'owner' && ctx.user.role !== 'manager') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only owners and managers can permanently delete packing slips.' });
+      }
       return db.permanentlyDeletePackingSlip(input.id);
     }),
 
@@ -5703,7 +5779,10 @@ const packingSlipRouter = router({
   // Bulk permanent delete
   bulkDelete: adminProcedure
     .input(z.object({ ids: z.array(z.number()) }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (ctx.user.role !== 'owner' && ctx.user.role !== 'manager') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only owners and managers can permanently delete packing slips.' });
+      }
       const results = await Promise.all(
         input.ids.map(id => db.permanentlyDeletePackingSlip(id))
       );
@@ -5712,11 +5791,10 @@ const packingSlipRouter = router({
 
   // Regenerate packing slip items (fix incorrect items)
   regenerate: adminProcedure
-    .input(z.object({ 
+    .input(z.object({
       packingSlipId: z.number(),
-      forceRegenerate: z.boolean().optional(), // Must be true to regenerate signed slips
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const packingSlip = await db.getPackingSlipById(input.packingSlipId);
       if (!packingSlip) {
         throw new Error('Packing slip not found');
@@ -5727,11 +5805,13 @@ const packingSlipRouter = router({
         throw new Error('Store order packing slips cannot be regenerated from a protocol. Edit items manually if needed.');
       }
 
-      // PROTECTION: Block regeneration of signed packing slips unless explicitly forced
-      if (packingSlip.signedAt && !input.forceRegenerate) {
-        throw new Error('Cannot regenerate a signed packing slip. This slip was signed on ' + 
-          new Date(packingSlip.signedAt).toLocaleDateString('en-US', { timeZone: 'America/Denver' }) + '. ' +
-          'Use forceRegenerate option if you really need to regenerate.');
+      // PROTECTION: Block regeneration of signed or locked packing slips
+      // Correct workflow: admin unlocks → regenerates → re-signs
+      if (packingSlip.signedAt || packingSlip.isLocked) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot regenerate a signed packing slip. Unlock it first, then regenerate, then re-sign.',
+        });
       }
 
       // Get protocol items - included items with QTY > 0
@@ -5763,6 +5843,13 @@ const packingSlipRouter = router({
       await db.deletePackingSlipItems(input.packingSlipId);
       await db.addPackingSlipItems(input.packingSlipId, shippableItems as any);
       await db.updatePackingSlipTotalItems(input.packingSlipId, shippableItems.length);
+      await db.createPackingSlipAuditEntry({
+        packingSlipId: input.packingSlipId,
+        action: 'regenerated',
+        performedBy: ctx.user.id,
+        performedByName: ctx.user.name || ctx.user.email,
+        details: { itemCount: shippableItems.length },
+      });
 
       return {
         success: true,
@@ -5773,9 +5860,8 @@ const packingSlipRouter = router({
 
   // Bulk regenerate packing slips
   bulkRegenerate: adminProcedure
-    .input(z.object({ 
+    .input(z.object({
       ids: z.array(z.number()),
-      forceRegenerate: z.boolean().optional(), // Must be true to include signed slips
     }))
     .mutation(async ({ input }) => {
       const results = [];
@@ -5786,22 +5872,23 @@ const packingSlipRouter = router({
 
           // Skip store order packing slips - they don't have a protocol to regenerate from
           if ((packingSlip as any).source === 'store' || !packingSlip.clientProtocolId) {
-            results.push({ 
-              id: packingSlipId, 
-              success: false, 
+            results.push({
+              id: packingSlipId,
+              success: false,
               error: 'Skipped: Store order packing slip',
-              skipped: true 
+              skipped: true
             });
             continue;
           }
 
-          // PROTECTION: Skip signed packing slips unless explicitly forced
-          if (packingSlip.signedAt && !input.forceRegenerate) {
-            results.push({ 
-              id: packingSlipId, 
-              success: false, 
-              error: 'Skipped: Packing slip is signed',
-              skipped: true 
+          // PROTECTION: Skip signed or locked packing slips
+          // Correct workflow: admin unlocks → regenerates → re-signs
+          if (packingSlip.signedAt || packingSlip.isLocked) {
+            results.push({
+              id: packingSlipId,
+              success: false,
+              error: 'Skipped: Packing slip is signed or locked',
+              skipped: true
             });
             continue;
           }
@@ -5869,6 +5956,9 @@ const packingSlipRouter = router({
   bulkUnlock: adminProcedure
     .input(z.object({ ids: z.array(z.number()) }))
     .mutation(async ({ input, ctx }) => {
+      if (ctx.user.role !== 'owner' && ctx.user.role !== 'manager') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only owners and managers can bulk-unlock signed packing slips.' });
+      }
       const results = [];
       for (const packingSlipId of input.ids) {
         try {
@@ -5986,14 +6076,20 @@ const packingSlipRouter = router({
       quantity: z.number(),
       price: z.number().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { packingSlipId, ...itemData } = input;
       await db.addPackingSlipItems(packingSlipId, [itemData]);
-      // Update total items count
       const slip = await db.getPackingSlipById(packingSlipId);
       if (slip) {
         await db.updatePackingSlipTotalItems(packingSlipId, slip.items.length);
       }
+      await db.createPackingSlipAuditEntry({
+        packingSlipId,
+        action: 'item_added',
+        performedBy: ctx.user.id,
+        performedByName: ctx.user.name || ctx.user.email,
+        details: itemData as Record<string, unknown>,
+      });
       return { success: true };
     }),
 
@@ -6003,13 +6099,19 @@ const packingSlipRouter = router({
       packingSlipId: z.number(),
       itemId: z.number(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       await db.deletePackingSlipItem(input.itemId);
-      // Update total items count
       const slip = await db.getPackingSlipById(input.packingSlipId);
       if (slip) {
         await db.updatePackingSlipTotalItems(input.packingSlipId, slip.items.length);
       }
+      await db.createPackingSlipAuditEntry({
+        packingSlipId: input.packingSlipId,
+        action: 'item_removed',
+        performedBy: ctx.user.id,
+        performedByName: ctx.user.name || ctx.user.email,
+        details: { itemId: input.itemId },
+      });
       return { success: true };
     }),
 

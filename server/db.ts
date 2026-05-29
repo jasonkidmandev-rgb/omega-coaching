@@ -4845,6 +4845,25 @@ export async function createPackingSlipForStoreOrder(storeOrderId: number) {
 }
 
 // Get all packing slips with summary
+type SlipStatus = 'pending' | 'in_progress' | 'partial' | 'complete' | 'cancelled';
+
+function deriveSlipStatus(items: { status: string; quantityFulfilled: number; quantityBackordered: number; quantity: number }[]): SlipStatus {
+  if (items.length === 0) return 'pending';
+  if (items.every(i => i.status === 'cancelled')) return 'cancelled';
+  if (items.every(i => i.quantityFulfilled >= i.quantity)) return 'complete';
+  if (items.some(i => i.quantityBackordered > 0 && i.quantityFulfilled > 0)) return 'partial';
+  if (items.some(i => i.quantityFulfilled > 0)) return 'in_progress';
+  return 'pending';
+}
+
+function deriveSlipStatusFromCounts(totalItems: number, itemsFulfilled: number, itemsBackordered: number): SlipStatus {
+  if (totalItems === 0) return 'pending';
+  if (itemsFulfilled >= totalItems) return 'complete';
+  if (itemsBackordered > 0 && itemsFulfilled > 0) return 'partial';
+  if (itemsFulfilled > 0) return 'in_progress';
+  return 'pending';
+}
+
 export async function getAllPackingSlips() {
   const database = await getDb();
   if (!database) return [];
@@ -4896,16 +4915,10 @@ export async function getAllPackingSlips() {
     })
   );
   
-  // Safety net: fix stale status data at read time
-  // If all items are fulfilled but status is still 'partial' or 'in_progress', correct it
-  const correctedSlips = slipsWithAddress.map(slip => {
-    if (slip.totalItems > 0 && slip.itemsFulfilled >= slip.totalItems && slip.status !== 'complete' && slip.status !== 'cancelled') {
-      return { ...slip, status: 'complete' as const, itemsBackordered: 0 };
-    }
-    return slip;
-  });
-  
-  return correctedSlips;
+  return slipsWithAddress.map(slip => ({
+    ...slip,
+    status: deriveSlipStatusFromCounts(slip.totalItems, slip.itemsFulfilled, slip.itemsBackordered),
+  }));
 }
 
 // Get packing slip by ID with items
@@ -4955,17 +4968,7 @@ export async function getPackingSlipById(id: number) {
     }
   }
   
-  // Safety net: if all items are fulfilled but slip status is stale, correct it
-  const allItemsFulfilled = items.length > 0 && items.every(item => item.status === 'fulfilled' || item.quantityFulfilled >= item.quantity);
-  if (allItemsFulfilled && finalSlip.status !== 'complete' && finalSlip.status !== 'cancelled') {
-    finalSlip = { ...finalSlip, status: 'complete' as any, itemsBackordered: 0 };
-    // Also persist the correction to the database
-    await database.update(packingSlips)
-      .set({ status: 'complete', itemsBackordered: 0 })
-      .where(eq(packingSlips.id, id));
-  }
-  
-  return { ...finalSlip, items };
+  return { ...finalSlip, status: deriveSlipStatus(items), items };
 }
 
 // Get packing slip by client protocol ID
@@ -5017,16 +5020,7 @@ export async function getPackingSlipByProtocolId(clientProtocolId: number) {
     }
   }
   
-  // Safety net: if all items are fulfilled but slip status is stale, correct it
-  const allFulfilled = items.length > 0 && items.every(item => item.status === 'fulfilled' || item.quantityFulfilled >= item.quantity);
-  if (allFulfilled && finalSlip.status !== 'complete' && finalSlip.status !== 'cancelled') {
-    finalSlip = { ...finalSlip, status: 'complete' as any, itemsBackordered: 0 };
-    await database.update(packingSlips)
-      .set({ status: 'complete', itemsBackordered: 0 })
-      .where(eq(packingSlips.id, slip.id));
-  }
-  
-  return { ...finalSlip, items };
+  return { ...finalSlip, status: deriveSlipStatus(items), items };
 }
 
 // Update packing slip item status
@@ -5067,6 +5061,33 @@ export async function updatePackingSlipItem(
   }
   
   return { success: true };
+}
+
+export async function getPackingSlipByItemId(itemId: number) {
+  const database = await getDb();
+  if (!database) return null;
+
+  const rows = await database
+    .select({ slip: packingSlips })
+    .from(packingSlipItems)
+    .innerJoin(packingSlips, eq(packingSlipItems.packingSlipId, packingSlips.id))
+    .where(eq(packingSlipItems.id, itemId))
+    .limit(1);
+
+  return rows[0]?.slip ?? null;
+}
+
+export async function getPackingSlipItemById(itemId: number) {
+  const database = await getDb();
+  if (!database) return null;
+
+  const rows = await database
+    .select()
+    .from(packingSlipItems)
+    .where(eq(packingSlipItems.id, itemId))
+    .limit(1);
+
+  return rows[0] ?? null;
 }
 
 // Recalculate packing slip totals
@@ -8188,7 +8209,7 @@ export async function saveNotesWithHistory(
 
 // ============ PACKING SLIP AUDIT LOG FUNCTIONS ============
 
-export type PackingSlipAuditAction = 
+export type PackingSlipAuditAction =
   | 'created'
   | 'item_added'
   | 'item_removed'
@@ -8202,7 +8223,11 @@ export type PackingSlipAuditAction =
   | 'auto_locked'
   | 'status_changed'
   | 'tracking_updated'
-  | 'delivery_marked';
+  | 'delivery_marked'
+  | 'shipping_updated'
+  | 'dimensions_updated'
+  | 'archived'
+  | 'restored';
 
 export async function createPackingSlipAuditEntry(data: {
   packingSlipId: number;
