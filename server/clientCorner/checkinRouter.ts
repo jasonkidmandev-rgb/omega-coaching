@@ -2115,12 +2115,24 @@ export const checkinRouter = router({
       
       // Send the email
       const { sendEmail } = await import('../emailService');
-      await sendEmail({
+      const emailResult = await sendEmail({
         to: protocol.clientEmail,
         subject,
         html: body,
+        _logCategory: 'checkin',
+        _logType: 'test_checkin',
+        _logClientProtocolId: input.clientProtocolId,
+        _logTriggeredBy: 'admin',
       });
-      
+
+      if (!emailResult.success) {
+        throw new Error(`Email delivery failed: ${emailResult.error || 'Unknown SMTP error'}`);
+      }
+
+      if (emailResult.messageId?.startsWith('simulated-')) {
+        throw new Error('SMTP is not configured on the server. Set SMTP_HOST, SMTP_USER, SMTP_PASS, and SMTP_FROM in Railway environment variables.');
+      }
+
       // Log the notification
       await database.insert(checkinNotificationLogs).values({
         checkinId,
@@ -2132,9 +2144,9 @@ export const checkinRouter = router({
         sentAt: now,
         status: 'sent',
       });
-      
-      return { 
-        success: true, 
+
+      return {
+        success: true,
         checkinId,
         message: `Test check-in sent to ${protocol.clientEmail}`,
       };
