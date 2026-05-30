@@ -13,31 +13,64 @@ async function isNotificationEnabled(notificationType: string): Promise<boolean>
 }
 
 // Email configuration - uses environment variables
+// Resend HTTP API adapter — same sendMail() interface as nodemailer so all
+// callers in this file work unchanged. Uses port 443 (HTTPS) so Railway's
+// outbound SMTP port blocks are irrelevant.
 const getTransporter = () => {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = process.env.SMTP_PORT;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
+  const apiKey = process.env.RESEND_API_KEY || process.env.SMTP_PASS;
+  const defaultFrom = process.env.SMTP_FROM || 'noreply@humanedge.health';
 
-  if (!smtpHost || !smtpUser || !smtpPass) {
-    console.warn("[Email] SMTP not configured — set SMTP_HOST, SMTP_USER, SMTP_PASS. Emails will be simulated.");
+  if (!apiKey) {
+    console.warn("[Email] No RESEND_API_KEY or SMTP_PASS set. Emails will be simulated.");
     return null;
   }
 
-  const port = parseInt(smtpPort || "465", 10);
-  const secure = port === 465;
+  return {
+    sendMail: async (options: {
+      from?: string;
+      replyTo?: string;
+      to: string | string[];
+      subject: string;
+      html?: string;
+      text?: string;
+      attachments?: Array<{ filename: string; content: Buffer | string; contentType?: string }>;
+    }): Promise<{ messageId: string }> => {
+      const body: Record<string, unknown> = {
+        from: options.from || defaultFrom,
+        to: Array.isArray(options.to) ? options.to : [options.to],
+        subject: options.subject,
+        ...(options.html && { html: options.html }),
+        ...(options.text && { text: options.text }),
+        ...(options.replyTo && { reply_to: options.replyTo }),
+      };
 
-  return nodemailer.createTransport({
-    host: smtpHost,
-    port,
-    secure,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    auth: {
-      user: smtpUser,
-      pass: smtpPass,
+      if (options.attachments?.length) {
+        body.attachments = options.attachments.map(att => ({
+          filename: att.filename,
+          content: Buffer.isBuffer(att.content)
+            ? att.content.toString('base64')
+            : Buffer.from(att.content as string).toString('base64'),
+        }));
+      }
+
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error((err as any).message || `Resend API error ${response.status}`);
+      }
+
+      const data = await response.json() as { id: string };
+      return { messageId: data.id };
     },
-  });
+  };
 };
 
 interface ProtocolItem {
