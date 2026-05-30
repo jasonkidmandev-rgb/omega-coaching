@@ -17,6 +17,15 @@ async function db() {
   return database;
 }
 
+// MySQL json() columns come back as strings when the driver doesn't auto-parse
+function parseQuestions(questions: unknown): unknown[] {
+  if (Array.isArray(questions)) return questions;
+  if (typeof questions === 'string') {
+    try { return JSON.parse(questions); } catch { return []; }
+  }
+  return [];
+}
+
 // ============ CHECK-IN ROUTER ============
 export const checkinRouter = router({
   // ============ TEMPLATES ============
@@ -28,9 +37,9 @@ export const checkinRouter = router({
         .from(checkinTemplates)
         .where(eq(checkinTemplates.isActive, true))
         .orderBy(desc(checkinTemplates.isDefault), asc(checkinTemplates.name));
-      return templates;
+      return templates.map(t => ({ ...t, questions: parseQuestions(t.questions) }));
     }),
-    
+
     get: adminProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
@@ -39,9 +48,10 @@ export const checkinRouter = router({
           .select()
           .from(checkinTemplates)
           .where(eq(checkinTemplates.id, input.id));
-        return template;
+        if (!template) return template;
+        return { ...template, questions: parseQuestions(template.questions) };
       }),
-    
+
     getDefault: publicProcedure.query(async () => {
       const database = await db();
       const [template] = await database
@@ -51,7 +61,8 @@ export const checkinRouter = router({
           eq(checkinTemplates.isDefault, true),
           eq(checkinTemplates.isActive, true)
         ));
-      return template;
+      if (!template) return template;
+      return { ...template, questions: parseQuestions(template.questions) };
     }),
     
     create: adminProcedure
@@ -923,7 +934,7 @@ export const checkinRouter = router({
         clientName: protocol?.clientName || `Client #${checkin.clientProtocolId}`,
         responses,
         coachResponse,
-        questions: template?.questions || [],
+        questions: parseQuestions(template?.questions),
       };
     }),
 
@@ -1367,7 +1378,7 @@ export const checkinRouter = router({
           ...checkin,
           responses,
           coachResponse: coachResponse || null,
-          questions: template?.questions || [],
+          questions: parseQuestions(template?.questions),
           templateName: template?.name || 'Unknown Template',
         };
       });
@@ -1415,7 +1426,7 @@ export const checkinRouter = router({
       
       return {
         ...checkin,
-        questions: template?.questions || [],
+        questions: parseQuestions(template?.questions),
       };
     }),
 
