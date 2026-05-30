@@ -4,6 +4,12 @@ import { getDb } from "../db";
 import { dashboardPreferences } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 
+function parseJson<T>(value: unknown, fallback: T): T {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value !== 'string') return value as T;
+  try { return JSON.parse(value); } catch { return fallback; }
+}
+
 // Default widget configuration
 export const DEFAULT_WIDGETS = [
   { key: "myProtocol", label: "My Protocol", description: "Quick access to your personal protocol", defaultVisible: true },
@@ -42,8 +48,8 @@ export const dashboardPreferencesRouter = router({
     }
 
     return {
-      widgetVisibility: (prefs.widgetVisibility as Record<string, boolean>) || DEFAULT_VISIBILITY,
-      widgetOrder: prefs.widgetOrder || DEFAULT_WIDGET_ORDER,
+      widgetVisibility: parseJson<Record<string, boolean>>(prefs.widgetVisibility, DEFAULT_VISIBILITY),
+      widgetOrder: parseJson<string[]>(prefs.widgetOrder, DEFAULT_WIDGET_ORDER),
       widgets: DEFAULT_WIDGETS,
     };
   }),
@@ -63,7 +69,7 @@ export const dashboardPreferencesRouter = router({
         .where(eq(dashboardPreferences.userId, ctx.user.id))
         .limit(1);
 
-      const currentVisibility = (existing?.widgetVisibility as Record<string, boolean>) || { ...DEFAULT_VISIBILITY };
+      const currentVisibility = parseJson<Record<string, boolean>>(existing?.widgetVisibility, { ...DEFAULT_VISIBILITY });
       const newVisibility: Record<string, boolean> = { ...currentVisibility, [input.widgetKey]: input.visible };
 
       if (existing) {

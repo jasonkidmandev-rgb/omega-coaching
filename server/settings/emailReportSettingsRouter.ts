@@ -5,6 +5,14 @@ import { emailReportSettings, clientNotificationHistory, users } from "../../dri
 import { eq, and, gte, lte, count, sql } from "drizzle-orm";
 import { sendEmail } from "../emailService";
 
+function parseRecipients(value: unknown): string[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try { return JSON.parse(value); } catch { return []; }
+  }
+  return [];
+}
+
 /**
  * Email Report Settings Router
  * Manages scheduled email delivery reports for admins
@@ -16,7 +24,7 @@ export const emailReportSettingsRouter = router({
     if (!db) return [];
     
     const settings = await db.select().from(emailReportSettings);
-    return settings;
+    return settings.map(s => ({ ...s, recipients: parseRecipients(s.recipients) }));
   }),
 
   // Get a specific report setting
@@ -31,7 +39,8 @@ export const emailReportSettingsRouter = router({
         .from(emailReportSettings)
         .where(eq(emailReportSettings.reportType, input.reportType));
       
-      return setting || null;
+      if (!setting) return null;
+      return { ...setting, recipients: parseRecipients(setting.recipients) };
     }),
 
   // Create or update report settings

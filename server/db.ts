@@ -8908,6 +8908,12 @@ export async function getClientLastSeen(clientEmail: string): Promise<Date | nul
 
 // ============ PROTOCOL SECTIONS ============
 
+function parseJsonField<T>(value: unknown, fallback: T): T {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value !== 'string') return value as T;
+  try { return JSON.parse(value); } catch { return fallback; }
+}
+
 /**
  * Get all protocol sections for a client protocol
  */
@@ -8915,9 +8921,10 @@ export async function getProtocolSections(clientProtocolId: number) {
   const db = await getDb();
   if (!db) return [];
   const { protocolSections } = await import("../drizzle/schema");
-  return db.select()
+  const rows = await db.select()
     .from(protocolSections)
     .where(eq(protocolSections.clientProtocolId, clientProtocolId));
+  return rows.map(r => ({ ...r, content: parseJsonField(r.content, null) }));
 }
 
 /**
@@ -8934,7 +8941,9 @@ export async function getProtocolSection(clientProtocolId: number, sectionType: 
       eq(protocolSections.sectionType, sectionType)
     ))
     .limit(1);
-  return result[0] || null;
+  const row = result[0];
+  if (!row) return null;
+  return { ...row, content: parseJsonField(row.content, null) };
 }
 
 /**
@@ -9013,10 +9022,10 @@ export async function getSectionTemplates(sectionType?: string) {
   const db = await getDb();
   if (!db) return [];
   const { protocolSectionTemplates } = await import("../drizzle/schema");
-  if (sectionType) {
-    return db.select().from(protocolSectionTemplates).where(eq(protocolSectionTemplates.sectionType, sectionType)).orderBy(protocolSectionTemplates.name);
-  }
-  return db.select().from(protocolSectionTemplates).orderBy(protocolSectionTemplates.name);
+  const rows = sectionType
+    ? await db.select().from(protocolSectionTemplates).where(eq(protocolSectionTemplates.sectionType, sectionType)).orderBy(protocolSectionTemplates.name)
+    : await db.select().from(protocolSectionTemplates).orderBy(protocolSectionTemplates.name);
+  return rows.map(r => ({ ...r, content: parseJsonField(r.content, null) }));
 }
 
 export async function getSectionTemplateById(id: number) {
@@ -9024,7 +9033,9 @@ export async function getSectionTemplateById(id: number) {
   if (!db) return null;
   const { protocolSectionTemplates } = await import("../drizzle/schema");
   const rows = await db.select().from(protocolSectionTemplates).where(eq(protocolSectionTemplates.id, id));
-  return rows[0] || null;
+  const row = rows[0];
+  if (!row) return null;
+  return { ...row, content: parseJsonField(row.content, null) };
 }
 
 export async function saveSectionTemplate(name: string, sectionType: string, content: any) {

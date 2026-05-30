@@ -4,6 +4,14 @@ import { getDb } from "../db";
 import { coachProtocolPresets, clientProtocolItems, protocolItems } from "../../drizzle/schema";
 import { eq, desc, or } from "drizzle-orm";
 
+function parseItems(value: unknown): Array<Record<string, unknown>> {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try { return JSON.parse(value); } catch { return []; }
+  }
+  return [];
+}
+
 const presetItemSchema = z.object({
   name: z.string(),
   dosage: z.string().optional(),
@@ -28,7 +36,7 @@ export const protocolPresetsRouter = router({
         )
       )
       .orderBy(desc(coachProtocolPresets.createdAt));
-    return presets;
+    return presets.map(p => ({ ...p, items: parseItems(p.items) }));
   }),
 
   // Get a single preset by ID
@@ -41,7 +49,8 @@ export const protocolPresetsRouter = router({
         .select()
         .from(coachProtocolPresets)
         .where(eq(coachProtocolPresets.id, input.id));
-      return preset || null;
+      if (!preset) return null;
+      return { ...preset, items: parseItems(preset.items) };
     }),
 
   // Create a new preset
@@ -225,7 +234,7 @@ export const protocolPresetsRouter = router({
       const existingItemIds = new Set(existingItems.map(item => item.protocolItemId));
 
       // Apply preset items
-      const presetItems = (preset.items as Array<{ name: string; dosage?: string; frequency?: string; instructions?: string; category?: string; notes?: string }>) || [];
+      const presetItems = parseItems(preset.items) as Array<{ name: string; dosage?: string; frequency?: string; instructions?: string; category?: string; notes?: string }>;
       let addedCount = 0;
       let updatedCount = 0;
 
