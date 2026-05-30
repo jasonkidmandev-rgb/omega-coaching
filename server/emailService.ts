@@ -13,11 +13,7 @@ async function isNotificationEnabled(notificationType: string): Promise<boolean>
 }
 
 // Email configuration - uses environment variables
-let _transporter: ReturnType<typeof nodemailer.createTransport> | null | undefined = undefined;
-
 const getTransporter = () => {
-  if (_transporter !== undefined) return _transporter;
-
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = process.env.SMTP_PORT;
   const smtpUser = process.env.SMTP_USER;
@@ -25,24 +21,23 @@ const getTransporter = () => {
 
   if (!smtpHost || !smtpUser || !smtpPass) {
     console.warn("[Email] SMTP not configured — set SMTP_HOST, SMTP_USER, SMTP_PASS. Emails will be simulated.");
-    _transporter = null;
     return null;
   }
 
   const port = parseInt(smtpPort || "465", 10);
   const secure = port === 465;
 
-  _transporter = nodemailer.createTransport({
+  return nodemailer.createTransport({
     host: smtpHost,
     port,
     secure,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
     auth: {
       user: smtpUser,
       pass: smtpPass,
     },
   });
-
-  return _transporter;
 };
 
 interface ProtocolItem {
