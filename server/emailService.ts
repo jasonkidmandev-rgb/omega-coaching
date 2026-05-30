@@ -13,28 +13,37 @@ async function isNotificationEnabled(notificationType: string): Promise<boolean>
 }
 
 // Email configuration - uses environment variables
+let _transporter: ReturnType<typeof nodemailer.createTransport> | null | undefined = undefined;
+
 const getTransporter = () => {
-  // Check for SMTP configuration
+  if (_transporter !== undefined) return _transporter;
+
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = process.env.SMTP_PORT;
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
 
   if (!smtpHost || !smtpUser || !smtpPass) {
-    console.warn("SMTP not configured. Email sending will be simulated.");
+    console.warn("[Email] SMTP not configured — set SMTP_HOST, SMTP_USER, SMTP_PASS. Emails will be simulated.");
+    _transporter = null;
     return null;
   }
 
-  return nodemailer.createTransport({
+  const port = parseInt(smtpPort || "587", 10);
+  const secure = port === 465;
+
+  _transporter = nodemailer.createTransport({
     host: smtpHost,
-    port: parseInt(smtpPort || "587"),
-    secure: smtpPort === "465",
+    port,
+    secure,
+    ...(!secure && { requireTLS: true }),
     auth: {
       user: smtpUser,
       pass: smtpPass,
     },
   });
+
+  return _transporter;
 };
 
 interface ProtocolItem {
@@ -1825,8 +1834,8 @@ export async function sendEmail(params: {
       _trackedHtml_sendEmail = injectTrackingIntoHtml(params.html, _trackingId, _baseUrl);
     } catch (_e) { /* tracking failed, send without */ }
     const info = await transporter.sendMail({
-      from: params.from || `"Omega Longevity" <${smtpFrom}>`,
-      replyTo: params.replyTo || "omega@omegalongevity.com",
+      from: params.from || smtpFrom,
+      replyTo: params.replyTo || process.env.SMTP_REPLY_TO || smtpFrom,
       to: params.to,
       subject: params.subject,
       html: _trackedHtml_sendEmail,
