@@ -2078,7 +2078,7 @@ export const checkinRouter = router({
       const now = new Date();
       
       // Calculate week number
-      const protocolStart = protocol.createdAt || new Date();
+      const protocolStart = new Date(protocol.createdAt || new Date());
       const weekNumber = Math.ceil((now.getTime() - protocolStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
       
       // Create the check-in record

@@ -3024,7 +3024,7 @@ const userRouter = router({
   getByEmail: adminProcedure
     .input(z.object({ email: z.string() }))
     .query(async ({ input }) => {
-      return db.getUserByEmail(input.email);
+      return (await db.getUserByEmail(input.email)) ?? null;
     }),
   // Admin reset password - sends reset link to user's email
   adminResetPassword: adminProcedure
