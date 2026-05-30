@@ -29,14 +29,13 @@ const getTransporter = () => {
     return null;
   }
 
-  const port = parseInt(smtpPort || "587", 10);
+  const port = parseInt(smtpPort || "465", 10);
   const secure = port === 465;
 
   _transporter = nodemailer.createTransport({
     host: smtpHost,
     port,
     secure,
-    ...(!secure && { requireTLS: true }),
     auth: {
       user: smtpUser,
       pass: smtpPass,
