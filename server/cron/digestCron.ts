@@ -513,9 +513,10 @@ async function sendUserNotificationDigest(
 // Process user-specific daily digests
 async function processUserDailyDigests() {
   console.log("[Digest] Processing user daily digests...");
-  
+
   const appUrl = process.env.VITE_APP_URL || process.env.APP_URL || "https://app.example.com";
-  const currentHour = new Date().getHours();
+  const companyTz = process.env.COMPANY_TIMEZONE || 'America/Denver';
+  const currentHour = new Date(new Date().toLocaleString('en-US', { timeZone: companyTz })).getHours();
   
   try {
     const dbModule = await import("../db");
@@ -541,13 +542,14 @@ async function processUserDailyDigests() {
 
 // Process user-specific weekly digests (Mondays)
 async function processUserWeeklyDigests() {
-  const today = new Date();
-  if (today.getDay() !== 1) return;
-  
+  const companyTz = process.env.COMPANY_TIMEZONE || 'America/Denver';
+  const todayLocal = new Date(new Date().toLocaleString('en-US', { timeZone: companyTz }));
+  if (todayLocal.getDay() !== 1) return;
+
   console.log("[Digest] Processing user weekly digests (Monday)...");
-  
+
   const appUrl = process.env.VITE_APP_URL || process.env.APP_URL || "https://app.example.com";
-  const currentHour = new Date().getHours();
+  const currentHour = todayLocal.getHours();
   
   try {
     const dbModule = await import("../db");

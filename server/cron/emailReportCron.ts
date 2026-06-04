@@ -48,9 +48,12 @@ async function processScheduledReports() {
     .where(eq(emailReportSettings.isEnabled, true));
   
   const now = new Date();
-  const currentHour = now.getHours();
-  const currentDayOfWeek = now.getDay();
-  const currentDayOfMonth = now.getDate();
+  // Convert to company timezone — Railway runs UTC, but report schedules are set in local time
+  const companyTz = process.env.COMPANY_TIMEZONE || 'America/Denver';
+  const nowLocal = new Date(now.toLocaleString('en-US', { timeZone: companyTz }));
+  const currentHour = nowLocal.getHours();
+  const currentDayOfWeek = nowLocal.getDay();
+  const currentDayOfMonth = nowLocal.getDate();
   
   for (const setting of settings) {
     // Check if this report should run now

@@ -9,6 +9,7 @@ import {
 import { eq, and, desc, asc, sql, isNull, gte, lte, or } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { generateCheckinPdf, generateCheckinHistoryPdf } from "./checkinPdf";
+import { calculateNextScheduledTime } from "../cron/checkinCron";
 
 // Helper to get db with null check
 async function db() {
@@ -352,53 +353,8 @@ export const checkinRouter = router({
         const timeOfDay = updates.timeOfDay ?? currentSchedule.timeOfDay ?? '10:00';
         const timezone = updates.timezone ?? currentSchedule.timezone ?? 'America/Denver';
         
-        // Calculate the next scheduled time based on the new settings
-        const now = new Date();
-        const nextScheduled = new Date(now);
-        
-        // Parse time of day (HH:MM format)
-        const [hours, minutes] = timeOfDay.split(':').map(Number);
-        
-        // Calculate days until the target day of week
-        const currentDay = now.getDay();
-        let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7;
-        
-        // If it's the same day but the time has passed, schedule for next week
-        if (daysUntilTarget === 0) {
-          const targetTimeToday = new Date(now);
-          targetTimeToday.setHours(hours, minutes, 0, 0);
-          if (now >= targetTimeToday) {
-            daysUntilTarget = 7;
-          }
-        }
-        
-        // For biweekly, add an extra week if needed
-        if (frequency === 'biweekly' && daysUntilTarget < 7) {
-          // Check if we should skip to the next occurrence
-          const lastCheckin = currentSchedule.lastSentAt;
-          if (lastCheckin) {
-            const daysSinceLastCheckin = Math.floor((now.getTime() - new Date(lastCheckin).getTime()) / (1000 * 60 * 60 * 24));
-            if (daysSinceLastCheckin < 14) {
-              daysUntilTarget += 7;
-            }
-          }
-        }
-        
-        // For monthly, calculate next occurrence
-        if (frequency === 'monthly') {
-          // Find the next occurrence of this day of week in the next month
-          nextScheduled.setMonth(nextScheduled.getMonth() + 1);
-          nextScheduled.setDate(1);
-          while (nextScheduled.getDay() !== dayOfWeek) {
-            nextScheduled.setDate(nextScheduled.getDate() + 1);
-          }
-          daysUntilTarget = 0; // We've already set the date
-        } else {
-          nextScheduled.setDate(now.getDate() + daysUntilTarget);
-        }
-        
-        // Set the time
-        nextScheduled.setHours(hours, minutes, 0, 0);
+        // Calculate the next scheduled time — uses UTC-aware conversion via calculateNextScheduledTime
+        const nextScheduled = calculateNextScheduledTime(dayOfWeek, timeOfDay, timezone, frequency);
         
         // Build update data
         const updateData: Record<string, any> = {
@@ -572,31 +528,8 @@ export const checkinRouter = router({
             const timeOfDay = updates.timeOfDay ?? currentSchedule.timeOfDay ?? '10:00';
             const timezone = updates.timezone ?? currentSchedule.timezone ?? 'America/Denver';
             
-            // Calculate next scheduled time
-            const now = new Date();
-            const nextScheduled = new Date(now);
-            const [hours, minutes] = timeOfDay.split(':').map(Number);
-            const currentDay = now.getDay();
-            let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7;
-            
-            if (daysUntilTarget === 0) {
-              const targetTimeToday = new Date(now);
-              targetTimeToday.setHours(hours, minutes, 0, 0);
-              if (now >= targetTimeToday) {
-                daysUntilTarget = frequency === 'weekly' ? 7 : frequency === 'biweekly' ? 14 : 28;
-              }
-            }
-            
-            if (frequency === 'monthly') {
-              nextScheduled.setMonth(nextScheduled.getMonth() + 1);
-              nextScheduled.setDate(1);
-              while (nextScheduled.getDay() !== dayOfWeek) {
-                nextScheduled.setDate(nextScheduled.getDate() + 1);
-              }
-            } else {
-              nextScheduled.setDate(now.getDate() + daysUntilTarget);
-            }
-            nextScheduled.setHours(hours, minutes, 0, 0);
+            // Calculate next scheduled time — uses UTC-aware conversion via calculateNextScheduledTime
+            const nextScheduled = calculateNextScheduledTime(dayOfWeek, timeOfDay, timezone, frequency);
             
             // Build update data
             const updateData: Record<string, any> = { nextScheduledAt: nextScheduled };

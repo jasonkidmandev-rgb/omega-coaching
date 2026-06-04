@@ -1134,7 +1134,7 @@ const clientProtocolRouter = router({
         if (input.clientEmail) {
           try {
             const { sendNewClientWelcomeEmail } = await import('./emailService');
-            const appUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+            const appUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
             
             // Check if user already has a password set
             const existingUser = await getUserByEmailForPasswordReset(input.clientEmail);
@@ -1225,7 +1225,7 @@ const clientProtocolRouter = router({
         if (input.clientEmail) {
           try {
             const { sendNewClientWelcomeEmail } = await import('./emailService');
-            const appUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+            const appUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
             
             // Check if user already has a password set
             const existingUser = await getUserByEmailForPasswordReset(input.clientEmail);

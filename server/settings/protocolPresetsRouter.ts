@@ -2,12 +2,15 @@ import { z } from "zod";
 import { router, adminProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 import { coachProtocolPresets, clientProtocolItems, protocolItems } from "../../drizzle/schema";
-import { eq, desc, or } from "drizzle-orm";
+import { eq, desc, or, and } from "drizzle-orm";
 
 function parseItems(value: unknown): Array<Record<string, unknown>> {
   if (Array.isArray(value)) return value;
   if (typeof value === 'string') {
-    try { return JSON.parse(value); } catch { return []; }
+    try { return JSON.parse(value); } catch (e) {
+      console.error('[protocolPresets] Failed to parse preset items JSON:', e);
+      return [];
+    }
   }
   return [];
 }
@@ -31,7 +34,7 @@ export const protocolPresetsRouter = router({
       .from(coachProtocolPresets)
       .where(
         or(
-          eq(coachProtocolPresets.isSystemPreset, true),
+          eq(coachProtocolPresets.isSystemPreset, 1),
           eq(coachProtocolPresets.createdBy, ctx.user.id)
         )
       )
@@ -68,9 +71,10 @@ export const protocolPresetsRouter = router({
         name: input.name,
         description: input.description || null,
         category: input.category || null,
+        itemConfig: input.items,
         items: input.items,
         createdBy: ctx.user.id,
-        isSystemPreset: false,
+        isSystemPreset: 0,
       });
       return { id: result.insertId };
     }),
@@ -194,9 +198,10 @@ export const protocolPresetsRouter = router({
         name: input.name,
         description: input.description || null,
         category: input.category || null,
+        itemConfig: presetItems,
         items: presetItems,
         createdBy: ctx.user.id,
-        isSystemPreset: false,
+        isSystemPreset: 0,
       });
 
       return { id: result.insertId };
@@ -246,21 +251,24 @@ export const protocolPresetsRouter = router({
             await db
               .update(clientProtocolItems)
               .set({
-                isIncluded: true,
-                isRecommended: true,
+                isIncluded: 1,
+                isRecommended: 1,
                 customSchedule: presetItem.frequency || null,
                 customNotes: presetItem.notes || null,
                 quantity: presetItem.dosage ? parseInt(presetItem.dosage) || 1 : 1,
               })
-              .where(eq(clientProtocolItems.clientProtocolId, input.clientProtocolId));
+              .where(and(
+                eq(clientProtocolItems.clientProtocolId, input.clientProtocolId),
+                eq(clientProtocolItems.protocolItemId, matchingItem.id)
+              ));
             updatedCount++;
           } else {
             // Add new item
             await db.insert(clientProtocolItems).values({
               clientProtocolId: input.clientProtocolId,
               protocolItemId: matchingItem.id,
-              isIncluded: true,
-              isRecommended: true,
+              isIncluded: 1,
+              isRecommended: 1,
               quantity: presetItem.dosage ? parseInt(presetItem.dosage) || 1 : 1,
               customSchedule: presetItem.frequency || null,
               customNotes: presetItem.notes || null,

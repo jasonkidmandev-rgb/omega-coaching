@@ -38,7 +38,7 @@ function getTimezoneOffset(timezone: string): number {
 /**
  * Calculate the next scheduled time based on client's timezone
  */
-function calculateNextScheduledTime(
+export function calculateNextScheduledTime(
   dayOfWeek: number,
   timeOfDay: string,
   timezone: string,

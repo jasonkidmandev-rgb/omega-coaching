@@ -25,6 +25,10 @@ const getTransporter = () => {
     return null;
   }
 
+  // Resend rejects RFC 5322 quoted-string display names: "Name" <email> → Name <email>
+  const normalizeAddr = (addr: string) =>
+    addr.replace(/^"([^"]+)"\s*(<[^>]+>)$/, '$1 $2').trim();
+
   return {
     sendMail: async (options: {
       from?: string;
@@ -36,12 +40,12 @@ const getTransporter = () => {
       attachments?: Array<{ filename: string; content: Buffer | string; contentType?: string }>;
     }): Promise<{ messageId: string }> => {
       const body: Record<string, unknown> = {
-        from: options.from || defaultFrom,
+        from: normalizeAddr(options.from || defaultFrom),
         to: Array.isArray(options.to) ? options.to : [options.to],
         subject: options.subject,
         ...(options.html && { html: options.html }),
         ...(options.text && { text: options.text }),
-        ...(options.replyTo && { reply_to: options.replyTo }),
+        ...(options.replyTo && { reply_to: normalizeAddr(options.replyTo) }),
       };
 
       if (options.attachments?.length) {
@@ -653,7 +657,7 @@ export async function sendProtocolLink(params: {
   const { to, clientName, protocolUrl, programName } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const emailHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -709,7 +713,7 @@ export async function sendProtocolLink(params: {
     let _trackedHtml_sendProtocolLink = emailHtml;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendProtocolLink', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendProtocolLink' });
       _trackedHtml_sendProtocolLink = injectTrackingIntoHtml(emailHtml, _tid, _baseUrl);
@@ -740,7 +744,7 @@ export async function sendProtocolEmail(params: SendProtocolEmailParams): Promis
   const { to, clientName, protocol, protocolItems, allItems, categories, requirements, programInfo, protocolUrl, protocolSections } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   // Generate PDF
   const pdfBuffer = generateProtocolPdfBuffer({
@@ -808,7 +812,7 @@ export async function sendProtocolEmail(params: SendProtocolEmailParams): Promis
     let _trackedHtml_sendProtocolEmail = emailHtml;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendProtocolEmail', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendProtocolEmail' });
       _trackedHtml_sendProtocolEmail = injectTrackingIntoHtml(emailHtml, _tid, _baseUrl);
@@ -855,7 +859,7 @@ export async function sendHighDiscountCouponNotification(params: {
   }
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
 
   const subject = `⚠️ High-Discount Coupon Used: ${couponCode} (${discountPercent}% off)`;
   
@@ -933,7 +937,7 @@ export async function sendHighDiscountCouponNotification(params: {
     let _trackedHtml_sendHighDiscountCouponNotification = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendHighDiscountCouponNotification', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendHighDiscountCouponNotification' });
       _trackedHtml_sendHighDiscountCouponNotification = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -990,7 +994,7 @@ export async function sendProtocolLinkWithTracking(params: {
   const { to, clientName, protocolUrl, programName, trackingPixelUrl } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   // Wrap the protocol URL with click tracking
   const trackedProtocolUrl = wrapLinkWithTracking(protocolUrl, trackingPixelUrl, 'View Your Protocol');
@@ -1053,7 +1057,7 @@ export async function sendProtocolLinkWithTracking(params: {
     let _trackedHtml_sendProtocolLinkWithTracking = emailHtml;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendProtocolLinkWithTracking', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendProtocolLinkWithTracking' });
       _trackedHtml_sendProtocolLinkWithTracking = injectTrackingIntoHtml(emailHtml, _tid, _baseUrl);
@@ -1089,7 +1093,7 @@ export async function sendClientOpenedNotification(params: {
   }
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
 
   const formattedDate = openedAt.toLocaleString('en-US', { timeZone: 'America/Denver',
     weekday: 'long',
@@ -1166,7 +1170,7 @@ export async function sendClientOpenedNotification(params: {
     let _trackedHtml_sendClientOpenedNotification = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendClientOpenedNotification', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendClientOpenedNotification' });
       _trackedHtml_sendClientOpenedNotification = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -1200,7 +1204,7 @@ export async function sendOrderConfirmationEmail(params: {
   const { to, clientName, orderId, orderTotal, items, protocolUrl } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const subject = `Order Confirmation - Omega Longevity #${orderId.slice(-8).toUpperCase()}`;
 
@@ -1329,7 +1333,7 @@ export async function sendOrderConfirmationEmail(params: {
     let _trackedHtml_sendOrderConfirmationEmail = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendOrderConfirmationEmail', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendOrderConfirmationEmail' });
       _trackedHtml_sendOrderConfirmationEmail = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -1376,10 +1380,10 @@ export async function sendShippingNotification(params: {
   }
 
   const { to, clientName, status, items, trackingNumber, trackingUrl, notes, protocolUrl, siteUrl: providedSiteUrl } = params;
-  const siteUrl = providedSiteUrl || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const siteUrl = providedSiteUrl || process.env.VITE_APP_URL || 'https://www.humanedge.health';
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const statusConfig = {
     shipped: {
@@ -1591,7 +1595,7 @@ export async function sendFollowUpEmail(
   }
 ): Promise<boolean> {
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
 
   const companyName = branding?.companyName || "Omega Longevity";
   const tagline = branding?.tagline || "Elite Level Health Optimization";
@@ -1696,7 +1700,7 @@ export async function sendFollowUpEmail(
     let _trackedHtml_sendFollowUpEmail = html;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendFollowUpEmail', recipientEmail: clientEmail, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendFollowUpEmail' });
       _trackedHtml_sendFollowUpEmail = injectTrackingIntoHtml(html, _tid, _baseUrl);
@@ -1742,7 +1746,7 @@ export async function sendSubtaskAssignmentNotification(params: {
   projectUrl?: string;
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
   const companyName = "Omega Longevity";
   
   const dueDateText = params.dueDate 
@@ -1799,7 +1803,7 @@ export async function sendSubtaskAssignmentNotification(params: {
     let _trackedHtml_sendSubtaskAssignmentNotification = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendSubtaskAssignmentNotification', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendSubtaskAssignmentNotification' });
       _trackedHtml_sendSubtaskAssignmentNotification = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -1842,7 +1846,7 @@ export async function sendEmail(params: {
   _skipLog?: boolean;
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
 
   if (!transporter) {
     console.log("[Email] Simulated email to:", params.to);
@@ -1856,7 +1860,7 @@ export async function sendEmail(params: {
     let _trackingId: string | undefined;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       _trackingId = await createEmailTracking({ emailType: 'sendEmail', recipientEmail: params.to, recipientName: params._logRecipientName, subject: params.subject });
       _trackedHtml_sendEmail = injectTrackingIntoHtml(params.html, _trackingId, _baseUrl);
     } catch (_e) { /* tracking failed, send without */ }
@@ -1920,7 +1924,7 @@ export async function sendAccountInviteEmail(params: {
   const { to, clientName, signupUrl, protocolUrl, customMessage } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const subject = "Create Your Omega Longevity Account";
 
@@ -2028,7 +2032,7 @@ export async function sendAccountInviteEmail(params: {
     let _trackedHtml_sendAccountInviteEmail = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendAccountInviteEmail', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendAccountInviteEmail' });
       _trackedHtml_sendAccountInviteEmail = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -2068,7 +2072,7 @@ export async function sendWelcomeEmail(params: {
   const { to, userName, dashboardUrl, protocolUrl, launchpadUrl } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
   
   // Extract base URL from launchpadUrl for other links
   const baseUrl = launchpadUrl.replace('/launchpad', '');
@@ -2200,7 +2204,7 @@ export async function sendWelcomeEmail(params: {
     let _trackedHtml_sendWelcomeEmail = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendWelcomeEmail', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendWelcomeEmail' });
       _trackedHtml_sendWelcomeEmail = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -2232,7 +2236,7 @@ export async function sendWaiverAnnouncementEmail(params: {
   const { to, recipientName, subject, message } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -2299,7 +2303,7 @@ export async function sendWaiverAnnouncementEmail(params: {
     let _trackedHtml_sendWaiverAnnouncementEmail = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendWaiverAnnouncementEmail', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendWaiverAnnouncementEmail' });
       _trackedHtml_sendWaiverAnnouncementEmail = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -2335,7 +2339,7 @@ export async function sendPaymentStatusNotification(params: {
   const { to, clientName, status, protocolName, amount, paymentMethod, notes, protocolUrl } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const statusConfig = {
     paid: {
@@ -2501,7 +2505,7 @@ export async function sendPaymentStatusNotification(params: {
     let _trackedHtml_sendPaymentStatusNotification = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendPaymentStatusNotification', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendPaymentStatusNotification' });
       _trackedHtml_sendPaymentStatusNotification = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -2534,7 +2538,7 @@ export async function sendProfileCompletionNotification(
   clientEditUrl: string
 ): Promise<{ success: boolean; message: string }> {
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
 
   const subject = `🎉 Profile Complete: ${clientName} is Ready for Checkout`;
 
@@ -2627,7 +2631,7 @@ export async function sendProfileCompletionNotification(
     let _trackedHtml_sendProfileCompletionNotification = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendProfileCompletionNotification', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendProfileCompletionNotification' });
       _trackedHtml_sendProfileCompletionNotification = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -2660,7 +2664,7 @@ export async function sendProfileCompletionReminderEmail(params: {
   const { to, clientName, protocolUrl, missingFields } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const subject = "Action Required: Complete Your Profile - Omega Longevity";
 
@@ -2759,7 +2763,7 @@ export async function sendProfileCompletionReminderEmail(params: {
     let _trackedHtml_sendProfileCompletionReminderEmail = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendProfileCompletionReminderEmail', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendProfileCompletionReminderEmail' });
       _trackedHtml_sendProfileCompletionReminderEmail = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -2795,7 +2799,7 @@ export async function sendPaymentReminderEmail(params: {
   const { to, clientName, totalAmount, paymentLink, paymentPortalLink, supportEmail } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const subject = `Complete Your Payment - Omega Longevity`;
   const formattedAmount = `$${totalAmount.toFixed(2)}`;
@@ -2891,7 +2895,7 @@ export async function sendPaymentReminderEmail(params: {
     let _trackedHtml_sendPaymentReminderEmail = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendPaymentReminderEmail', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendPaymentReminderEmail' });
       _trackedHtml_sendPaymentReminderEmail = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -2936,7 +2940,7 @@ export async function sendTransformationMilestoneEmail(params: {
   }
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
   const supportEmail = "omega@omegalongevity.com";
 
   // Milestone-specific content
@@ -3098,7 +3102,7 @@ export async function sendTransformationMilestoneEmail(params: {
   let trackingId: string | null = null;
   try {
     const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-    const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+    const baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
     trackingId = await createEmailTracking({
       enrollmentId: enrollmentId || undefined,
       emailType: 'transformation_milestone',
@@ -3159,7 +3163,7 @@ export async function sendAdminMilestoneNotification(params: {
   }
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
 
   const subject = `🎯 Client Milestone: ${clientName} - ${milestoneLabel}`;
 
@@ -3202,7 +3206,7 @@ export async function sendAdminMilestoneNotification(params: {
       let _trackedHtml_sendAdminMilestoneNotification = htmlContent;
       try {
         const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-        const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+        const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
         // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
         const _tid = await createEmailTracking({ emailType: 'sendAdminMilestoneNotification', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendAdminMilestoneNotification' });
         _trackedHtml_sendAdminMilestoneNotification = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -3242,7 +3246,7 @@ export async function sendTransformationPaymentConfirmationEmail(params: {
   const { to, clientName, tier, amount, paymentMethod, promoCode, discountAmount, originalAmount, baseUrl, enrollmentId } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
    const tierNames: Record<string, string> = {
     elite: "Elite Longevity Program",
@@ -3441,7 +3445,7 @@ export async function sendTransformationPaymentAdminNotification(params: {
   const { clientName, clientEmail, tier, amount, paymentMethod, promoCode, discountAmount, baseUrl } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
   const { getAdminEmails } = await import('./db');
   const adminEmails = await getAdminEmails();
   if (adminEmails.length === 0) {
@@ -3526,7 +3530,7 @@ export async function sendTransformationPaymentAdminNotification(params: {
       let _trackedHtml_sendTransformationPaymentAdminNotification = htmlContent;
       try {
         const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-        const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+        const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
         // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
         const _tid = await createEmailTracking({ emailType: 'sendTransformationPaymentAdminNotification', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendTransformationPaymentAdminNotification' });
         _trackedHtml_sendTransformationPaymentAdminNotification = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -3563,7 +3567,7 @@ export async function sendGuestEnrollmentVerificationEmail(params: {
   const { to, clientName, tier, authToken, enrollmentId, baseUrl } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const tierNames: Record<string, string> = {
     elite: "Elite Longevity Program",
@@ -3700,7 +3704,7 @@ The Omega Longevity Team
     let _trackedHtml_sendGuestEnrollmentVerificationEmail = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendGuestEnrollmentVerificationEmail', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendGuestEnrollmentVerificationEmail' });
       _trackedHtml_sendGuestEnrollmentVerificationEmail = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -3741,8 +3745,8 @@ export async function sendNewClientWelcomeEmail(params: {
   }
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
-  const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
+  const baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
 
   const subject = "Welcome to Omega Longevity - Your Protocol is Ready!";
 
@@ -3893,7 +3897,7 @@ export async function sendNewClientWelcomeEmail(params: {
     let _trackedHtml_sendNewClientWelcomeEmail = htmlContent;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const _baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       // @ts-ignore - auto-injected tracking code uses typeof checks for variable detection
       const _tid = await createEmailTracking({ emailType: 'sendNewClientWelcomeEmail', recipientEmail: to, recipientName: typeof clientName !== 'undefined' ? clientName : (typeof recipientName !== 'undefined' ? recipientName : (typeof userName !== 'undefined' ? userName : undefined)), subject: typeof subject !== 'undefined' ? subject : 'sendNewClientWelcomeEmail' });
       _trackedHtml_sendNewClientWelcomeEmail = injectTrackingIntoHtml(htmlContent, _tid, _baseUrl);
@@ -3938,7 +3942,7 @@ export async function sendIntakeFormEmail(params: {
   }
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
   const supportEmail = "omega@omegalongevity.com";
 
   const tierNames: Record<string, string> = {
@@ -4163,8 +4167,8 @@ export async function sendTrackedEmail(params: {
   triggeredBy?: 'system' | 'cron' | 'admin' | 'webhook';
 }): Promise<{ success: boolean; message: string; trackingId?: string }> {
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || 'Omega Longevity <noreply@omegalongevity.com>';
-  const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const smtpFrom = process.env.SMTP_FROM || 'Omega Longevity <noreply@humanedge.health>';
+  const baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
 
   if (!transporter) {
     console.log(`[Email] Simulated tracked email to: ${params.to}, Subject: ${params.subject}`);
@@ -4268,7 +4272,7 @@ export async function sendNewMessageEmailToClient(params: {
   }
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
   const chatUrl = protocolUrl.includes('?') ? protocolUrl : `${protocolUrl}?tab=chat`;
 
   // Generate reply token for email reply bridge
@@ -4319,7 +4323,7 @@ export async function sendNewMessageEmailToClient(params: {
     let trackedHtml = emailHtml;
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
-      const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
       const tid = await createEmailTracking({ emailType: 'new_message_to_client', recipientEmail: to, recipientName: clientName, subject: `New message from ${coachName}` });
       trackedHtml = injectTrackingIntoHtml(emailHtml, tid, baseUrl);
     } catch (_e) { /* tracking failed, send without */ }
@@ -4366,8 +4370,8 @@ export async function sendNewMessageEmailToAdmins(params: {
   }
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "noreply@omegalongevity.com";
-  const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const smtpFrom = process.env.SMTP_FROM || "noreply@humanedge.health";
+  const baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
   const protocolEditUrl = `${baseUrl}/admin/clients/${protocolId}?tab=comments`;
   const subject = `New message from ${clientName || 'Client'} on their protocol`;
 
@@ -4511,10 +4515,10 @@ export async function sendOnboardingWelcomeEmail(params: {
     communityAccessMonths, omegaEliteSignupUrl, peptideProSignupUrl,
     appStoreApple, appStoreGoogle,
   } = params;
-  const siteUrl = params.baseUrl || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const siteUrl = params.baseUrl || process.env.VITE_APP_URL || 'https://www.humanedge.health';
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const subject = `Welcome to ${programName} — Here's What to Do Next`;
 
@@ -4672,7 +4676,7 @@ export async function sendAdminShippingNotification(params: {
   const { clientName, clientEmail, packingSlipId, status, itemCount, trackingNumber, trackingCarrier, trackingUrl, fulfilledByName } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   // Get admin emails
   const adminEmails = await getAdminEmails();
@@ -4756,7 +4760,7 @@ export async function sendAdminDeliveryNotification(params: {
   const { clientName, clientEmail, packingSlipId, trackingNumber, deliveredAt } = params;
 
   const transporter = getTransporter();
-  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
+  const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@humanedge.health>";
 
   const adminEmails = await getAdminEmails();
   if (adminEmails.length === 0) {

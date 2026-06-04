@@ -1805,9 +1805,15 @@ export async function cloneTemplateToClientProtocol(
 
   // Clone template items to client protocol items
   // Get all master items to inherit fulfillmentSource defaults
+  if (templateItemsList.length === 0) {
+    console.warn(`[cloneTemplateToClientProtocol] Template ${templateId} has no items — protocol ${protocolId} created with empty item list`);
+  }
   const allMasterItems = await getAllProtocolItems();
   const clientItems: InsertClientProtocolItem[] = templateItemsList.map((item, index) => {
     const masterItem = allMasterItems.find((m: any) => m.id === item.protocolItemId);
+    if (!masterItem) {
+      console.warn(`[cloneTemplateToClientProtocol] Template item protocolItemId=${item.protocolItemId} not found in master items — snapshotName will be null`);
+    }
     return {
       clientProtocolId: protocolId,
       protocolItemId: item.protocolItemId,
@@ -1817,7 +1823,7 @@ export async function cloneTemplateToClientProtocol(
       customNotes: item.customNotes,
       sortOrder: item.sortOrder || index,
       fulfillmentSource: (masterItem as any)?.fulfillmentSource || 'coach',
-      snapshotName: masterItem?.name || undefined,
+      snapshotName: masterItem?.name ?? null,
     };
   });
 
