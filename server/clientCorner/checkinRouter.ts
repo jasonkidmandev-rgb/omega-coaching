@@ -36,7 +36,7 @@ export const checkinRouter = router({
       const templates = await database
         .select()
         .from(checkinTemplates)
-        .where(eq(checkinTemplates.isActive, true))
+        .where(eq(checkinTemplates.isActive, 1))
         .orderBy(desc(checkinTemplates.isDefault), asc(checkinTemplates.name));
       return templates.map(t => ({ ...t, questions: parseQuestions(t.questions) }));
     }),
@@ -1338,7 +1338,7 @@ export const checkinRouter = router({
       return history;
     }),
 
-  getForClient: protectedProcedure
+  getForClient: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       const database = await db();
@@ -1346,17 +1346,27 @@ export const checkinRouter = router({
         .select()
         .from(checkins)
         .where(eq(checkins.id, input.id));
-      
+
       if (!checkin) {
         throw new Error("Check-in not found");
       }
-      
-      // Get the template questions
-      const [template] = await database
-        .select()
-        .from(checkinTemplates)
-        .where(eq(checkinTemplates.id, checkin.templateId));
-      
+
+      // Get the template questions; fall back to default template if templateId is missing/invalid
+      let [template] = checkin.templateId
+        ? await database.select().from(checkinTemplates).where(eq(checkinTemplates.id, checkin.templateId))
+        : [];
+
+      if (!template) {
+        [template] = await database
+          .select()
+          .from(checkinTemplates)
+          .where(eq(checkinTemplates.isDefault, 1))
+          .limit(1);
+      }
+      if (!template) {
+        [template] = await database.select().from(checkinTemplates).limit(1);
+      }
+
       return {
         ...checkin,
         questions: parseQuestions(template?.questions),
@@ -1998,26 +2008,45 @@ export const checkinRouter = router({
         .select()
         .from(checkinSchedules)
         .where(eq(checkinSchedules.clientProtocolId, input.clientProtocolId));
-      
+
+      // Resolve checkin template ID: schedule → default → first available
+      let checkinTemplateId = schedule?.templateId || 0;
+      if (!checkinTemplateId) {
+        const [defaultTpl] = await database
+          .select({ id: checkinTemplates.id })
+          .from(checkinTemplates)
+          .where(eq(checkinTemplates.isDefault, 1))
+          .limit(1);
+        checkinTemplateId = defaultTpl?.id || 0;
+      }
+      if (!checkinTemplateId) {
+        const [anyTpl] = await database
+          .select({ id: checkinTemplates.id })
+          .from(checkinTemplates)
+          .limit(1);
+        checkinTemplateId = anyTpl?.id || 0;
+      }
+      if (!checkinTemplateId) throw new Error('No check-in question template found. Please create a check-in template first.');
+
       // Get the check-in email template
       const [template] = await database
         .select()
         .from(checkinNotificationTemplates)
         .where(eq(checkinNotificationTemplates.templateType, 'checkin_reminder'));
-      
+
       if (!template) throw new Error('No check-in email template found. Please create a checkin_reminder template first.');
-      
+
       const coachName = process.env.OWNER_NAME || 'Your Coach';
       const now = new Date();
-      
+
       // Calculate week number
       const protocolStart = new Date(protocol.createdAt || new Date());
       const weekNumber = Math.ceil((now.getTime() - protocolStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
-      
+
       // Create the check-in record
       const result = await database.insert(checkins).values({
         clientProtocolId: input.clientProtocolId,
-        templateId: schedule?.templateId || 0,
+        templateId: checkinTemplateId,
         status: 'pending',
         weekNumber,
         sentAt: now,
