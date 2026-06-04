@@ -1876,7 +1876,13 @@ export async function sendEmail(params: {
     try {
       const { createEmailTracking, injectTrackingIntoHtml } = await import('./emailTracking');
       const _baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
-      _trackingId = await createEmailTracking({ emailType: 'sendEmail', recipientEmail: params.to, recipientName: params._logRecipientName, subject: params.subject });
+      const _categoryToEmailType: Record<string, string> = {
+        checkin: 'checkin', protocol: 'protocol_sent', payment: 'payment_reminder',
+        welcome: 'welcome', announcement: 'announcement',
+        shipping: 'other', inventory: 'other', document: 'other', digest: 'other', other: 'other',
+      };
+      const _emailType = _categoryToEmailType[params._logCategory || 'other'] || 'other';
+      _trackingId = await createEmailTracking({ emailType: _emailType, recipientEmail: params.to, recipientName: params._logRecipientName, subject: params.subject });
       _trackedHtml_sendEmail = injectTrackingIntoHtml(params.html, _trackingId, _baseUrl);
     } catch (_e) { /* tracking failed, send without */ }
     const info = await transporter.sendMail({
