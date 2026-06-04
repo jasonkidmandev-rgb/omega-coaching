@@ -13,7 +13,9 @@ import {
   AlertCircle, CheckCircle, RefreshCw, History, Eye, Send
 } from "lucide-react";
 import { toast } from "sonner";
-import { format, addWeeks } from "date-fns";
+import { addWeeks } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+const MT = "America/Denver";
 
 interface CheckinSettingsTabProps {
   clientId: number;
@@ -198,7 +200,7 @@ export default function CheckinSettingsTab({ clientId, clientName, isSubTab = fa
                   ) : isSkipped ? (
                     <Badge variant="outline" className="text-orange-600 bg-orange-500/10">
                       <SkipForward className="h-3 w-3 mr-1" />
-                      Skipped until {format(new Date(schedule.skipUntil!), 'MMM d, yyyy')}
+                      Skipped until {formatInTimeZone(new Date(schedule.skipUntil!), MT, 'MMM d, yyyy')}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="text-green-600 bg-green-500/10">
@@ -218,10 +220,10 @@ export default function CheckinSettingsTab({ clientId, clientName, isSubTab = fa
                 <div className="text-right">
                   <p className="text-sm font-medium text-muted-foreground mb-1">Next Check-In</p>
                   <p className="text-sm font-medium">
-                    {format(new Date(schedule.nextScheduledAt), 'MMM d, yyyy')}
+                    {new Date(schedule.nextScheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Denver' })}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(schedule.nextScheduledAt), 'h:mm a')}
+                    {new Date(schedule.nextScheduledAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Denver' })} MT
                   </p>
                 </div>
               )}
@@ -483,7 +485,7 @@ export default function CheckinSettingsTab({ clientId, clientName, isSubTab = fa
                 <div className="mt-6 pt-4 border-t">
                   <p className="text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 inline mr-1" />
-                    Last check-in sent: {format(new Date(schedule.lastSentAt), 'MMMM d, yyyy \'at\' h:mm a')}
+                    Last check-in sent: {formatInTimeZone(new Date(schedule.lastSentAt), MT, "MMMM d, yyyy 'at' h:mm a")} MT
                   </p>
                 </div>
               )}
@@ -578,7 +580,7 @@ function SchedulePreview({ clientProtocolId }: { clientProtocolId: number }) {
                 {item.dayName}
               </p>
               <p className="text-sm">
-                {format(new Date(item.date), 'MMM d, yyyy')}
+                {formatInTimeZone(new Date(item.date), MT, 'MMM d, yyyy')}
               </p>
               <p className="text-xs text-muted-foreground">
                 {item.formattedTime}
@@ -667,7 +669,7 @@ function ScheduleHistory({ clientProtocolId }: { clientProtocolId: number }) {
                       {actionInfo.label}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(entry.createdAt), 'MMM d, yyyy h:mm a')}
+                      {formatInTimeZone(new Date(entry.createdAt), MT, 'MMM d, yyyy h:mm a')} MT
                     </span>
                   </div>
                   

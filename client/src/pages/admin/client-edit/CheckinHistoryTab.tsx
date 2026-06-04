@@ -94,12 +94,13 @@ export default function CheckinHistoryTab({ clientProtocolId }: CheckinHistoryTa
 
   const formatDate = (date: string | Date | null) => {
     if (!date) return "—";
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
+      timeZone: 'America/Denver',
     });
   };
 
