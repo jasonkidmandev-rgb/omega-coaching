@@ -25,9 +25,20 @@ const getTransporter = () => {
     return null;
   }
 
-  // Resend rejects RFC 5322 quoted-string display names: "Name" <email> → Name <email>
-  const normalizeAddr = (addr: string) =>
-    addr.replace(/^"([^"]+)"\s*(<[^>]+>)$/, '$1 $2').trim();
+  // Normalize Resend `from` addresses. Handles:
+  //   "Name" <email>               → Name <email>      (quoted display name)
+  //   "Name" <Name <email>>        → Name <email>      (double-wrapped: template + full-address smtpFrom)
+  //   "Name" <"Name" <email>>      → Name <email>      (env var with quotes + template wrap)
+  const normalizeAddr = (addr: string): string => {
+    const s = addr.trim();
+    // Strip quoted display name: "Name" <email@domain>
+    let m = s.match(/^"([^"]+)"\s*<([^>]+)>$/);
+    if (m) return `${m[1]} <${m[2]}>`;
+    // Fix double-wrap: "Name" <...anything...<email@domain>> — extract innermost email
+    m = s.match(/^"([^"]+)"\s*<.+<([^@>]+@[^>]+)>>$/);
+    if (m) return `${m[1]} <${m[2]}>`;
+    return s;
+  };
 
   return {
     sendMail: async (options: {
@@ -39,8 +50,11 @@ const getTransporter = () => {
       text?: string;
       attachments?: Array<{ filename: string; content: Buffer | string; contentType?: string }>;
     }): Promise<{ messageId: string }> => {
+      const fromAddr = normalizeAddr(options.from || defaultFrom);
+      console.log('[Email] Sending | from:', fromAddr, '| to:', Array.isArray(options.to) ? options.to.join(', ') : options.to);
+
       const body: Record<string, unknown> = {
-        from: normalizeAddr(options.from || defaultFrom),
+        from: fromAddr,
         to: Array.isArray(options.to) ? options.to : [options.to],
         subject: options.subject,
         ...(options.html && { html: options.html }),
@@ -68,7 +82,8 @@ const getTransporter = () => {
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error((err as any).message || `Resend API error ${response.status}`);
+        const msg = (err as any).message || `Resend API error ${response.status}`;
+        throw new Error(`${msg} [from: ${fromAddr}]`);
       }
 
       const data = await response.json() as { id: string };
