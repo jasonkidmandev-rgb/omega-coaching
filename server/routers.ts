@@ -4147,6 +4147,52 @@ const ordersRouter = router({
         quantity: 1,
       });
 
+      // Create a pending store_order before redirecting to Stripe so the
+      // webhook can update it on completion without losing cart data.
+      let pendingOrderId: number | null = null;
+      try {
+        const { createStoreOrder: createOrder, createStoreOrderItem: createItem } = await import('./db');
+        const subtotalDollars = (input.totalCents / 100).toFixed(2);
+        const discountDollars = ((input.discountAmountCents || 0) / 100).toFixed(2);
+        const shippingDollars = ((input.shippingFeeCents || 0) / 100).toFixed(2);
+        const grandTotal = (totalDollars + processingFee).toFixed(2);
+        const addr = input.shippingAddress;
+
+        pendingOrderId = await createOrder({
+          userId: ctx.user!.id,
+          paymentMethod: 'stripe',
+          subtotal: subtotalDollars,
+          discountAmount: discountDollars,
+          shippingFee: shippingDollars,
+          total: grandTotal,
+          status: 'pending',
+          payerEmail: ctx.user?.email || '',
+          ...(addr ? {
+            shippingName: addr.name,
+            shippingStreet: addr.street,
+            shippingCity: addr.city,
+            shippingState: addr.state,
+            shippingZip: addr.zip,
+            shippingCountry: addr.country,
+            shippingPhone: addr.phone || null,
+          } : {}),
+        }) as number;
+
+        for (const item of input.items) {
+          await createItem({
+            storeOrderId: pendingOrderId,
+            inventoryItemId: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            pricePerUnit: (item.price / 100).toFixed(2),
+            isDiscountable: 1,
+          });
+        }
+        console.log(`[Stripe Store] Created pending store order ${pendingOrderId} for user ${ctx.user?.id}`);
+      } catch (orderErr: any) {
+        console.error(`[Stripe Store] Failed to pre-create store order (non-blocking): ${orderErr.message}`);
+      }
+
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
@@ -4159,6 +4205,7 @@ const ordersRouter = router({
           order_type: 'store',
           item_count: input.items.length.toString(),
           shipping_address: input.shippingAddress ? JSON.stringify(input.shippingAddress) : '',
+          store_order_id: pendingOrderId ? pendingOrderId.toString() : '',
         },
         success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}&type=store`,
         cancel_url: `${origin}/order?payment=cancelled`,
@@ -8226,7 +8273,21 @@ export const appRouter = router({
         if (!order) throw new Error('Order not found');
         if (order.status === 'refunded') throw new Error('Order has already been refunded');
         
-        // Mark as refunded locally (Stripe refund processing to be added)
+        // Issue a Stripe refund when the order was paid via Stripe
+        if (order.stripePaymentIntentId) {
+          const { getStripeSecretKey } = await import('./stripe/stripeConfig');
+          const Stripe = (await import('stripe')).default;
+          const stripe = new Stripe(getStripeSecretKey(), { apiVersion: '2024-06-20' as any });
+          const refundAmountCents = input.amount ? Math.round(parseFloat(input.amount) * 100) : undefined;
+          const stripeRefund = await stripe.refunds.create({
+            payment_intent: order.stripePaymentIntentId,
+            ...(refundAmountCents ? { amount: refundAmountCents } : {}),
+            reason: 'requested_by_customer',
+          });
+          console.log(`[Refund] Stripe refund ${stripeRefund.id} issued for store order #${input.orderId}`);
+        }
+
+        // Mark as refunded in DB
         await db.updateStoreOrderStatus(input.orderId, 'refunded');
         
         // Restock inventory

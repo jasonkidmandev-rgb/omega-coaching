@@ -161,15 +161,19 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Send confirmation email to client
   try {
-    await sendTransformationPaymentConfirmationEmail({
-      clientName,
-      clientEmail,
-      tier,
-      amount: amountTotal,
-      paymentMethod: "Stripe",
-      baseUrl,
-      enrollmentId,
-    });
+    if (!clientEmail) {
+      console.warn(`[Stripe Webhook] No client email for enrollment ${enrollmentId} — skipping confirmation email`);
+    } else {
+      await sendTransformationPaymentConfirmationEmail({
+        to: clientEmail,
+        clientName,
+        tier,
+        amount: amountTotal,
+        paymentMethod: "Stripe",
+        baseUrl,
+        enrollmentId,
+      });
+    }
   } catch (err: any) {
     console.error(`[Stripe Webhook] Failed to send client confirmation email: ${err.message}`);
   }
@@ -192,9 +196,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   try {
     await database.execute(sql`
       INSERT INTO notifications (userId, type, title, message, createdAt)
-      SELECT id, 'payment', 
+      SELECT id, 'payment',
         ${"💰 Payment Received: " + clientName},
-        ${`${clientName} paid $${amountTotal.toLocaleString()} for ${planName || tier} via Stripe`},
+        ${`${clientName} paid $${amountTotal.toFixed(2)} for ${planName || tier} via Stripe`},
         NOW()
       FROM users WHERE role IN ('admin', 'owner')
     `);
@@ -210,21 +214,94 @@ async function handleStoreOrderCompleted(
   paymentIntentId: string,
   amountTotal: number
 ) {
+  const orderId = metadata.store_order_id ? parseInt(metadata.store_order_id) : null;
   const userId = metadata.user_id ? parseInt(metadata.user_id) : null;
   const userEmail = metadata.user_email || session.customer_details?.email || '';
   const itemCount = metadata.item_count || '0';
 
-  console.log(`[Stripe Webhook] Store order paid by user ${userId} (${userEmail}), ${itemCount} items, $${amountTotal}`);
+  console.log(`[Stripe Webhook] Store order paid - orderId: ${orderId}, user: ${userId} (${userEmail}), ${itemCount} items, $${amountTotal}`);
 
   const database = await db();
+
+  // Update the pending store order to paid
+  if (orderId) {
+    try {
+      await database.execute(sql`
+        UPDATE store_orders
+        SET status = 'paid',
+            paidAt = NOW(),
+            stripePaymentIntentId = ${paymentIntentId},
+            payerEmail = COALESCE(payerEmail, ${userEmail}),
+            updatedAt = NOW()
+        WHERE id = ${orderId} AND status = 'pending'
+      `);
+      console.log(`[Stripe Webhook] Store order ${orderId} marked as paid`);
+    } catch (err: any) {
+      console.error(`[Stripe Webhook] Failed to update store order ${orderId} status: ${err.message}`);
+    }
+
+    // Deduct inventory and sync client inventory
+    if (userId) {
+      try {
+        const { deductInventoryForStoreOrder, syncClientInventoryFromStoreOrder } = await import('../db');
+        await deductInventoryForStoreOrder(orderId, userId);
+        await syncClientInventoryFromStoreOrder(orderId, userId);
+        console.log(`[Stripe Webhook] Inventory deducted and synced for store order ${orderId}`);
+      } catch (err: any) {
+        console.error(`[Stripe Webhook] Failed to deduct inventory for store order ${orderId}: ${err.message}`);
+      }
+    }
+
+    // Send confirmation email
+    try {
+      const { sendStoreOrderConfirmationEmail } = await import('../payment/emailService');
+      const { getStoreOrder, getStoreOrderItems, getUserById } = await import('../db');
+      const order = await getStoreOrder(orderId);
+      const items = await getStoreOrderItems(orderId);
+      const user = userId ? await getUserById(userId) : null;
+      const customerEmail = user?.email || userEmail;
+      const customerName = user?.name || order?.payerName || 'Customer';
+      if (customerEmail) {
+        await sendStoreOrderConfirmationEmail({
+          customerName,
+          customerEmail,
+          orderId,
+          items: items.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            pricePerUnit: item.pricePerUnit,
+            isDiscountable: item.isDiscountable,
+          })),
+          subtotal: order?.subtotal || amountTotal.toFixed(2),
+          discountAmount: order?.discountAmount || '0.00',
+          shippingFee: order?.shippingFee?.toString() || '0.00',
+          total: order?.total || amountTotal.toFixed(2),
+          paymentMethod: 'stripe',
+          orderDate: order?.createdAt ? new Date(order.createdAt) : new Date(),
+        });
+        console.log(`[Stripe Webhook] Confirmation email sent for store order ${orderId}`);
+      }
+    } catch (err: any) {
+      console.error(`[Stripe Webhook] Failed to send store order confirmation email: ${err.message}`);
+    }
+
+    // Create packing slip for fulfillment
+    try {
+      const { createPackingSlipForStoreOrder } = await import('../db');
+      await createPackingSlipForStoreOrder(orderId);
+      console.log(`[Stripe Webhook] Packing slip created for store order ${orderId}`);
+    } catch (err: any) {
+      console.error(`[Stripe Webhook] Failed to create packing slip (non-critical): ${err.message}`);
+    }
+  }
 
   // Create admin notification
   try {
     await database.execute(sql`
       INSERT INTO notifications (userId, type, title, message, createdAt)
-      SELECT id, 'payment', 
+      SELECT id, 'payment',
         ${`🛒 Store Payment: ${userEmail}`},
-        ${`Store order paid via Stripe - $${amountTotal.toFixed(2)} (${itemCount} items) - Payment: ${paymentIntentId}`},
+        ${`Store order ${orderId ? '#' + orderId : ''} paid via Stripe - $${amountTotal.toFixed(2)} (${itemCount} items) - Payment: ${paymentIntentId}`},
         NOW()
       FROM users WHERE role IN ('admin', 'owner')
     `);

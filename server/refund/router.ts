@@ -120,6 +120,44 @@ export const refundRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
+        // Fetch the request so we know which protocol it belongs to
+        const refundRequest = await refundDb.getRefundRequestById(input.requestId);
+        if (!refundRequest) {
+          return { success: false, error: "Refund request not found" };
+        }
+
+        // Attempt a Stripe refund when the coaching fee was paid via Stripe.
+        // Non-blocking: Venmo/PayPal payments have no Stripe ID — skip silently.
+        try {
+          const { getDb } = await import("../db");
+          const { sql } = await import("drizzle-orm");
+          const database = await getDb();
+          if (database) {
+            const [rows] = await database.execute(sql`
+              SELECT coachingFeeStripePaymentId
+              FROM transformation_enrollments
+              WHERE clientProtocolId = ${refundRequest.protocolId}
+                AND coachingFeeStripePaymentId IS NOT NULL
+              LIMIT 1
+            `);
+            const stripePaymentId = (rows as any[])[0]?.coachingFeeStripePaymentId as string | undefined;
+            if (stripePaymentId) {
+              const { getStripeSecretKey } = await import("../stripe/stripeConfig");
+              const Stripe = (await import("stripe")).default;
+              const stripe = new Stripe(getStripeSecretKey(), { apiVersion: "2024-06-20" as any });
+              const refundAmountCents = Math.round(parseFloat(input.refundAmount) * 100);
+              const stripeRefund = await stripe.refunds.create({
+                payment_intent: stripePaymentId,
+                amount: refundAmountCents || undefined,
+                reason: "requested_by_customer",
+              });
+              console.log(`[Refund] Stripe refund ${stripeRefund.id} issued for protocol ${refundRequest.protocolId}`);
+            }
+          }
+        } catch (stripeErr: any) {
+          console.error(`[Refund] Stripe refund non-blocking error: ${stripeErr.message}`);
+        }
+
         const updated = await refundDb.updateRefundRequest(input.requestId, {
           status: "approved",
           refundAmount: input.refundAmount,

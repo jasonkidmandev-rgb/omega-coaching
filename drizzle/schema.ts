@@ -2841,6 +2841,7 @@ export const storeOrders = mysqlTable("store_orders", {
 	shippingZip: varchar({ length: 20 }),
 	shippingCountry: varchar({ length: 100 }),
 	shippingPhone: varchar({ length: 50 }),
+	stripePaymentIntentId: varchar({ length: 255 }),
 },
 (table) => [
 	index("store_order_user_idx").on(table.userId),
