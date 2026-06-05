@@ -90,7 +90,6 @@ import {
   StickyNote,
   Sun,
   LayoutGrid,
-  Contact,
   CalendarClock,
   DatabaseZap,
   UserCog,
@@ -133,7 +132,6 @@ const pinnedItems: MenuItem[] = [
   { icon: ListTodo, label: "My Action Items", path: "/admin/my-action-items", roles: ['admin', 'manager', 'viewer'] },
   { icon: BarChart3, label: "KPI Dashboard", path: "/admin/kpi-dashboard", roles: ['admin', 'manager'] },
   { icon: Inbox, label: "Message Inbox", path: "/admin/inbox", roles: ['admin', 'manager', 'viewer'], badge: 'inbox' },
-  { icon: Contact, label: "Client 360", path: "/admin/client-360", roles: ['admin', 'manager'] },
 ];
 
 // Organized menu structure with parent categories

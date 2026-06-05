@@ -389,14 +389,6 @@ export default function UpcomingAppointments() {
                       </a>
                     )}
 
-                    <div className="flex gap-2 pt-1">
-                      <a
-                        href={`/admin/client-360?search=${encodeURIComponent(appt.clientName)}`}
-                        className="text-xs text-orange-600 hover:underline"
-                      >
-                        View in Client 360 →
-                      </a>
-                    </div>
                   </div>
                 )}
               </div>
@@ -463,9 +455,6 @@ export default function UpcomingAppointments() {
                               <Video className="w-3 h-3" /> Join {getLocationLabel(appt.locationType) || "Meeting"} <ExternalLink className="w-3 h-3" />
                             </a>
                           )}
-                          <a href={`/admin/client-360?search=${encodeURIComponent(appt.clientName)}`} className="text-xs text-orange-600 hover:underline">
-                            View in Client 360 →
-                          </a>
                         </div>
                       )}
                     </div>
