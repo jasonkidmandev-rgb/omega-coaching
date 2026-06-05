@@ -11,9 +11,7 @@ import {
   TrendingUp, TrendingDown, CheckCircle2, XCircle, Clock,
   BarChart3, Target, Flame, AlertTriangle, MessageSquare
 } from "lucide-react";
-import { format } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
-const MT = "America/Denver";
+import { formatMT } from "@/lib/timezone";
 
 interface CheckinSummaryTabProps {
   clientId: number;
@@ -31,7 +29,7 @@ export default function CheckinSummaryTab({ clientId, clientName }: CheckinSumma
     if (!data?.trendData || data.trendData.length === 0) return [];
     return data.trendData.map((point, index) => ({
       label: point.weekNumber ? `Wk ${point.weekNumber}` : `#${index + 1}`,
-      date: point.date ? format(new Date(point.date), "MMM d") : "",
+      date: point.date ? formatMT(point.date, "MMM d") : "",
       q1Score: point.q1Score,
       overallScore: point.overallScore,
       lowestScore: point.lowestScore,
@@ -116,7 +114,7 @@ export default function CheckinSummaryTab({ clientId, clientName }: CheckinSumma
         <StatCard
           title="Status"
           value={stats.totalPending > 0 ? "Pending" : stats.totalIncomplete > 0 ? "Incomplete" : "Up to Date"}
-          subtitle={stats.lastResponseAt ? `Last: ${formatInTimeZone(new Date(stats.lastResponseAt), MT, "MMM d, yyyy")}` : "No responses"}
+          subtitle={stats.lastResponseAt ? `Last: ${formatMT(stats.lastResponseAt, "MMM d, yyyy")}` : "No responses"}
           icon={stats.totalPending > 0 ? <Clock className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
           color={stats.totalPending > 0 ? "yellow" : stats.totalIncomplete > 0 ? "red" : "green"}
         />
@@ -216,7 +214,7 @@ export default function CheckinSummaryTab({ clientId, clientName }: CheckinSumma
               <MessageSquare className="h-4 w-4 text-orange-500" />
               Latest Check-In Response
               <span className="text-xs text-gray-500 font-normal ml-auto">
-                {latestCheckin.submittedAt ? formatInTimeZone(new Date(latestCheckin.submittedAt), MT, "MMM d, yyyy 'at' h:mm a") + " MT" : ""}
+                {latestCheckin.submittedAt ? formatMT(latestCheckin.submittedAt, "MMM d, yyyy 'at' h:mm a") + " MT" : ""}
               </span>
             </CardTitle>
           </CardHeader>
@@ -298,7 +296,7 @@ export default function CheckinSummaryTab({ clientId, clientName }: CheckinSumma
                   {[...trendData].reverse().map((item, idx) => (
                     <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50/50">
                       <td className="py-1.5 px-2 text-gray-700">
-                        {item.date ? format(new Date(item.date), "MMM d, yyyy") : "-"}
+                        {item.date ? formatMT(item.date, "MMM d, yyyy") : "-"}
                       </td>
                       <td className="py-1.5 px-2 text-center text-gray-600">
                         {item.weekNumber || "-"}

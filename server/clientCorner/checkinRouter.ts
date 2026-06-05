@@ -1423,7 +1423,7 @@ export const checkinRouter = router({
       };
     }),
 
-  submit: protectedProcedure
+  submit: publicProcedure
     .input(z.object({
       checkinId: z.number(),
       responses: z.array(z.object({

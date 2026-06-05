@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -94,13 +95,12 @@ export default function CheckinHistoryTab({ clientProtocolId }: CheckinHistoryTa
 
   const formatDate = (date: string | Date | null) => {
     if (!date) return "—";
-    return new Date(date).toLocaleString('en-US', {
+    return toLocaleDateStringMT(date, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      timeZone: 'America/Denver',
     });
   };
 
