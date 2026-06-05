@@ -39,23 +39,24 @@ export const checkinRouter = router({
         .where(eq(checkinTemplates.isActive, 1))
         .orderBy(desc(checkinTemplates.isDefault), asc(checkinTemplates.name));
 
+      const defaultQuestions = [
+        { id: 'q_1', text: 'How would you rate your overall wellbeing this week?', type: 'scale', required: true, order: 0 },
+        { id: 'q_2', text: 'How are your energy levels?', type: 'scale', required: true, order: 1 },
+        { id: 'q_3', text: 'How is your sleep quality?', type: 'scale', required: true, order: 2 },
+        { id: 'q_4', text: 'How would you rate your stress levels? (1 = very stressed, 10 = very calm)', type: 'scale', required: true, order: 3 },
+        { id: 'q_5', text: 'How is your mood and mental state?', type: 'scale', required: true, order: 4 },
+        { id: 'q_6', text: 'How well are you adhering to your training program?', type: 'scale', required: true, order: 5 },
+        { id: 'q_7', text: 'How well are you adhering to your nutrition plan?', type: 'scale', required: true, order: 6 },
+        { id: 'q_8', text: 'How well are you adhering to your supplementation/peptide protocol?', type: 'scale', required: true, order: 7 },
+        { id: 'q_9', text: 'How would you rate your nasal breathing practice this week?', type: 'scale', required: true, order: 8 },
+        { id: 'q_10', text: 'Did you complete your daily neuroplastic morning routine?', type: 'checkbox', required: false, order: 9 },
+        { id: 'q_11', text: 'What were your biggest wins this week?', type: 'text', required: false, order: 10 },
+        { id: 'q_12', text: 'What challenges did you face this week?', type: 'text', required: false, order: 11 },
+        { id: 'q_13', text: 'Do you have any questions or concerns for your coach?', type: 'text', required: false, order: 12 },
+      ];
+
       // Auto-seed default template if the table is empty
       if (templates.length === 0) {
-        const defaultQuestions = [
-          { id: 'q_1', text: 'How would you rate your overall wellbeing this week?', type: 'scale', required: true, order: 0 },
-          { id: 'q_2', text: 'How are your energy levels?', type: 'scale', required: true, order: 1 },
-          { id: 'q_3', text: 'How is your sleep quality?', type: 'scale', required: true, order: 2 },
-          { id: 'q_4', text: 'How would you rate your stress levels? (1 = very stressed, 10 = very calm)', type: 'scale', required: true, order: 3 },
-          { id: 'q_5', text: 'How is your mood and mental state?', type: 'scale', required: true, order: 4 },
-          { id: 'q_6', text: 'How well are you adhering to your training program?', type: 'scale', required: true, order: 5 },
-          { id: 'q_7', text: 'How well are you adhering to your nutrition plan?', type: 'scale', required: true, order: 6 },
-          { id: 'q_8', text: 'How well are you adhering to your supplementation/peptide protocol?', type: 'scale', required: true, order: 7 },
-          { id: 'q_9', text: 'How would you rate your nasal breathing practice this week?', type: 'scale', required: true, order: 8 },
-          { id: 'q_10', text: 'Did you complete your daily neuroplastic morning routine?', type: 'checkbox', required: false, order: 9 },
-          { id: 'q_11', text: 'What were your biggest wins this week?', type: 'text', required: false, order: 10 },
-          { id: 'q_12', text: 'What challenges did you face this week?', type: 'text', required: false, order: 11 },
-          { id: 'q_13', text: 'Do you have any questions or concerns for your coach?', type: 'text', required: false, order: 12 },
-        ];
         await database.insert(checkinTemplates).values({
           name: 'Default Weekly Check-in',
           description: 'Standard 13-question weekly check-in covering wellbeing, adherence, and open feedback.',
@@ -71,7 +72,20 @@ export const checkinRouter = router({
         console.log('[Checkin] Auto-seeded default 13-question check-in template.');
       }
 
-      return templates.map(t => ({ ...t, questions: parseQuestions(t.questions) }));
+      // Patch any existing template that has 0 questions (e.g. created before fix)
+      const parsed = templates.map(t => ({ ...t, questions: parseQuestions(t.questions) }));
+      for (const t of parsed) {
+        if (t.questions.length === 0) {
+          await database
+            .update(checkinTemplates)
+            .set({ questions: defaultQuestions })
+            .where(eq(checkinTemplates.id, t.id));
+          t.questions = defaultQuestions;
+          console.log(`[Checkin] Auto-patched template "${t.name}" (id=${t.id}) with 13 default questions.`);
+        }
+      }
+
+      return parsed;
     }),
 
     get: adminProcedure
