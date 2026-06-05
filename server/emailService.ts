@@ -3372,7 +3372,7 @@ export async function sendTransformationPaymentConfirmationEmail(params: {
           <div style="background-color: #fff8e6; border-radius: 12px; padding: 25px; margin-bottom: 30px; border-left: 4px solid #f59e0b;">
             <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 18px;">📋 Your Next Steps</h3>
             <ol style="color: #666; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
-              ${nextSteps[tier].map(step => `<li>${step}</li>`).join('')}
+              ${(nextSteps[tier] ?? ['Your coach will reach out within 24 hours to schedule your onboarding consultation', 'Complete the health goals form in your journey dashboard', 'Prepare any questions about your health goals']).map(step => `<li>${step}</li>`).join('')}
             </ol>
           </div>
           

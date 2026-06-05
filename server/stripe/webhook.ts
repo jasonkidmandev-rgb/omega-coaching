@@ -14,7 +14,13 @@ import { sendTransformationPaymentConfirmationEmail, sendTransformationPaymentAd
 
 // MySQL prepared statements do not support ? parameters in the SELECT list of
 // an INSERT...SELECT statement. Fetch admin IDs first, then insert with VALUES.
-async function notifyAdmins(database: Awaited<ReturnType<typeof db>>, title: string, message: string) {
+// type must be a valid notifications enum value (see drizzle/schema.ts).
+async function notifyAdmins(
+  database: Awaited<ReturnType<typeof db>>,
+  type: string,
+  title: string,
+  message: string
+) {
   const [rows] = await database.execute(sql`
     SELECT id FROM users WHERE role IN ('admin', 'owner')
   `);
@@ -22,7 +28,7 @@ async function notifyAdmins(database: Awaited<ReturnType<typeof db>>, title: str
   for (const userId of adminIds) {
     await database.execute(sql`
       INSERT INTO notifications (userId, type, title, message, createdAt)
-      VALUES (${userId}, 'payment', ${title}, ${message}, NOW())
+      VALUES (${userId}, ${type}, ${title}, ${message}, NOW())
     `);
   }
 }
@@ -203,6 +209,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   try {
     await notifyAdmins(
       database,
+      'payment_received',
       `💰 Payment Received: ${clientName}`,
       `${clientName} paid $${amountTotal.toFixed(2)} for ${planName || tier} via Stripe`
     );
@@ -303,6 +310,7 @@ async function handleStoreOrderCompleted(
   try {
     await notifyAdmins(
       database,
+      'new_store_order',
       `🛒 Store Payment: ${userEmail}`,
       `Store order ${orderId ? '#' + orderId : ''} paid via Stripe - $${amountTotal.toFixed(2)} (${itemCount} items) - Payment: ${paymentIntentId}`
     );
@@ -351,6 +359,7 @@ async function handleCustomOrderCompleted(
   try {
     await notifyAdmins(
       database,
+      'payment_received',
       `💰 Custom Order Paid: ${orderNumber}`,
       `${clientName} (${clientEmail}) paid $${amountTotal.toFixed(2)} for custom order ${orderNumber} via Stripe`
     );
