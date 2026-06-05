@@ -33,11 +33,44 @@ export const checkinRouter = router({
   templates: router({
     list: adminProcedure.query(async () => {
       const database = await db();
-      const templates = await database
+      let templates = await database
         .select()
         .from(checkinTemplates)
         .where(eq(checkinTemplates.isActive, 1))
         .orderBy(desc(checkinTemplates.isDefault), asc(checkinTemplates.name));
+
+      // Auto-seed default template if the table is empty
+      if (templates.length === 0) {
+        const defaultQuestions = [
+          { id: 'q_1', text: 'How would you rate your overall wellbeing this week?', type: 'scale', required: true, order: 0 },
+          { id: 'q_2', text: 'How are your energy levels?', type: 'scale', required: true, order: 1 },
+          { id: 'q_3', text: 'How is your sleep quality?', type: 'scale', required: true, order: 2 },
+          { id: 'q_4', text: 'How would you rate your stress levels? (1 = very stressed, 10 = very calm)', type: 'scale', required: true, order: 3 },
+          { id: 'q_5', text: 'How is your mood and mental state?', type: 'scale', required: true, order: 4 },
+          { id: 'q_6', text: 'How well are you adhering to your training program?', type: 'scale', required: true, order: 5 },
+          { id: 'q_7', text: 'How well are you adhering to your nutrition plan?', type: 'scale', required: true, order: 6 },
+          { id: 'q_8', text: 'How well are you adhering to your supplementation/peptide protocol?', type: 'scale', required: true, order: 7 },
+          { id: 'q_9', text: 'How would you rate your nasal breathing practice this week?', type: 'scale', required: true, order: 8 },
+          { id: 'q_10', text: 'Did you complete your daily neuroplastic morning routine?', type: 'checkbox', required: false, order: 9 },
+          { id: 'q_11', text: 'What were your biggest wins this week?', type: 'text', required: false, order: 10 },
+          { id: 'q_12', text: 'What challenges did you face this week?', type: 'text', required: false, order: 11 },
+          { id: 'q_13', text: 'Do you have any questions or concerns for your coach?', type: 'text', required: false, order: 12 },
+        ];
+        await database.insert(checkinTemplates).values({
+          name: 'Default Weekly Check-in',
+          description: 'Standard 13-question weekly check-in covering wellbeing, adherence, and open feedback.',
+          isDefault: 1,
+          isActive: 1,
+          questions: defaultQuestions,
+        });
+        templates = await database
+          .select()
+          .from(checkinTemplates)
+          .where(eq(checkinTemplates.isActive, 1))
+          .orderBy(desc(checkinTemplates.isDefault), asc(checkinTemplates.name));
+        console.log('[Checkin] Auto-seeded default 13-question check-in template.');
+      }
+
       return templates.map(t => ({ ...t, questions: parseQuestions(t.questions) }));
     }),
 
@@ -59,13 +92,13 @@ export const checkinRouter = router({
         .select()
         .from(checkinTemplates)
         .where(and(
-          eq(checkinTemplates.isDefault, true),
-          eq(checkinTemplates.isActive, true)
+          eq(checkinTemplates.isDefault, 1),
+          eq(checkinTemplates.isActive, 1)
         ));
       if (!template) return template;
       return { ...template, questions: parseQuestions(template.questions) };
     }),
-    
+
     create: adminProcedure
       .input(z.object({
         name: z.string().min(1),
@@ -85,13 +118,13 @@ export const checkinRouter = router({
         const result = await database.insert(checkinTemplates).values({
           name: input.name,
           description: input.description,
-          isDefault: input.isDefault ?? false,
+          isDefault: input.isDefault ? 1 : 0,
           questions: input.questions,
           createdBy: ctx.user?.id,
         });
         return { id: result[0].insertId };
       }),
-    
+
     update: adminProcedure
       .input(z.object({
         id: z.number(),
@@ -110,7 +143,10 @@ export const checkinRouter = router({
       }))
       .mutation(async ({ input }) => {
         const database = await db();
-        const { id, ...updates } = input;
+        const { id, isDefault, isActive, ...rest } = input;
+        const updates: Record<string, unknown> = { ...rest };
+        if (isDefault !== undefined) updates.isDefault = isDefault ? 1 : 0;
+        if (isActive !== undefined) updates.isActive = isActive ? 1 : 0;
         await database
           .update(checkinTemplates)
           .set(updates)
@@ -202,12 +238,12 @@ export const checkinRouter = router({
             .select()
             .from(checkinTemplates)
             .where(and(
-              eq(checkinTemplates.isDefault, true),
-              eq(checkinTemplates.isActive, true)
+              eq(checkinTemplates.isDefault, 1),
+              eq(checkinTemplates.isActive, 1)
             ));
           templateId = defaultTemplate?.id;
         }
-        
+
         if (!templateId) {
           throw new Error("No template specified and no default template found");
         }
@@ -240,7 +276,7 @@ export const checkinRouter = router({
           await database
             .update(checkinSchedules)
             .set({
-              isEnabled: true,
+              isEnabled: 1,
               templateId,
               nextScheduledAt: nextThursday,
             })
@@ -249,7 +285,7 @@ export const checkinRouter = router({
           await database.insert(checkinSchedules).values({
             clientProtocolId: input.clientProtocolId,
             templateId,
-            isEnabled: true,
+            isEnabled: 1,
             frequency: 'weekly',
             dayOfWeek: 4, // Thursday
             timeOfDay: '10:00',
@@ -266,7 +302,7 @@ export const checkinRouter = router({
         const database = await db();
         await database
           .update(checkinSchedules)
-          .set({ isEnabled: false })
+          .set({ isEnabled: 0 })
           .where(eq(checkinSchedules.clientProtocolId, input.clientProtocolId));
         return { success: true };
       }),
@@ -282,7 +318,7 @@ export const checkinRouter = router({
         await database
           .update(checkinSchedules)
           .set({
-            isPaused: true,
+            isPaused: 1,
             pausedReason: input.reason || null,
           })
           .where(eq(checkinSchedules.clientProtocolId, input.clientProtocolId));
@@ -297,7 +333,7 @@ export const checkinRouter = router({
         await database
           .update(checkinSchedules)
           .set({
-            isPaused: false,
+            isPaused: 0,
             pausedReason: null,
             skipUntil: null,
           })
@@ -602,8 +638,8 @@ export const checkinRouter = router({
             .select()
             .from(checkinTemplates)
             .where(and(
-              eq(checkinTemplates.isDefault, true),
-              eq(checkinTemplates.isActive, true)
+              eq(checkinTemplates.isDefault, 1),
+              eq(checkinTemplates.isActive, 1)
             ));
           finalTemplateId = defaultTemplate?.id;
         }
@@ -646,7 +682,7 @@ export const checkinRouter = router({
               await database
                 .update(checkinSchedules)
                 .set({
-                  isEnabled: true,
+                  isEnabled: 1,
                   templateId: finalTemplateId,
                   nextScheduledAt: nextThursday,
                 })
@@ -657,7 +693,7 @@ export const checkinRouter = router({
               await database.insert(checkinSchedules).values({
                 clientProtocolId,
                 templateId: finalTemplateId,
-                isEnabled: true,
+                isEnabled: 1,
                 frequency: 'weekly',
                 dayOfWeek: 4, // Thursday
                 timeOfDay: '10:00',
@@ -713,7 +749,7 @@ export const checkinRouter = router({
           try {
             await database
               .update(checkinSchedules)
-              .set({ isEnabled: false })
+              .set({ isEnabled: 0 })
               .where(eq(checkinSchedules.clientProtocolId, clientProtocolId));
             
             // Log to audit

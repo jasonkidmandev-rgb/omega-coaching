@@ -35,7 +35,7 @@ interface Question {
 }
 
 export default function CheckinManagement() {
-  
+
   const [activeTab, setActiveTab] = useState("templates");
   const [editTemplateOpen, setEditTemplateOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
@@ -43,6 +43,7 @@ export default function CheckinManagement() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [lowScoreThreshold, setLowScoreThreshold] = useState(5);
   const [reminderHours, setReminderHours] = useState(48);
+  const [newTemplateName, setNewTemplateName] = useState("");
   
   // Fetch templates
   const { data: templates, isLoading: loadingTemplates, refetch: refetchTemplates } = 
@@ -83,6 +84,17 @@ export default function CheckinManagement() {
   });
   
   // Mutations
+  const createTemplateMutation = trpc.checkin.templates.create.useMutation({
+    onSuccess: (data) => {
+      toast.success("Template created successfully");
+      refetchTemplates();
+      setNewTemplateName("");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
+
   const updateTemplateMutation = trpc.checkin.templates.update.useMutation({
     onSuccess: () => {
       toast.success("Check-in template has been saved");
@@ -202,7 +214,7 @@ export default function CheckinManagement() {
         id: selectedTemplate.id,
         name: selectedTemplate.name,
         description: selectedTemplate.description,
-        isDefault: selectedTemplate.isDefault,
+        isDefault: !!selectedTemplate.isDefault,
         questions: editingQuestions,
       });
     }
@@ -249,13 +261,48 @@ export default function CheckinManagement() {
         <TabsContent value="templates" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Check-in Templates
-              </CardTitle>
-              <CardDescription>
-                Manage the questions asked in weekly check-ins. Click Edit to customize questions.
-              </CardDescription>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Check-in Templates
+                  </CardTitle>
+                  <CardDescription>
+                    Manage the questions asked in weekly check-ins. Click Edit to customize questions.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="New template name..."
+                    value={newTemplateName}
+                    onChange={(e) => setNewTemplateName(e.target.value)}
+                    className="w-48 h-9"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newTemplateName.trim()) {
+                        createTemplateMutation.mutate({
+                          name: newTemplateName.trim(),
+                          isDefault: templates?.length === 0,
+                          questions: [],
+                        });
+                      }
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    disabled={!newTemplateName.trim() || createTemplateMutation.isPending}
+                    onClick={() => {
+                      createTemplateMutation.mutate({
+                        name: newTemplateName.trim(),
+                        isDefault: !templates || templates.length === 0,
+                        questions: [],
+                      });
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {loadingTemplates ? (
