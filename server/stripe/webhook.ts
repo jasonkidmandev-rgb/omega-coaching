@@ -12,6 +12,21 @@ async function db() {
 }
 import { sendTransformationPaymentConfirmationEmail, sendTransformationPaymentAdminNotification } from "../emailService";
 
+// MySQL prepared statements do not support ? parameters in the SELECT list of
+// an INSERT...SELECT statement. Fetch admin IDs first, then insert with VALUES.
+async function notifyAdmins(database: Awaited<ReturnType<typeof db>>, title: string, message: string) {
+  const [rows] = await database.execute(sql`
+    SELECT id FROM users WHERE role IN ('admin', 'owner')
+  `);
+  const adminIds = (rows as any[]).map((r: any) => r.id as number);
+  for (const userId of adminIds) {
+    await database.execute(sql`
+      INSERT INTO notifications (userId, type, title, message, createdAt)
+      VALUES (${userId}, 'payment', ${title}, ${message}, NOW())
+    `);
+  }
+}
+
 const stripeWebhookRouter = Router();
 
 // Use raw body for signature verification
@@ -100,10 +115,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   const database = await db();
-  if (!database) {
-    console.error("[Stripe Webhook] Database not available");
-    return;
-  }
 
   // Update enrollment with payment info
   await database.execute(sql`
@@ -112,7 +123,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         coachingFeePaidAt = NOW(),
         coachingFeeAmount = ${amountTotal},
         coachingFeeStripePaymentId = ${paymentIntentId},
-        status = CASE 
+        status = CASE
           WHEN status = 'enrolled' OR status = 'video_complete' THEN 'coaching_paid'
           ELSE status
         END
@@ -126,24 +137,21 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const promoCode = metadata.promo_code || null;
   const promoOriginalAmount = metadata.promo_original_amount ? parseFloat(metadata.promo_original_amount) : null;
   const promoDiscountAmount = metadata.promo_discount_amount ? parseFloat(metadata.promo_discount_amount) : null;
-  
+
   if (promoCodeId && promoCodeId > 0) {
     try {
-      // Check if usage was already recorded (prevent duplicates)
       const existingUsage = await database.execute(sql`
-        SELECT id FROM promo_code_usage 
+        SELECT id FROM promo_code_usage
         WHERE promoCodeId = ${promoCodeId} AND enrollmentId = ${enrollmentId}
         LIMIT 1
       `);
       const existingRows = (existingUsage[0] as unknown as any[]) || [];
-      
+
       if (existingRows.length === 0) {
-        // Record the usage
         await database.execute(sql`
           INSERT INTO promo_code_usage (promoCodeId, enrollmentId, userId, originalAmount, discountAmount, finalAmount, tier)
           VALUES (${promoCodeId}, ${enrollmentId}, ${userId || null}, ${promoOriginalAmount || amountTotal}, ${promoDiscountAmount || 0}, ${amountTotal}, ${tier})
         `);
-        // Increment usage count on the promo code
         await database.execute(sql`
           UPDATE promo_codes SET usesCount = usesCount + 1 WHERE id = ${promoCodeId}
         `);
@@ -156,7 +164,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
   }
 
-  // Get the base URL from the session for email links
   const baseUrl = session.success_url?.split("/transformation")[0] || process.env.VITE_APP_URL || "";
 
   // Send confirmation email to client
@@ -178,7 +185,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     console.error(`[Stripe Webhook] Failed to send client confirmation email: ${err.message}`);
   }
 
-  // Send admin notification
+  // Send admin email notification
   try {
     await sendTransformationPaymentAdminNotification({
       clientName,
@@ -194,14 +201,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Create in-app notification for admins
   try {
-    await database.execute(sql`
-      INSERT INTO notifications (userId, type, title, message, createdAt)
-      SELECT id, 'payment',
-        ${"💰 Payment Received: " + clientName},
-        ${`${clientName} paid $${amountTotal.toFixed(2)} for ${planName || tier} via Stripe`},
-        NOW()
-      FROM users WHERE role IN ('admin', 'owner')
-    `);
+    await notifyAdmins(
+      database,
+      `💰 Payment Received: ${clientName}`,
+      `${clientName} paid $${amountTotal.toFixed(2)} for ${planName || tier} via Stripe`
+    );
   } catch (err: any) {
     console.error(`[Stripe Webhook] Failed to create admin notifications: ${err.message}`);
   }
@@ -295,16 +299,13 @@ async function handleStoreOrderCompleted(
     }
   }
 
-  // Create admin notification
+  // Create admin in-app notification
   try {
-    await database.execute(sql`
-      INSERT INTO notifications (userId, type, title, message, createdAt)
-      SELECT id, 'payment',
-        ${`🛒 Store Payment: ${userEmail}`},
-        ${`Store order ${orderId ? '#' + orderId : ''} paid via Stripe - $${amountTotal.toFixed(2)} (${itemCount} items) - Payment: ${paymentIntentId}`},
-        NOW()
-      FROM users WHERE role IN ('admin', 'owner')
-    `);
+    await notifyAdmins(
+      database,
+      `🛒 Store Payment: ${userEmail}`,
+      `Store order ${orderId ? '#' + orderId : ''} paid via Stripe - $${amountTotal.toFixed(2)} (${itemCount} items) - Payment: ${paymentIntentId}`
+    );
   } catch (err: any) {
     console.error(`[Stripe Webhook] Failed to create store order notification: ${err.message}`);
   }
@@ -338,7 +339,7 @@ async function handleCustomOrderCompleted(
       SET status = 'paid',
           paidAt = NOW(),
           stripePaymentIntentId = ${paymentIntentId},
-          paidAmount = ${amountTotal.toString()}
+          paidAmount = ${amountTotal}
       WHERE id = ${orderId}
     `);
     console.log(`[Stripe Webhook] Custom order ${orderNumber} marked as paid`);
@@ -346,16 +347,13 @@ async function handleCustomOrderCompleted(
     console.error(`[Stripe Webhook] Failed to update custom order status: ${err.message}`);
   }
 
-  // Create admin notification
+  // Create admin in-app notification
   try {
-    await database.execute(sql`
-      INSERT INTO notifications (userId, type, title, message, createdAt)
-      SELECT id, 'payment', 
-        ${`💰 Custom Order Paid: ${orderNumber}`},
-        ${`${clientName} (${clientEmail}) paid $${amountTotal.toFixed(2)} for custom order ${orderNumber} via Stripe`},
-        NOW()
-      FROM users WHERE role IN ('admin', 'owner')
-    `);
+    await notifyAdmins(
+      database,
+      `💰 Custom Order Paid: ${orderNumber}`,
+      `${clientName} (${clientEmail}) paid $${amountTotal.toFixed(2)} for custom order ${orderNumber} via Stripe`
+    );
   } catch (err: any) {
     console.error(`[Stripe Webhook] Failed to create custom order notification: ${err.message}`);
   }
