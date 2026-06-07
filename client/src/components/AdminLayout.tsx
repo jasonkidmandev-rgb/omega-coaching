@@ -50,10 +50,8 @@ import {
   Rocket,
   Warehouse,
   TrendingUp,
-  Target,
   Settings,
   Handshake,
-  Ticket,
   ChevronRight,
   Store,
   Percent,
@@ -73,8 +71,6 @@ import {
   Key,
   Video,
   Gift,
-  UserPlus,
-  Merge,
   CreditCard,
   Megaphone,
   BookOpen,
@@ -87,7 +83,6 @@ import {
   Globe,
   FilePen,
   Zap,
-  StickyNote,
   Sun,
   LayoutGrid,
   CalendarClock,
@@ -148,7 +143,6 @@ const menuCategories: MenuCategory[] = [
       { icon: FolderKanban, label: "Client Projects", path: "/admin/projects", roles: ['admin', 'manager', 'viewer'] },
       { icon: HeartPulse, label: "Client Corner", path: "/admin/client-corner", roles: ['admin', 'manager', 'viewer'] },
       { icon: CalendarClock, label: "Upcoming Appointments", path: "/admin/upcoming-appointments", roles: ['admin', 'manager'] },
-      { icon: BarChart3, label: "Protocol Analytics", path: "/admin/protocol-analytics", roles: ['admin', 'manager'] },
     ],
   },
   // 2. Coaching (enrollment & pipeline flow)
@@ -158,7 +152,6 @@ const menuCategories: MenuCategory[] = [
     roles: ['admin', 'manager'],
     items: [
       { icon: Users, label: "Enrollments", path: "/admin/enrollments", roles: ['admin', 'manager'] },
-      { icon: UserPlus, label: "Pending Enrollments", path: "/admin/pending-enrollments", roles: ['admin'] },
       { icon: Filter, label: "Lead Pipeline", path: "/admin/prospects", roles: ['admin'] },
       { icon: LayoutGrid, label: "Shannon's Kanban", path: "/admin/shannon-kanban", roles: ['admin'] },
       { icon: ClipboardList, label: "Coaching Sessions", path: "/admin/coaching-sessions", roles: ['admin', 'manager'] },
@@ -177,7 +170,6 @@ const menuCategories: MenuCategory[] = [
       { icon: FilePen, label: "Custom Orders", path: "/admin/custom-orders", roles: ['admin', 'manager', 'finance'] },
       { icon: Package, label: "Fulfillment Queue", path: "/admin/fulfillment-queue", roles: ['admin', 'manager'] },
       { icon: Warehouse, label: "Inventory", path: "/admin/inventory", roles: ['admin', 'manager'] },
-      { icon: TrendingUp, label: "Sales Report", path: "/admin/sales-report", roles: ['admin', 'manager', 'finance'] },
     ],
   },
   // Store — hidden for compliance (backend preserved)
@@ -199,8 +191,6 @@ const menuCategories: MenuCategory[] = [
     roles: ['admin', 'finance'],
     items: [
       { icon: History, label: "Payment History", path: "/admin/payment-history", roles: ['admin', 'finance'] },
-      { icon: BarChart3, label: "Reports", path: "/admin/reports", roles: ['admin', 'manager', 'finance'] },
-      { icon: Target, label: "Revenue Goals", path: "/admin/revenue-goals", roles: ['admin', 'finance'] },
     ],
   },
   // 5. Marketing & Outreach
@@ -209,10 +199,8 @@ const menuCategories: MenuCategory[] = [
     label: "Marketing & Outreach",
     roles: ['admin', 'manager', 'finance'],
     items: [
-      { icon: Ticket, label: "Protocol Coupons", path: "/admin/coupons", roles: ['admin', 'manager', 'finance'] },
       // Store hidden for compliance: { icon: Store, label: "Store Promos", path: "/admin/store-promos", roles: ['admin', 'manager', 'finance'] },
       { icon: Handshake, label: "Affiliate Partners", path: "/admin/affiliate-partners", roles: ['admin', 'manager'] },
-      { icon: BarChart3, label: "Affiliate Analytics", path: "/admin/affiliate-analytics", roles: ['admin', 'manager', 'finance'] },
       { icon: Globe, label: "Web Traffic", path: "/admin/web-traffic", roles: ['admin'] },
     ],
   },
@@ -223,11 +211,7 @@ const menuCategories: MenuCategory[] = [
     roles: ['admin'],
     items: [
       { icon: Sun, label: "Lisa's Morning Briefing", path: "/admin/morning-briefing", roles: ['admin'] },
-      { icon: StickyNote, label: "Consultation Notes", path: "/admin/consultation-notes", roles: ['admin'] },
-      { icon: Target, label: "Shannon's Pipeline Scorecard", path: "/admin/pipeline-scorecard", roles: ['admin'] },
       { icon: TrendingUp, label: "Conversion Tracking", path: "/admin/conversion-tracking", roles: ['admin'] },
-      { icon: Zap, label: "Automation Dashboard", path: "/admin/automation", roles: ['admin'] },
-      { icon: BarChart3, label: "Check-In Analytics", path: "/admin/checkin-analytics", roles: ['admin', 'manager'] },
     ],
   },
   // 7. Team & Settings (consolidated config/admin/setup)
@@ -243,7 +227,6 @@ const menuCategories: MenuCategory[] = [
       // Protocol Setup
       { icon: FileText, label: "Templates", path: "/admin/templates", roles: ['admin', 'manager', 'viewer'] },
       { icon: Package, label: "Protocol Items", path: "/admin/items", roles: ['admin', 'manager', 'viewer'] },
-      { icon: Merge, label: "Product Management", path: "/admin/product-management", roles: ['admin'] },
       { icon: FolderOpen, label: "Categories", path: "/admin/categories", roles: ['admin', 'manager'] },
       { icon: Layers, label: "Programs", path: "/admin/programs", roles: ['admin', 'manager', 'viewer'] },
       { icon: ListChecks, label: "Recommendations", path: "/admin/recommendations", roles: ['admin', 'manager'] },
@@ -258,7 +241,6 @@ const menuCategories: MenuCategory[] = [
       { icon: Mail, label: "Email Branding", path: "/admin/email-branding", roles: ['admin'] },
       { icon: Eye, label: "Email Preview", path: "/admin/email-preview", roles: ['admin'] },
       { icon: Activity, label: "Email Engagement", path: "/admin/email-engagement", roles: ['admin'] },
-      { icon: Bell, label: "Push Notifications", path: "/admin/push-notifications", roles: ['admin'] },
       { icon: Bell, label: "Notification Analysis", path: "/admin/notification-analysis", roles: ['admin'] },
       { icon: History, label: "Notification History", path: "/admin/notification-history", roles: ['admin'] },
       { icon: Bell, label: "Team Email Preferences", path: "/admin/notification-preferences", roles: ['admin', 'manager'] },
@@ -270,7 +252,6 @@ const menuCategories: MenuCategory[] = [
       { icon: History, label: "Audit Logs", path: "/admin/audit-logs", roles: ['admin'] },
       { icon: ListTodo, label: "Workflow Templates", path: "/admin/workflow-templates", roles: ['admin', 'manager'] },
       { icon: Sparkles, label: "Onboarding Wizard", path: "/admin/onboarding", roles: ['admin'] },
-      { icon: ClipboardCheck, label: "QA Testing", path: "/admin/qa-testing", roles: ['admin'] },
     ],
   },
 ];

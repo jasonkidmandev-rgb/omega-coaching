@@ -27,19 +27,15 @@ const AdminClientEdit = lazyWithRetry(() => import("./pages/admin/ClientEdit"));
 const AdminTemplates = lazyWithRetry(() => import("./pages/admin/Templates"));
 const AdminTemplateEdit = lazyWithRetry(() => import("./pages/admin/TemplateEdit"));
 const AdminItems = lazyWithRetry(() => import("./pages/admin/Items"));
-const AdminProductManagement = lazyWithRetry(() => import("./pages/admin/ProductManagement"));
 // Supplements page removed - consolidated into Protocol Items
 const AdminRecommendations = lazyWithRetry(() => import("./pages/admin/Requirements"));
 const AdminTeam = lazyWithRetry(() => import("./pages/admin/Team"));
 const AdminAuditLogs = lazyWithRetry(() => import("./pages/admin/AuditLogs"));
 const AdminPrograms = lazyWithRetry(() => import("./pages/admin/Programs"));
-const AdminAffiliateAnalytics = lazyWithRetry(() => import("./pages/admin/AffiliateAnalytics"));
 const AdminLaunchpadSettings = lazyWithRetry(() => import("./pages/admin/LaunchpadSettings"));
 const AdminInventory = lazyWithRetry(() => import("./pages/admin/Inventory"));
-const AdminSalesReport = lazyWithRetry(() => import("./pages/admin/SalesReport"));
 const AdminSettings = lazyWithRetry(() => import("./pages/admin/Settings"));
 const AdminAffiliatePartners = lazyWithRetry(() => import("./pages/admin/AffiliatePartners"));
-const AdminCoupons = lazyWithRetry(() => import("./pages/admin/Coupons"));
 const AdminEmailBranding = lazyWithRetry(() => import("./pages/admin/EmailBranding"));
 const AdminEmailPreview = lazyWithRetry(() => import("./pages/admin/EmailPreview"));
 const AdminOrderHistory = lazyWithRetry(() => import("./pages/admin/OrderHistory"));
@@ -50,7 +46,6 @@ const AdminProjectList = lazyWithRetry(() => import("./pages/admin/projects/Proj
 const AdminProjectDetail = lazyWithRetry(() => import("./pages/admin/projects/ProjectDetail"));
 const AdminWorkflowTemplates = lazyWithRetry(() => import("./pages/admin/projects/WorkflowTemplates"));
 const AdminOperationsDashboard = lazyWithRetry(() => import("./pages/admin/projects/OperationsDashboard"));
-const AdminReports = lazyWithRetry(() => import("./pages/admin/projects/Reports"));
 const AdminPayments = lazyWithRetry(() => import("./pages/admin/Payments"));
 const AdminStoreOrders = lazyWithRetry(() => import("./pages/admin/StoreOrders"));
 const AdminCustomOrders = lazyWithRetry(() => import("./pages/admin/CustomOrders"));
@@ -59,25 +54,20 @@ const AdminPeptideCheatSheet = lazyWithRetry(() => import("./pages/admin/Peptide
 const AdminCategoryManagement = lazyWithRetry(() => import("./pages/admin/CategoryManagement"));
 const AdminNotificationReport = lazyWithRetry(() => import("./pages/admin/NotificationReport"));
 const AdminEmailTemplatePreview = lazyWithRetry(() => import("./pages/admin/EmailTemplatePreview"));
-const AdminRevenueGoals = lazyWithRetry(() => import("./pages/admin/RevenueGoals"));
 const AdminNotificationSettings = lazyWithRetry(() => import("./pages/admin/NotificationSettings"));
 const AdminPaymentHistory = lazyWithRetry(() => import("./pages/admin/PaymentHistory"));
-const AdminQATestingDashboard = lazyWithRetry(() => import("./pages/admin/QATestingDashboard"));
 const AdminClientCornerDashboard = lazyWithRetry(() => import("./pages/admin/ClientCornerDashboard"));
 const AdminCheckinManagement = lazyWithRetry(() => import("./pages/admin/CheckinManagement"));
 const AdminCheckinReview = lazyWithRetry(() => import("./pages/admin/CheckinReview"));
-const AdminCheckinAnalytics = lazyWithRetry(() => import("./pages/admin/CheckinAnalytics"));
 const AdminNotificationTemplates = lazyWithRetry(() => import("./pages/admin/NotificationTemplates"));
 const AdminProtocolPresets = lazyWithRetry(() => import("./pages/admin/ProtocolPresets"));
 const AdminEmailReportSettings = lazyWithRetry(() => import("./pages/admin/EmailReportSettings"));
 const AdminEmailEngagement = lazyWithRetry(() => import("./pages/admin/EmailEngagement"));
-const AdminPushNotifications = lazyWithRetry(() => import("./pages/admin/PushNotifications"));
 // Access codes removed
 const AdminPromoCodes = lazyWithRetry(() => import("./pages/admin/PromoCodes"));
 const AdminPromoCodeAnalytics = lazyWithRetry(() => import("./pages/admin/PromoCodeAnalytics"));
 const AdminStorePromos = lazyWithRetry(() => import("./pages/admin/StorePromos"));
 // Referral program removed
-const AdminProtocolAnalytics = lazyWithRetry(() => import("./pages/admin/ProtocolAnalytics"));
 const AdminMasterclassVideos = lazyWithRetry(() => import("./pages/admin/MasterclassVideos"));
 const AdminEnrollments = lazyWithRetry(() => import("./pages/admin/Enrollments"));
 const AdminTransformationPayments = lazyWithRetry(() => import("./pages/admin/TransformationPayments"));
@@ -85,18 +75,14 @@ const AdminIntakeFormEditor = lazyWithRetry(() => import("./pages/admin/IntakeFo
 const AdminFormsEditor = lazyWithRetry(() => import("./pages/admin/FormsEditor"));
 const AdminNotificationAnalysis = lazyWithRetry(() => import("./pages/admin/NotificationAnalysis"));
 const AdminNotificationHistory = lazyWithRetry(() => import("./pages/admin/NotificationHistory"));
-const AdminPendingEnrollments = lazyWithRetry(() => import("./pages/admin/PendingEnrollments"));
 const AdminProspects = lazyWithRetry(() => import("./pages/admin/Prospects"));
 const AdminWebTrafficAnalytics = lazyWithRetry(() => import("./pages/admin/WebTrafficAnalytics"));
 const AdminCoachingSessions = lazyWithRetry(() => import("./pages/admin/CoachingSessions"));
 const AdminBookingCalendar = lazyWithRetry(() => import("./pages/admin/BookingCalendar"));
 const AdminInbox = lazyWithRetry(() => import("./pages/admin/Inbox"));
 const AdminChat = lazyWithRetry(() => import("./pages/admin/Chat"));
-const AdminAutomationDashboard = lazyWithRetry(() => import("./pages/admin/AutomationDashboard"));
-const AdminConsultationNotes = lazyWithRetry(() => import("./pages/admin/ConsultationNotes"));
 const AdminMorningBriefing = lazyWithRetry(() => import("./pages/admin/MorningBriefing"));
 const AdminConversionTracking = lazyWithRetry(() => import("./pages/admin/ConversionTracking"));
-const AdminPipelineScorecard = lazyWithRetry(() => import("./pages/admin/PipelineScorecard"));
 const AdminShannonKanban = lazyWithRetry(() => import("./pages/admin/ShannonKanban"));
 const AdminUpcomingAppointments = lazyWithRetry(() => import("./pages/admin/UpcomingAppointments"));
 const AdminCalendlySettings = lazyWithRetry(() => import("./pages/admin/CalendlySettings"));
@@ -198,26 +184,21 @@ function Router() {
         <Route path={"/admin/templates/:id"} component={AdminTemplateEdit} />
         <Route path={"/admin/templates"} component={AdminTemplates} />
         <Route path={"/admin/items"} component={AdminItems} />
-        <Route path={"/admin/product-management"} component={AdminProductManagement} />
         {/* Supplements route removed - use /admin/items with filter tabs */}
         <Route path={"/admin/recommendations"} component={AdminRecommendations} />
         <Route path={"/admin/team"} component={AdminTeam} />
         <Route path={"/admin/audit-logs"} component={AdminAuditLogs} />
         <Route path={"/admin/programs"} component={AdminPrograms} />
-        <Route path={"/admin/affiliate-analytics"} component={AdminAffiliateAnalytics} />
         <Route path={"/admin/launchpad-settings"} component={AdminLaunchpadSettings} />
         <Route path={"/admin/inventory"} component={AdminInventory} />
-        <Route path={"/admin/sales-report"} component={AdminSalesReport} />
         <Route path={"/admin/settings"} component={AdminSettings} />
         <Route path={"/admin/notification-report"} component={AdminNotificationReport} />
         <Route path={"/admin/email-templates"} component={AdminEmailTemplatePreview} />
         <Route path={"/admin/email-report-settings"} component={AdminEmailReportSettings} />
         <Route path={"/admin/email-engagement"} component={AdminEmailEngagement} />
-        <Route path={"/admin/revenue-goals"} component={AdminRevenueGoals} />
         <Route path={"/admin/notification-settings"} component={AdminNotificationSettings} />
         <Route path={"/admin/payment-history"} component={AdminPaymentHistory} />
         <Route path={"/admin/affiliate-partners"} component={AdminAffiliatePartners} />
-        <Route path={"/admin/coupons"} component={AdminCoupons} />
         <Route path={"/admin/email-branding"} component={AdminEmailBranding} />
         <Route path={"/admin/email-preview"} component={AdminEmailPreview} />
         <Route path={"/admin/order-history"} component={AdminOrderHistory} />
@@ -233,27 +214,22 @@ function Router() {
         <Route path={"/admin/projects"} component={AdminProjectList} />
         <Route path={"/admin/workflow-templates"} component={AdminWorkflowTemplates} />
         <Route path={"/admin/operations"} component={AdminOperationsDashboard} />
-        <Route path={"/admin/reports"} component={AdminReports} />
         <Route path={"/admin/payments"} component={AdminPayments} />
         <Route path={"/admin/store-orders"} component={AdminStoreOrders} />
         <Route path={"/admin/custom-orders/:id"} component={AdminCustomOrders} />
         <Route path={"/admin/custom-orders"} component={AdminCustomOrders} />
-        <Route path={"/admin/qa-testing"} component={AdminQATestingDashboard} />
         {/* Client Corner */}
         <Route path={"/admin/client-corner"} component={AdminClientCornerDashboard} />
         <Route path={"/admin/checkins"} component={AdminCheckinManagement} />
         <Route path={"/admin/checkin-management"}>{() => { window.location.replace('/admin/checkins'); return null; }}</Route>
-        <Route path={"/admin/checkin-analytics"} component={AdminCheckinAnalytics} />
         <Route path={"/admin/web-traffic"} component={AdminWebTrafficAnalytics} />
         <Route path={"/admin/clients/:clientId/checkins/:checkinId"} component={AdminCheckinReview} />
         <Route path={"/admin/notification-templates"} component={AdminNotificationTemplates} />
         <Route path={"/admin/protocol-presets"} component={AdminProtocolPresets} />
-        <Route path={"/admin/push-notifications"} component={AdminPushNotifications} />
         <Route path={"/admin/promo-codes"} component={AdminPromoCodes} />
         <Route path={"/admin/promo-code-analytics"} component={AdminPromoCodeAnalytics} />
         <Route path={"/admin/store-promos"} component={AdminStorePromos} />
 
-        <Route path={"/admin/protocol-analytics"} component={AdminProtocolAnalytics} />
         <Route path={"/admin/masterclass-videos"} component={AdminMasterclassVideos} />
         <Route path={"/admin/enrollments"} component={AdminEnrollments} />
         <Route path={"/admin/transformation-payments"} component={AdminTransformationPayments} />
@@ -261,18 +237,14 @@ function Router() {
         <Route path={"/admin/forms-editor"} component={AdminFormsEditor} />
         <Route path={"/admin/notification-analysis"} component={AdminNotificationAnalysis} />
         <Route path={"/admin/notification-history"} component={AdminNotificationHistory} />
-        <Route path={"/admin/pending-enrollments"} component={AdminPendingEnrollments} />
         <Route path={"/admin/prospects/:id"} component={AdminProspects} />
         <Route path={"/admin/prospects"} component={AdminProspects} />
         <Route path={"/admin/coaching-sessions"} component={AdminCoachingSessions} />
         <Route path={"/admin/booking-calendar"} component={AdminBookingCalendar} />
         <Route path={"/admin/inbox"} component={AdminInbox} />
         <Route path={"/admin/chat/:id"} component={AdminChat} />
-        <Route path={"/admin/automation"} component={AdminAutomationDashboard} />
-        <Route path={"/admin/consultation-notes"} component={AdminConsultationNotes} />
         <Route path={"/admin/morning-briefing"} component={AdminMorningBriefing} />
         <Route path={"/admin/conversion-tracking"} component={AdminConversionTracking} />
-        <Route path={"/admin/pipeline-scorecard"} component={AdminPipelineScorecard} />
         <Route path={"/admin/shannon-kanban"} component={AdminShannonKanban} />
         <Route path={"/admin/upcoming-appointments"} component={AdminUpcomingAppointments} />
         <Route path={"/admin/calendly-settings"} component={AdminCalendlySettings} />
