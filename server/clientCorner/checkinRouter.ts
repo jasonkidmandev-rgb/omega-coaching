@@ -234,7 +234,7 @@ export const checkinRouter = router({
           .select()
           .from(checkinSchedules)
           .where(eq(checkinSchedules.clientProtocolId, input.clientProtocolId));
-        return schedule;
+        return schedule ?? null;
       }),
     
     enable: adminProcedure
