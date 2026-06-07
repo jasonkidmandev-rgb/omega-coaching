@@ -44,7 +44,7 @@ import {
 } from "./db";
 import { sendEmail } from "./emailService";
 import { users } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
 
 // ============ CATEGORY ROUTER ============
