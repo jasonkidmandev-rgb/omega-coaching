@@ -4193,7 +4193,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
           SUM(CASE WHEN profileCompleted = 0 OR profileCompleted IS NULL THEN 1 ELSE 0 END) as profilesIncomplete,
           SUM(CASE WHEN coachingFeePaid = TRUE AND intakeFormCompleted = FALSE THEN 1 ELSE 0 END) as intakePending,
           SUM(CASE WHEN intakeFormCompleted = TRUE THEN 1 ELSE 0 END) as intakeCompleted,
-          SUM(CASE WHEN discoverySessionScheduled = TRUE THEN 1 ELSE 0 END) as consultationsScheduled,
+          SUM(CASE WHEN discoverySessionScheduledAt IS NOT NULL THEN 1 ELSE 0 END) as consultationsScheduled,
           SUM(CASE WHEN status = 'enrolled' THEN 1 ELSE 0 END) as statusEnrolled,
           SUM(CASE WHEN status = 'video_complete' THEN 1 ELSE 0 END) as statusVideoComplete,
           SUM(CASE WHEN status = 'coaching_paid' THEN 1 ELSE 0 END) as statusCoachingPaid,
