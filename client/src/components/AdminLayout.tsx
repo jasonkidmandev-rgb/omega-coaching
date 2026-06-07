@@ -41,7 +41,6 @@ import {
   FileText,
   Package,
   Pill,
-  ListChecks,
   Home,
   Shield,
   Bell,
@@ -229,7 +228,6 @@ const menuCategories: MenuCategory[] = [
       { icon: Package, label: "Protocol Items", path: "/admin/items", roles: ['admin', 'manager', 'viewer'] },
       { icon: FolderOpen, label: "Categories", path: "/admin/categories", roles: ['admin', 'manager'] },
       { icon: Layers, label: "Programs", path: "/admin/programs", roles: ['admin', 'manager', 'viewer'] },
-      { icon: ListChecks, label: "Recommendations", path: "/admin/recommendations", roles: ['admin', 'manager'] },
       // Coaching Setup
       { icon: Percent, label: "Coaching Promos", path: "/admin/promo-codes", roles: ['admin', 'manager', 'finance'] },
       { icon: Video, label: "Masterclass Videos", path: "/admin/masterclass-videos", roles: ['admin'] },

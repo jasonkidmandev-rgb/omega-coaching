@@ -28,7 +28,6 @@ const AdminTemplates = lazyWithRetry(() => import("./pages/admin/Templates"));
 const AdminTemplateEdit = lazyWithRetry(() => import("./pages/admin/TemplateEdit"));
 const AdminItems = lazyWithRetry(() => import("./pages/admin/Items"));
 // Supplements page removed - consolidated into Protocol Items
-const AdminRecommendations = lazyWithRetry(() => import("./pages/admin/Requirements"));
 const AdminTeam = lazyWithRetry(() => import("./pages/admin/Team"));
 const AdminAuditLogs = lazyWithRetry(() => import("./pages/admin/AuditLogs"));
 const AdminPrograms = lazyWithRetry(() => import("./pages/admin/Programs"));
@@ -185,7 +184,6 @@ function Router() {
         <Route path={"/admin/templates"} component={AdminTemplates} />
         <Route path={"/admin/items"} component={AdminItems} />
         {/* Supplements route removed - use /admin/items with filter tabs */}
-        <Route path={"/admin/recommendations"} component={AdminRecommendations} />
         <Route path={"/admin/team"} component={AdminTeam} />
         <Route path={"/admin/audit-logs"} component={AdminAuditLogs} />
         <Route path={"/admin/programs"} component={AdminPrograms} />
