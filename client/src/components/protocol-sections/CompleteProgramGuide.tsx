@@ -38,7 +38,12 @@ import {
   Loader2,
   Edit2,
   Eye,
+  CheckSquare,
+  Plus,
+  Trash2,
+  RefreshCw,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -56,6 +61,7 @@ const PROGRAM_TABS = [
   { id: "emf_quantum", label: "EMF & Quantum", icon: Zap },
   { id: "lifestyle_circadian", label: "Lifestyle & Circadian", icon: Sun },
   { id: "mentality", label: "Mentality & Mindset", icon: Heart },
+  { id: "guidelines", label: "Guidelines", icon: CheckSquare },
 ] as const;
 
 type TabId = typeof PROGRAM_TABS[number]["id"];
@@ -233,6 +239,8 @@ function TBtn({ onClick, isActive, disabled, children, title }: { onClick: () =>
   );
 }
 
+type RichTabId = Exclude<TabId, "guidelines">;
+
 // Tab content editor component
 function TabContentEditor({
   tabId,
@@ -241,7 +249,7 @@ function TabContentEditor({
   isEditing,
   onChange,
 }: {
-  tabId: TabId;
+  tabId: RichTabId;
   content: string;
   isAdmin: boolean;
   isEditing: boolean;
@@ -322,6 +330,139 @@ function TabContentEditor({
           "[&_.tiptap_.is-editor-empty]:before:content-[attr(data-placeholder)] [&_.tiptap_.is-editor-empty]:before:text-gray-400 [&_.tiptap_.is-editor-empty]:before:float-left [&_.tiptap_.is-editor-empty]:before:pointer-events-none"
         )}
       />
+    </div>
+  );
+}
+
+// ── Guidelines tab: reads/writes client_protocol_requirements ──
+function GuidelinesTabContent({
+  clientProtocolId,
+  isAdmin,
+  isEditing,
+}: {
+  clientProtocolId: number;
+  isAdmin: boolean;
+  isEditing: boolean;
+}) {
+  const utils = trpc.useUtils();
+  const [newText, setNewText] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editText, setEditText] = useState("");
+
+  const { data: items = [], isLoading } = trpc.requirements.listForProtocol.useQuery({ clientProtocolId });
+  const addMutation = trpc.requirements.addToProtocol.useMutation({
+    onSuccess: () => utils.requirements.listForProtocol.invalidate({ clientProtocolId }),
+  });
+  const updateMutation = trpc.requirements.updateInProtocol.useMutation({
+    onSuccess: () => { utils.requirements.listForProtocol.invalidate({ clientProtocolId }); setEditingId(null); },
+  });
+  const removeMutation = trpc.requirements.removeFromProtocol.useMutation({
+    onSuccess: () => utils.requirements.listForProtocol.invalidate({ clientProtocolId }),
+  });
+  const seedMutation = trpc.requirements.seedFromDefaults.useMutation({
+    onSuccess: (data) => {
+      utils.requirements.listForProtocol.invalidate({ clientProtocolId });
+      toast.success(data.seeded > 0 ? `Loaded ${data.seeded} default guidelines` : data.message);
+    },
+  });
+
+  const handleAdd = async () => {
+    if (!newText.trim()) return;
+    await addMutation.mutateAsync({ clientProtocolId, text: newText.trim() });
+    setNewText("");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editText.trim() || editingId === null) return;
+    await updateMutation.mutateAsync({ id: editingId, text: editText.trim() });
+  };
+
+  if (isLoading) return <div className="p-6 text-sm text-muted-foreground">Loading guidelines...</div>;
+
+  return (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {isAdmin && isEditing
+            ? "Add, edit, or remove guidelines for this client."
+            : "Guidelines and recommendations for this protocol."}
+        </p>
+        {isAdmin && isEditing && items.length === 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 text-xs"
+            onClick={() => seedMutation.mutate({ clientProtocolId })}
+            disabled={seedMutation.isPending}
+          >
+            {seedMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+            Load Defaults
+          </Button>
+        )}
+      </div>
+
+      {items.length === 0 && (
+        <p className="text-sm text-muted-foreground italic">
+          {isAdmin && isEditing ? 'No guidelines yet. Add one below or click "Load Defaults".' : "No guidelines configured for this protocol."}
+        </p>
+      )}
+
+      <ul className="space-y-2">
+        {items.map((item: any) => (
+          <li key={item.id} className="flex items-start gap-3 group">
+            <CheckSquare className="h-4 w-4 text-green-500 shrink-0 mt-1" />
+            {isAdmin && isEditing && editingId === item.id ? (
+              <div className="flex-1 flex gap-2">
+                <Input
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(); if (e.key === "Escape") setEditingId(null); }}
+                  className="h-7 text-sm"
+                  autoFocus
+                />
+                <Button size="sm" className="h-7 px-2 text-xs" onClick={handleSaveEdit} disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setEditingId(null)}>Cancel</Button>
+              </div>
+            ) : (
+              <>
+                <span
+                  className={`flex-1 text-sm ${isAdmin && isEditing ? "cursor-pointer hover:text-blue-600" : ""}`}
+                  onClick={() => { if (isAdmin && isEditing) { setEditingId(item.id); setEditText(item.text); } }}
+                >
+                  {item.text}
+                </span>
+                {isAdmin && isEditing && (
+                  <button
+                    onClick={() => removeMutation.mutate({ id: item.id })}
+                    className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity"
+                    disabled={removeMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {isAdmin && isEditing && (
+        <div className="flex gap-2 pt-2 border-t">
+          <Input
+            placeholder="Add a new guideline..."
+            value={newText}
+            onChange={(e) => setNewText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+            className="h-8 text-sm"
+          />
+          <Button size="sm" className="h-8 gap-1 px-3" onClick={handleAdd} disabled={!newText.trim() || addMutation.isPending}>
+            {addMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+            Add
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -594,14 +735,22 @@ export function CompleteProgramGuide({
 
           {/* Tab content */}
           <div className="min-h-[400px]">
-            <TabContentEditor
-              key={activeTab}
-              tabId={activeTab}
-              content={tabContents[activeTab] || ""}
-              isAdmin={isAdmin}
-              isEditing={isEditing}
-              onChange={handleTabContentChange}
-            />
+            {activeTab === "guidelines" ? (
+              <GuidelinesTabContent
+                clientProtocolId={clientProtocolId}
+                isAdmin={isAdmin}
+                isEditing={isEditing}
+              />
+            ) : (
+              <TabContentEditor
+                key={activeTab}
+                tabId={activeTab as Exclude<TabId, "guidelines">}
+                content={tabContents[activeTab] || ""}
+                isAdmin={isAdmin}
+                isEditing={isEditing}
+                onChange={handleTabContentChange}
+              />
+            )}
           </div>
 
           {/* Save footer for admin */}

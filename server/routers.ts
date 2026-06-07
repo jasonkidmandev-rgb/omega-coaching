@@ -2879,6 +2879,82 @@ const requirementsRouter = router({
       await db.deleteRequirement(input.id);
       return { success: true };
     }),
+
+  // ── Per-protocol management (used by Program Guide Guidelines tab) ──
+
+  // Public: client portal reads per-protocol guidelines
+  listForProtocol: publicProcedure
+    .input(z.object({ clientProtocolId: z.number() }))
+    .query(async ({ input }) => {
+      const database = await getDb();
+      if (!database) return [];
+      // JOIN to get both the base text and any custom override
+      const rows = await database.execute(sql`
+        SELECT cpr.id, cpr.clientProtocolId, cpr.requirementId,
+               cpr.isIncluded, cpr.sortOrder,
+               COALESCE(cpr.customText, pr.text) AS text
+        FROM client_protocol_requirements cpr
+        JOIN protocol_requirements pr ON cpr.requirementId = pr.id
+        WHERE cpr.clientProtocolId = ${input.clientProtocolId}
+          AND cpr.isIncluded = 1
+        ORDER BY cpr.sortOrder ASC, cpr.id ASC
+      `);
+      return (rows[0] as unknown as any[]) || [];
+    }),
+
+  // Admin: add a new guideline to a specific protocol
+  addToProtocol: adminProcedure
+    .input(z.object({ clientProtocolId: z.number(), text: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new Error("Database not available");
+      // Create a non-default anchor in the global table, then link it
+      const [reqResult] = await database.execute(sql`
+        INSERT INTO protocol_requirements (text, isDefault, sortOrder, createdAt)
+        VALUES (${input.text}, 0, 0, NOW())
+      `);
+      const requirementId = (reqResult as any).insertId;
+      await database.execute(sql`
+        INSERT INTO client_protocol_requirements (clientProtocolId, requirementId, customText, isIncluded, sortOrder)
+        VALUES (${input.clientProtocolId}, ${requirementId}, ${input.text}, 1, 0)
+      `);
+      return { success: true };
+    }),
+
+  // Admin: edit guideline text for a specific protocol entry
+  updateInProtocol: adminProcedure
+    .input(z.object({ id: z.number(), text: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      await db.updateClientProtocolRequirement(input.id, { customText: input.text });
+      return { success: true };
+    }),
+
+  // Admin: remove a guideline from a protocol
+  removeFromProtocol: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.removeClientProtocolRequirement(input.id);
+      return { success: true };
+    }),
+
+  // Admin: populate a protocol's guidelines from the global defaults
+  seedFromDefaults: adminProcedure
+    .input(z.object({ clientProtocolId: z.number() }))
+    .mutation(async ({ input }) => {
+      const existing = await db.getClientProtocolRequirements(input.clientProtocolId);
+      if (existing.length > 0) return { seeded: 0, message: "Already has guidelines" };
+      const defaults = await db.getDefaultRequirements();
+      if (defaults.length === 0) return { seeded: 0, message: "No defaults configured" };
+      await db.bulkAddClientProtocolRequirements(
+        defaults.map((r: any, i: number) => ({
+          clientProtocolId: input.clientProtocolId,
+          requirementId: r.id,
+          isIncluded: 1,
+          sortOrder: i,
+        }))
+      );
+      return { seeded: defaults.length };
+    }),
 });
 
 // ============ USER MANAGEMENT ROUTER ============

@@ -133,7 +133,10 @@ export default function ClientProtocol() {
 
   const { data: allItems } = trpc.protocolItem.list.useQuery();
   const { data: categories } = trpc.category.list.useQuery();
-  const { data: requirements } = trpc.requirements.list.useQuery();
+  const { data: requirements } = trpc.requirements.listForProtocol.useQuery(
+    { clientProtocolId: protocol?.id || 0 },
+    { enabled: !!protocol?.id }
+  );
   const { data: programInfo } = trpc.program.getClientProgramInfo.useQuery(
     { clientProtocolId: protocol?.id || 0 },
     { enabled: !!protocol?.id }
