@@ -2941,8 +2941,20 @@ const requirementsRouter = router({
   seedFromDefaults: adminProcedure
     .input(z.object({ clientProtocolId: z.number() }))
     .mutation(async ({ input }) => {
-      const existing = await db.getClientProtocolRequirements(input.clientProtocolId);
-      if (existing.length > 0) return { seeded: 0, message: "Already has guidelines" };
+      const database = await getDb();
+      if (!database) throw new Error("Database not available");
+      // Use the same filter as listForProtocol — only count rows that are
+      // actually visible (isIncluded=1 + valid JOIN). Orphaned or excluded
+      // rows from protocol creation should not block seeding.
+      const [countRows] = await database.execute(sql`
+        SELECT COUNT(*) as cnt
+        FROM client_protocol_requirements cpr
+        JOIN protocol_requirements pr ON cpr.requirementId = pr.id
+        WHERE cpr.clientProtocolId = ${input.clientProtocolId}
+          AND cpr.isIncluded = 1
+      `);
+      const visibleCount = Number((countRows as any[])[0]?.cnt ?? 0);
+      if (visibleCount > 0) return { seeded: 0, message: "Already has guidelines" };
       const defaults = await db.getDefaultRequirements();
       if (defaults.length === 0) return { seeded: 0, message: "No defaults configured" };
       await db.bulkAddClientProtocolRequirements(

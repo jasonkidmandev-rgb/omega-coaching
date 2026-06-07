@@ -387,7 +387,7 @@ function GuidelinesTabContent({
             ? "Add, edit, or remove guidelines for this client."
             : "Guidelines and recommendations for this protocol."}
         </p>
-        {isAdmin && isEditing && items.length === 0 && (
+        {isAdmin && items.length === 0 && (
           <Button
             variant="outline"
             size="sm"
@@ -403,7 +403,7 @@ function GuidelinesTabContent({
 
       {items.length === 0 && (
         <p className="text-sm text-muted-foreground italic">
-          {isAdmin && isEditing ? 'No guidelines yet. Add one below or click "Load Defaults".' : "No guidelines configured for this protocol."}
+          {isAdmin ? 'No guidelines yet. Click "Load Defaults" or add one below.' : "No guidelines configured for this protocol."}
         </p>
       )}
 
