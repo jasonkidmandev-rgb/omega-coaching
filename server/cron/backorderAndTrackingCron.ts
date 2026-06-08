@@ -78,8 +78,8 @@ export async function runBackorderAndTrackingCheck(): Promise<{
         AND psi.quantityBackordered > 0
         AND ps.archivedAt IS NULL
         AND NOT EXISTS (
-          SELECT 1 FROM automation_events ae 
-          WHERE ae.eventType = 'backorder_task_created'
+          SELECT 1 FROM automation_events ae
+          WHERE ae.eventType IN ('backorder_task_created', 'backorder_detected_no_project')
           AND JSON_EXTRACT(ae.details, '$.itemId') = psi.id
         )
       ORDER BY psi.createdAt ASC

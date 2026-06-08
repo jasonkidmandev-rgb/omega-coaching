@@ -9310,7 +9310,8 @@ export async function getFulfillmentQueue() {
   const slipMap = new Map<number, any>();
   for (const row of rows) {
     if (!slipMap.has(row.id)) {
-      const useProtocol = !row.shippingStreet && !!row.protocolShippingStreet;
+      const useProtocol = !row.shippingStreet && !row.shippingCity &&
+        (!!row.protocolShippingStreet || !!row.protocolShippingCity);
       slipMap.set(row.id, {
         id: row.id,
         status: row.status,

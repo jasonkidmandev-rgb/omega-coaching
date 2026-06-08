@@ -6293,9 +6293,9 @@ const packingSlipRouter = router({
       }
       const { packingSlipId, ...itemData } = input;
       await db.addPackingSlipItems(packingSlipId, [itemData]);
-      const slip = await db.getPackingSlipById(packingSlipId);
-      if (slip) {
-        await db.updatePackingSlipTotalItems(packingSlipId, slip.items.length);
+      const updatedSlip = await db.getPackingSlipById(packingSlipId);
+      if (updatedSlip) {
+        await db.updatePackingSlipTotalItems(packingSlipId, updatedSlip.items.length);
       }
       await db.createPackingSlipAuditEntry({
         packingSlipId,
@@ -6328,9 +6328,9 @@ const packingSlipRouter = router({
         });
       }
       await db.deletePackingSlipItem(input.itemId);
-      const slip = await db.getPackingSlipById(input.packingSlipId);
-      if (slip) {
-        await db.updatePackingSlipTotalItems(input.packingSlipId, slip.items.length);
+      const updatedSlip = await db.getPackingSlipById(input.packingSlipId);
+      if (updatedSlip) {
+        await db.updatePackingSlipTotalItems(input.packingSlipId, updatedSlip.items.length);
       }
       await db.createPackingSlipAuditEntry({
         packingSlipId: input.packingSlipId,
