@@ -17,15 +17,21 @@ import { getDb } from "../db";
 import * as db from "../db";
 import { sql } from "drizzle-orm";
 
-const TEAM_KARI = 30002;  // Carrie - fulfillment
-const TEAM_LISA = 1;
-const TEAM_SHANNON = 30001;
+// Team member IDs — override via env vars if IDs differ across environments.
+// Missing IDs are warned at init time; affected notifications/tasks are skipped rather than
+// creating orphaned records assigned to ghost user IDs.
+const TEAM_KARI: number | null = process.env.TEAM_KARI_ID ? Number(process.env.TEAM_KARI_ID) : 30002;
+const TEAM_LISA: number | null = process.env.TEAM_LISA_ID ? Number(process.env.TEAM_LISA_ID) : 1;
+const TEAM_SHANNON: number | null = process.env.TEAM_SHANNON_ID ? Number(process.env.TEAM_SHANNON_ID) : 30001;
 const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000; // Every 4 hours
 
 let cronInterval: ReturnType<typeof setInterval> | null = null;
 
 export function initBackorderAndTrackingCron() {
   console.log("[BackorderTracking] Initialized, running every 4 hours");
+  if (!TEAM_KARI) console.warn("[BackorderTracking] TEAM_KARI_ID not set — backorder reorder tasks will not be created");
+  if (!TEAM_LISA) console.warn("[BackorderTracking] TEAM_LISA_ID not set — client notification tasks will not be created");
+  if (!TEAM_SHANNON) console.warn("[BackorderTracking] TEAM_SHANNON_ID not set — Shannon will not receive shipping notifications");
   setTimeout(() => runBackorderAndTrackingCheck(), 240000); // Run after 4 minutes
   cronInterval = setInterval(() => runBackorderAndTrackingCheck(), CHECK_INTERVAL_MS);
 }
@@ -101,7 +107,12 @@ export async function runBackorderAndTrackingCheck(): Promise<{
         const itemList = items.map((i: any) => `• ${i.itemName} (×${i.quantityBackordered})`).join('\n');
 
         // Task 1: Carrie - Reorder backordered items
-        if (clientProjectId) {
+        // Task 2: Lisa - Notify client about backorder
+        // Both tasks require a clientProjectId. Without one (store/custom orders with no linked project)
+        // we skip task creation but still send team notifications and log the event with a distinct
+        // eventType so the dedup query doesn't block future attempts if the project is later linked.
+        let tasksCreated = false;
+        if (clientProjectId && TEAM_KARI && TEAM_LISA) {
           const dueDate = new Date();
           dueDate.setDate(dueDate.getDate() + 2); // Due in 2 days
 
@@ -125,7 +136,6 @@ export async function runBackorderAndTrackingCheck(): Promise<{
           );
           backorderTasksCreated++;
 
-          // Task 2: Lisa - Notify client about backorder
           const notifyDueDate = new Date();
           notifyDueDate.setDate(notifyDueDate.getDate() + 1); // Due tomorrow
 
@@ -149,31 +159,42 @@ export async function runBackorderAndTrackingCheck(): Promise<{
             clientProjectId
           );
           backorderTasksCreated++;
+          tasksCreated = true;
+        } else if (!clientProjectId) {
+          console.warn(`[BackorderTracking] Slip #${slipId} has no linked client project — tasks skipped, notifications still sent`);
         }
 
-        // Team notifications
-        await db.createTeamNotification({
-          teamMemberId: TEAM_KARI,
-          type: "task_assigned",
-          title: `Backorder Alert: ${clientName}`,
-          message: `${items.length} item(s) backordered for ${clientName}:\n${itemList}`,
-          clientProjectId: clientProjectId || undefined,
-        });
+        // Team notifications — send regardless of whether tasks were created
+        if (TEAM_KARI) {
+          await db.createTeamNotification({
+            teamMemberId: TEAM_KARI,
+            type: "task_assigned",
+            title: `Backorder Alert: ${clientName}`,
+            message: `${items.length} item(s) backordered for ${clientName}:\n${itemList}`,
+            clientProjectId: clientProjectId || undefined,
+          });
+        }
 
-        await db.createTeamNotification({
-          teamMemberId: TEAM_LISA,
-          type: "task_assigned",
-          title: `Client Communication Needed: ${clientName} Backorder`,
-          message: `${items.length} item(s) backordered for ${clientName}. Please notify the client about the delay.`,
-          clientProjectId: clientProjectId || undefined,
-        });
+        if (TEAM_LISA) {
+          await db.createTeamNotification({
+            teamMemberId: TEAM_LISA,
+            type: "task_assigned",
+            title: `Client Communication Needed: ${clientName} Backorder`,
+            message: `${items.length} item(s) backordered for ${clientName}. Please notify the client about the delay.`,
+            clientProjectId: clientProjectId || undefined,
+          });
+        }
 
-        // Log automation events for each item
+        // Log automation events per item.
+        // Use 'backorder_task_created' only when tasks were actually created so the NOT EXISTS
+        // dedup check doesn't permanently block re-processing items for slips that gain a project later.
+        // Use 'backorder_detected_no_project' otherwise — a separate eventType that won't block future runs.
+        const eventType = tasksCreated ? 'backorder_task_created' : 'backorder_detected_no_project';
         for (const item of items) {
           await database.execute(sql`
             INSERT INTO automation_events (eventType, details, status, triggeredBy, createdAt)
             VALUES (
-              'backorder_task_created',
+              ${eventType},
               ${JSON.stringify({
                 itemId: item.itemId,
                 itemName: item.itemName,
@@ -188,7 +209,7 @@ export async function runBackorderAndTrackingCheck(): Promise<{
           `);
         }
 
-        console.log(`[BackorderTracking] Created tasks for ${items.length} backordered items for ${clientName}`);
+        console.log(`[BackorderTracking] Processed ${items.length} backordered items for ${clientName} (tasks created: ${tasksCreated})`);
       }
     }
 
@@ -363,7 +384,7 @@ export async function runBackorderAndTrackingCheck(): Promise<{
         }
         
         await db.createNotificationsForEnabledUsers(
-          "onboarding_automation",
+          "fulfillment_alert",
           `Fulfillment Update: ${backordersFound} backorders, ${trackingNotifications} tracking updates`,
           lines.join('\n'),
         );

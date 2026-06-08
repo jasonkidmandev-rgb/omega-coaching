@@ -1,3 +1,4 @@
+import { buildTrackingUrl } from "./lib/carrierUrls";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -5524,7 +5525,11 @@ const packingSlipRouter = router({
   // Get all packing slips with mismatch status
   list: adminProcedure.query(async () => {
     const slips = await db.getAllPackingSlips();
-    
+
+    // Fetch the master protocol item catalog once — it's the same data for every slip.
+    // Previously this was called inside the .map(), firing one full-table read per slip.
+    const allItems = await db.getAllProtocolItems();
+
     // Check for mismatches for each slip
     const slipsWithMismatchStatus = await Promise.all(
       slips.map(async (slip) => {
@@ -5535,7 +5540,6 @@ const packingSlipRouter = router({
           }
           // Get current protocol items
           const protocolItems = await db.getClientProtocolItems(slip.clientProtocolId);
-          const allItems = await db.getAllProtocolItems();
 
           // Get current included items from protocol (excluding services, QTY 0, client-sourced, and orphaned items)
           const currentRecommended = protocolItems
@@ -5682,16 +5686,8 @@ const packingSlipRouter = router({
         }
       }
       const { itemId, ...data } = input;
-      // Auto-generate tracking URL if carrier + number provided but no URL
       if (data.itemTrackingNumber && data.itemTrackingCarrier && !data.itemTrackingUrl) {
-        const carrierUrls: Record<string, string> = {
-          'FedEx': `https://www.fedex.com/fedextrack/?trknbr=${data.itemTrackingNumber}`,
-          'UPS': `https://www.ups.com/track?tracknum=${data.itemTrackingNumber}`,
-          'USPS': `https://tools.usps.com/go/TrackConfirmAction?tLabels=${data.itemTrackingNumber}`,
-          'DHL': `https://www.dhl.com/us-en/home/tracking.html?tracking-id=${data.itemTrackingNumber}`,
-          'PirateShip': `https://tools.usps.com/go/TrackConfirmAction?tLabels=${data.itemTrackingNumber}`,
-        };
-        data.itemTrackingUrl = carrierUrls[data.itemTrackingCarrier] || undefined;
+        data.itemTrackingUrl = buildTrackingUrl(data.itemTrackingCarrier, data.itemTrackingNumber);
       }
       const result = await db.updatePackingSlipItem(itemId, data);
       if (slip?.id) {
@@ -5721,17 +5717,9 @@ const packingSlipRouter = router({
       const packingSlip = await db.getPackingSlipById(input.packingSlipId);
       const items = packingSlip?.items || [];
       
-      // Generate tracking URL based on carrier
-      let trackingUrl: string | undefined;
-      if (input.trackingNumber && input.trackingCarrier) {
-        const carrierUrls: Record<string, string> = {
-          'FedEx': `https://www.fedex.com/fedextrack/?trknbr=${input.trackingNumber}`,
-          'UPS': `https://www.ups.com/track?tracknum=${input.trackingNumber}`,
-          'USPS': `https://tools.usps.com/go/TrackConfirmAction?tLabels=${input.trackingNumber}`,
-          'DHL': `https://www.dhl.com/us-en/home/tracking.html?tracking-id=${input.trackingNumber}`,
-        };
-        trackingUrl = carrierUrls[input.trackingCarrier] || undefined;
-      }
+      const trackingUrl = input.trackingNumber && input.trackingCarrier
+        ? buildTrackingUrl(input.trackingCarrier, input.trackingNumber)
+        : undefined;
       
       // Sign the packing slip
       const result = await db.signPackingSlip(input.packingSlipId, {

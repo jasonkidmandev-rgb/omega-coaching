@@ -8086,17 +8086,20 @@ export async function deleteOldArchivedPackingSlips(daysOld: number = 30) {
   if (oldSlips.length === 0) return { deleted: 0 };
   
   const idsToDelete = oldSlips.map(s => s.id);
-  
-  // Delete items first
+
+  // Delete child rows before parent (FK order: items → audit log → slips)
   await db
     .delete(packingSlipItems)
     .where(inArray(packingSlipItems.packingSlipId, idsToDelete));
-  
-  // Delete the slips
+
+  await db
+    .delete(packingSlipAuditLog)
+    .where(inArray(packingSlipAuditLog.packingSlipId, idsToDelete));
+
   await db
     .delete(packingSlips)
     .where(inArray(packingSlips.id, idsToDelete));
-  
+
   return { deleted: idsToDelete.length };
 }
 
@@ -9290,76 +9293,123 @@ export async function getAllActionItems() {
 export async function getFulfillmentQueue() {
   const database = await getDb();
   if (!database) return [];
-  
-  const slips = await database.select()
+
+  // Single JOIN query replaces the previous N+1 pattern (1 slip query + N item queries + N shipping queries).
+  // clientProtocols is LEFT JOINed so we can fall back to the protocol shipping address when the
+  // packing slip itself has no address on file.
+  const rows = await database
+    .select({
+      id: packingSlips.id,
+      status: packingSlips.status,
+      source: packingSlips.source,
+      clientName: packingSlips.clientName,
+      clientEmail: packingSlips.clientEmail,
+      clientProtocolId: packingSlips.clientProtocolId,
+      storeOrderId: packingSlips.storeOrderId,
+      customOrderId: packingSlips.customOrderId,
+      createdAt: packingSlips.createdAt,
+      trackingNumber: packingSlips.trackingNumber,
+      trackingCarrier: packingSlips.trackingCarrier,
+      trackingUrl: packingSlips.trackingUrl,
+      totalItems: packingSlips.totalItems,
+      itemsFulfilled: packingSlips.itemsFulfilled,
+      itemsBackordered: packingSlips.itemsBackordered,
+      isLocked: packingSlips.isLocked,
+      signedAt: packingSlips.signedAt,
+      shippingName: packingSlips.shippingName,
+      shippingStreet: packingSlips.shippingStreet,
+      shippingCity: packingSlips.shippingCity,
+      shippingState: packingSlips.shippingState,
+      shippingZip: packingSlips.shippingZip,
+      protocolShippingName: clientProtocols.shippingName,
+      protocolShippingStreet: clientProtocols.shippingStreet,
+      protocolShippingCity: clientProtocols.shippingCity,
+      protocolShippingState: clientProtocols.shippingState,
+      protocolShippingZip: clientProtocols.shippingZip,
+      itemId: packingSlipItems.id,
+      itemName: packingSlipItems.itemName,
+      itemStatus: packingSlipItems.status,
+      itemQuantity: packingSlipItems.quantity,
+      itemQuantityFulfilled: packingSlipItems.quantityFulfilled,
+      itemQuantityBackordered: packingSlipItems.quantityBackordered,
+      itemShipSource: packingSlipItems.shipSource,
+      itemNotes: packingSlipItems.notes,
+    })
     .from(packingSlips)
+    .leftJoin(packingSlipItems, eq(packingSlipItems.packingSlipId, packingSlips.id))
+    .leftJoin(clientProtocols, eq(clientProtocols.id, packingSlips.clientProtocolId))
     .where(and(
       isNull(packingSlips.archivedAt),
       or(
-        eq(packingSlips.status, "pending"),
-        eq(packingSlips.status, "in_progress"),
-        eq(packingSlips.status, "partial")
+        eq(packingSlips.status, 'pending'),
+        eq(packingSlips.status, 'in_progress'),
+        eq(packingSlips.status, 'partial'),
       )
     ))
-    .orderBy(packingSlips.createdAt);
-  
-  // Enrich with items
-  const slipsWithItems = await Promise.all(
-    slips.map(async (slip) => {
-      const items = await database.select()
-        .from(packingSlipItems)
-        .where(eq(packingSlipItems.packingSlipId, slip.id));
-      
-      const backorderedItems = items.filter(i => i.status === 'backordered' || (i.quantityBackordered && i.quantityBackordered > 0));
-      const pendingItems = items.filter(i => i.status === 'pending');
-      const fulfilledItems = items.filter(i => i.status === 'fulfilled');
-      
-      // Try to get shipping address from protocol if missing
-      let shippingInfo = {
-        shippingName: slip.shippingName,
-        shippingStreet: slip.shippingStreet,
-        shippingCity: slip.shippingCity,
-        shippingState: slip.shippingState,
-        shippingZip: slip.shippingZip,
+    .orderBy(packingSlips.createdAt, packingSlipItems.itemName);
+
+  // Group flat JOIN rows into per-slip objects.
+  const slipMap = new Map<number, any>();
+  for (const row of rows) {
+    if (!slipMap.has(row.id)) {
+      const useProtocol = !row.shippingStreet && !!row.protocolShippingStreet;
+      slipMap.set(row.id, {
+        id: row.id,
+        status: row.status,
+        source: row.source,
+        clientName: row.clientName,
+        clientEmail: row.clientEmail,
+        clientProtocolId: row.clientProtocolId,
+        storeOrderId: row.storeOrderId,
+        customOrderId: row.customOrderId,
+        createdAt: row.createdAt,
+        trackingNumber: row.trackingNumber,
+        trackingCarrier: row.trackingCarrier,
+        trackingUrl: row.trackingUrl,
+        totalItems: row.totalItems,
+        itemsFulfilled: row.itemsFulfilled,
+        itemsBackordered: row.itemsBackordered,
+        isLocked: row.isLocked,
+        signedAt: row.signedAt,
+        shippingName: useProtocol ? row.protocolShippingName : row.shippingName,
+        shippingStreet: useProtocol ? row.protocolShippingStreet : row.shippingStreet,
+        shippingCity: useProtocol ? row.protocolShippingCity : row.shippingCity,
+        shippingState: useProtocol ? row.protocolShippingState : row.shippingState,
+        shippingZip: useProtocol ? row.protocolShippingZip : row.shippingZip,
+        items: [] as any[],
+        backorderedItems: [] as any[],
+        pendingItems: [] as any[],
+        fulfilledItems: [] as any[],
+      });
+    }
+
+    if (row.itemId !== null) {
+      const item = {
+        id: row.itemId,
+        itemName: row.itemName,
+        status: row.itemStatus,
+        quantity: row.itemQuantity,
+        quantityFulfilled: row.itemQuantityFulfilled,
+        quantityBackordered: row.itemQuantityBackordered,
+        shipSource: row.itemShipSource,
+        notes: row.itemNotes,
       };
-      
-      if (!slip.shippingStreet && slip.clientProtocolId) {
-        const protocols = await database.select({
-          shippingName: clientProtocols.shippingName,
-          shippingStreet: clientProtocols.shippingStreet,
-          shippingCity: clientProtocols.shippingCity,
-          shippingState: clientProtocols.shippingState,
-          shippingZip: clientProtocols.shippingZip,
-        })
-          .from(clientProtocols)
-          .where(eq(clientProtocols.id, slip.clientProtocolId));
-        
-        if (protocols[0] && protocols[0].shippingStreet) {
-          shippingInfo = {
-            shippingName: protocols[0].shippingName,
-            shippingStreet: protocols[0].shippingStreet,
-            shippingCity: protocols[0].shippingCity,
-            shippingState: protocols[0].shippingState,
-            shippingZip: protocols[0].shippingZip,
-          };
-        }
+      const slip = slipMap.get(row.id)!;
+      slip.items.push(item);
+      if (item.status === 'backordered' || (item.quantityBackordered && item.quantityBackordered > 0)) {
+        slip.backorderedItems.push(item);
       }
-      
-      return {
-        ...slip,
-        ...shippingInfo,
-        items,
-        backorderedItems,
-        pendingItems,
-        fulfilledItems,
-        totalBackordered: backorderedItems.length,
-        totalPending: pendingItems.length,
-        totalFulfilled: fulfilledItems.length,
-      };
-    })
-  );
-  
-  return slipsWithItems;
+      if (item.status === 'pending') slip.pendingItems.push(item);
+      if (item.status === 'fulfilled') slip.fulfilledItems.push(item);
+    }
+  }
+
+  return Array.from(slipMap.values()).map(slip => ({
+    ...slip,
+    totalBackordered: slip.backorderedItems.length,
+    totalPending: slip.pendingItems.length,
+    totalFulfilled: slip.itemsFulfilled, // quantity-based — consistent with totalItems
+  }));
 }
 
 /**
@@ -9392,11 +9442,15 @@ export async function getBackorderedItems() {
   })
     .from(packingSlipItems)
     .leftJoin(packingSlips, eq(packingSlipItems.packingSlipId, packingSlips.id))
-    .where(
-      eq(packingSlipItems.status, "backordered")
-    )
+    .where(and(
+      or(
+        eq(packingSlipItems.status, "backordered"),
+        gt(packingSlipItems.quantityBackordered, 0)
+      ),
+      isNull(packingSlips.archivedAt)
+    ))
     .orderBy(packingSlipItems.createdAt);
-  
+
   return items;
 }
 
