@@ -344,6 +344,7 @@ export const ALL_NOTIFICATION_TYPES = [
   "consultation_notes_added",
   "consultation_note_reminder",
   "onboarding_automation",
+  "fulfillment_alert",
   "other",
 ] as const;
 
@@ -4850,81 +4851,64 @@ export async function createPackingSlipForStoreOrder(storeOrderId: number) {
   return packingSlipId;
 }
 
-// Get all packing slips with summary
-type SlipStatus = 'pending' | 'in_progress' | 'partial' | 'complete' | 'cancelled';
+// Shared shipping-address fallback: merges protocol address onto a slip when the slip has none.
+// Used by getPackingSlipById, getPackingSlipByProtocolId, and getAllPackingSlips (via JOIN).
+type ShippingFields = {
+  shippingName: string | null;
+  shippingStreet: string | null;
+  shippingCity: string | null;
+  shippingState: string | null;
+  shippingZip: string | null;
+  shippingCountry: string | null;
+  shippingPhone: string | null;
+};
 
-function deriveSlipStatus(items: { status: string; quantityFulfilled: number; quantityBackordered: number; quantity: number }[]): SlipStatus {
-  if (items.length === 0) return 'pending';
-  if (items.every(i => i.status === 'cancelled')) return 'cancelled';
-  if (items.every(i => i.quantityFulfilled >= i.quantity)) return 'complete';
-  if (items.some(i => i.quantityBackordered > 0 && i.quantityFulfilled > 0)) return 'partial';
-  if (items.some(i => i.quantityFulfilled > 0)) return 'in_progress';
-  return 'pending';
-}
-
-function deriveSlipStatusFromCounts(totalItems: number, itemsFulfilled: number, itemsBackordered: number): SlipStatus {
-  if (totalItems === 0) return 'pending';
-  if (itemsFulfilled >= totalItems) return 'complete';
-  if (itemsBackordered > 0 && itemsFulfilled > 0) return 'partial';
-  if (itemsFulfilled > 0) return 'in_progress';
-  return 'pending';
+function mergeProtocolShipping<T extends ShippingFields>(
+  slip: T,
+  protocol: ShippingFields | null | undefined
+): T {
+  if (slip.shippingStreet || slip.shippingCity || !protocol) return slip;
+  if (!protocol.shippingStreet && !protocol.shippingCity) return slip;
+  return {
+    ...slip,
+    shippingName: protocol.shippingName,
+    shippingStreet: protocol.shippingStreet,
+    shippingCity: protocol.shippingCity,
+    shippingState: protocol.shippingState,
+    shippingZip: protocol.shippingZip,
+    shippingCountry: protocol.shippingCountry,
+    shippingPhone: protocol.shippingPhone,
+  };
 }
 
 export async function getAllPackingSlips() {
   const database = await getDb();
   if (!database) return [];
-  
-  // Get all packing slips with client protocol shipping info
-  const slips = await database.select()
+
+  // Single JOIN: resolve shipping address fallback without N+1 queries.
+  // The DB status column is authoritative (maintained by recalculatePackingSlipTotals)
+  // so we no longer recompute it from counts here.
+  const rows = await database
+    .select({
+      slip: packingSlips,
+      protocolShipping: {
+        shippingName: clientProtocols.shippingName,
+        shippingStreet: clientProtocols.shippingStreet,
+        shippingCity: clientProtocols.shippingCity,
+        shippingState: clientProtocols.shippingState,
+        shippingZip: clientProtocols.shippingZip,
+        shippingCountry: clientProtocols.shippingCountry,
+        shippingPhone: clientProtocols.shippingPhone,
+      },
+    })
     .from(packingSlips)
+    .leftJoin(clientProtocols, eq(clientProtocols.id, packingSlips.clientProtocolId))
     .where(isNull(packingSlips.archivedAt))
     .orderBy(desc(packingSlips.createdAt));
-  
-  // For each slip, if no shipping address, try to get from client protocol
-  const slipsWithAddress = await Promise.all(
-    slips.map(async (slip) => {
-      // If packing slip already has shipping address, return as-is
-      if (slip.shippingStreet || slip.shippingCity) {
-        return slip;
-      }
-      
-      // Try to get shipping address from client protocol
-      if (slip.clientProtocolId) {
-        const protocols = await database.select({
-          shippingName: clientProtocols.shippingName,
-          shippingStreet: clientProtocols.shippingStreet,
-          shippingCity: clientProtocols.shippingCity,
-          shippingState: clientProtocols.shippingState,
-          shippingZip: clientProtocols.shippingZip,
-          shippingCountry: clientProtocols.shippingCountry,
-          shippingPhone: clientProtocols.shippingPhone,
-        })
-          .from(clientProtocols)
-          .where(eq(clientProtocols.id, slip.clientProtocolId));
-        
-        const protocol = protocols[0];
-        if (protocol && (protocol.shippingStreet || protocol.shippingCity)) {
-          return {
-            ...slip,
-            shippingName: protocol.shippingName,
-            shippingStreet: protocol.shippingStreet,
-            shippingCity: protocol.shippingCity,
-            shippingState: protocol.shippingState,
-            shippingZip: protocol.shippingZip,
-            shippingCountry: protocol.shippingCountry,
-            shippingPhone: protocol.shippingPhone,
-          };
-        }
-      }
-      
-      return slip;
-    })
+
+  return rows.map(({ slip, protocolShipping }) =>
+    mergeProtocolShipping(slip, protocolShipping)
   );
-  
-  return slipsWithAddress.map(slip => ({
-    ...slip,
-    status: deriveSlipStatusFromCounts(slip.totalItems, slip.itemsFulfilled, slip.itemsBackordered),
-  }));
 }
 
 // Get packing slip by ID with items
@@ -4944,37 +4928,24 @@ export async function getPackingSlipById(id: number) {
     .where(eq(packingSlipItems.packingSlipId, id))
     .orderBy(packingSlipItems.itemName);
   
-  // If packing slip doesn't have shipping address, try to get it from the client protocol
-  let finalSlip = { ...slip };
+  let protocol: ShippingFields | null = null;
   if (!slip.shippingStreet && !slip.shippingCity && slip.clientProtocolId) {
-    const protocols = await database.select({
-      shippingName: clientProtocols.shippingName,
-      shippingStreet: clientProtocols.shippingStreet,
-      shippingCity: clientProtocols.shippingCity,
-      shippingState: clientProtocols.shippingState,
-      shippingZip: clientProtocols.shippingZip,
-      shippingCountry: clientProtocols.shippingCountry,
-      shippingPhone: clientProtocols.shippingPhone,
-    })
+    const rows = await database
+      .select({
+        shippingName: clientProtocols.shippingName,
+        shippingStreet: clientProtocols.shippingStreet,
+        shippingCity: clientProtocols.shippingCity,
+        shippingState: clientProtocols.shippingState,
+        shippingZip: clientProtocols.shippingZip,
+        shippingCountry: clientProtocols.shippingCountry,
+        shippingPhone: clientProtocols.shippingPhone,
+      })
       .from(clientProtocols)
       .where(eq(clientProtocols.id, slip.clientProtocolId));
-    
-    const protocol = protocols[0];
-    if (protocol && (protocol.shippingStreet || protocol.shippingCity)) {
-      finalSlip = {
-        ...slip,
-        shippingName: protocol.shippingName,
-        shippingStreet: protocol.shippingStreet,
-        shippingCity: protocol.shippingCity,
-        shippingState: protocol.shippingState,
-        shippingZip: protocol.shippingZip,
-        shippingCountry: protocol.shippingCountry,
-        shippingPhone: protocol.shippingPhone,
-      };
-    }
+    protocol = rows[0] ?? null;
   }
-  
-  return { ...finalSlip, status: deriveSlipStatus(items), items };
+
+  return { ...mergeProtocolShipping(slip, protocol), items };
 }
 
 // Get packing slip by client protocol ID
@@ -4996,37 +4967,24 @@ export async function getPackingSlipByProtocolId(clientProtocolId: number) {
     .where(eq(packingSlipItems.packingSlipId, slip.id))
     .orderBy(packingSlipItems.itemName);
   
-  // If packing slip doesn't have shipping address, try to get it from the client protocol
-  let finalSlip = { ...slip };
+  let protocol: ShippingFields | null = null;
   if (!slip.shippingStreet && !slip.shippingCity) {
-    const protocols = await database.select({
-      shippingName: clientProtocols.shippingName,
-      shippingStreet: clientProtocols.shippingStreet,
-      shippingCity: clientProtocols.shippingCity,
-      shippingState: clientProtocols.shippingState,
-      shippingZip: clientProtocols.shippingZip,
-      shippingCountry: clientProtocols.shippingCountry,
-      shippingPhone: clientProtocols.shippingPhone,
-    })
+    const rows = await database
+      .select({
+        shippingName: clientProtocols.shippingName,
+        shippingStreet: clientProtocols.shippingStreet,
+        shippingCity: clientProtocols.shippingCity,
+        shippingState: clientProtocols.shippingState,
+        shippingZip: clientProtocols.shippingZip,
+        shippingCountry: clientProtocols.shippingCountry,
+        shippingPhone: clientProtocols.shippingPhone,
+      })
       .from(clientProtocols)
       .where(eq(clientProtocols.id, clientProtocolId));
-    
-    const protocol = protocols[0];
-    if (protocol && (protocol.shippingStreet || protocol.shippingCity)) {
-      finalSlip = {
-        ...slip,
-        shippingName: protocol.shippingName,
-        shippingStreet: protocol.shippingStreet,
-        shippingCity: protocol.shippingCity,
-        shippingState: protocol.shippingState,
-        shippingZip: protocol.shippingZip,
-        shippingCountry: protocol.shippingCountry,
-        shippingPhone: protocol.shippingPhone,
-      };
-    }
+    protocol = rows[0] ?? null;
   }
-  
-  return { ...finalSlip, status: deriveSlipStatus(items), items };
+
+  return { ...mergeProtocolShipping(slip, protocol), items };
 }
 
 // Update packing slip item status

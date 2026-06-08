@@ -11,6 +11,7 @@ import {
   ArrowUpDown
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { formatDate, formatDaysAgo } from "@/lib/dateUtils";
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -44,20 +45,6 @@ function ShipSourceBadge({ source }: { source: string | null }) {
   );
 }
 
-function formatDate(d: any) {
-  if (!d) return "";
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric"
-  });
-}
-
-function formatDaysAgo(d: any) {
-  if (!d) return "";
-  const days = Math.floor((Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24));
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
-  return `${days}d ago`;
-}
 
 export default function FulfillmentQueue() {
   const [activeTab, setActiveTab] = useState("queue");
