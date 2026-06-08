@@ -8,9 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Package, AlertTriangle, Truck, Clock, CheckCircle2,
   RefreshCw, ChevronRight, MapPin, ExternalLink, Box,
+  Circle, ChevronLeft,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { formatDate, formatDaysAgo } from "@/lib/dateUtils";
+
+// ─── Small reusable components ───────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -38,22 +41,29 @@ function ShipSourceBadge({ source }: { source: string | null }) {
     client_sourced: "Client Sourced",
   };
   return (
-    <Badge variant="outline" className="text-xs">
+    <Badge variant="outline" className="text-xs shrink-0">
       {labels[source] || source}
     </Badge>
   );
 }
 
-function ProgressBar({ fulfilled, total }: { fulfilled: number; total: number }) {
+function ProgressBar({ fulfilled, total, slim = false }: { fulfilled: number; total: number; slim?: boolean }) {
   const pct = total > 0 ? Math.min(100, Math.round((fulfilled / total) * 100)) : 0;
   const barColor = pct === 100 ? "bg-green-500" : pct > 0 ? "bg-blue-500" : "bg-gray-300";
+  if (slim) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden" aria-hidden="true">
+          <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+        </div>
+        <span className="text-xs text-muted-foreground shrink-0">{fulfilled}/{total}</span>
+      </div>
+    );
+  }
   return (
     <div className="flex items-center gap-2 mt-2">
       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden" aria-hidden="true">
-        <div
-          className={`h-full rounded-full transition-all ${barColor}`}
-          style={{ width: `${pct}%` }}
-        />
+        <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
         {fulfilled} / {total} units
@@ -76,49 +86,303 @@ function getUrgencyBand(slip: any): "urgent" | "attention" | "progress" {
 function AgeLabel({ createdAt }: { createdAt: string | Date }) {
   const days = slipDaysOld(createdAt);
   const cls =
-    days >= 7
-      ? "text-red-600 font-semibold"
-      : days >= 3
-      ? "text-yellow-600 font-medium"
-      : "text-muted-foreground";
+    days >= 7 ? "text-red-600 font-semibold"
+    : days >= 3 ? "text-yellow-600 font-medium"
+    : "text-muted-foreground";
   return <span className={`text-xs ${cls}`}>{formatDaysAgo(createdAt)}</span>;
 }
 
 const URGENCY_GROUPS = [
-  {
-    key: "urgent" as const,
-    label: "Urgent",
-    dotClass: "bg-red-500",
-    textClass: "text-red-700",
-    description: "7+ days old or has backordered items",
-  },
-  {
-    key: "attention" as const,
-    label: "Needs Attention",
-    dotClass: "bg-yellow-500",
-    textClass: "text-yellow-700",
-    description: "3–6 days old",
-  },
-  {
-    key: "progress" as const,
-    label: "In Progress",
-    dotClass: "bg-green-500",
-    textClass: "text-green-700",
-    description: "Under 3 days old",
-  },
+  { key: "urgent" as const,    label: "Urgent",          dotClass: "bg-red-500",    textClass: "text-red-700",    description: "7+ days or backordered" },
+  { key: "attention" as const, label: "Needs Attention", dotClass: "bg-yellow-500", textClass: "text-yellow-700", description: "3–6 days" },
+  { key: "progress" as const,  label: "In Progress",     dotClass: "bg-green-500",  textClass: "text-green-700",  description: "Under 3 days" },
 ];
+
+// ─── Left rail: compact slip list ────────────────────────────────────────────
+
+function SlipListRail({
+  grouped,
+  selectedSlipId,
+  onSelect,
+}: {
+  grouped: Record<string, any[]>;
+  selectedSlipId: number | null;
+  onSelect: (id: number) => void;
+}) {
+  return (
+    <div className="h-full overflow-y-auto bg-gray-50">
+      {URGENCY_GROUPS.filter(g => grouped[g.key].length > 0).map(group => (
+        <div key={group.key}>
+          <div className="sticky top-0 z-10 bg-gray-100 border-b border-t px-3 py-1.5 flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full shrink-0 ${group.dotClass}`} aria-hidden="true" />
+            <span className={`text-xs font-semibold ${group.textClass}`}>{group.label}</span>
+            <span className="text-xs text-muted-foreground ml-auto">{grouped[group.key].length}</span>
+          </div>
+
+          {grouped[group.key].map(slip => {
+            const selected = selectedSlipId === slip.id;
+            return (
+              <button
+                key={slip.id}
+                onClick={() => onSelect(slip.id)}
+                className={`w-full text-left px-3 py-3 border-b transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500
+                  ${selected
+                    ? "bg-white border-l-[3px] border-l-blue-500"
+                    : "hover:bg-white border-l-[3px] border-l-transparent"
+                  }`}
+                aria-pressed={selected}
+                aria-label={`Select packing slip for ${slip.clientName}, PS-${slip.id}`}
+              >
+                <div className="flex items-start justify-between gap-1 mb-1">
+                  <span className="font-medium text-sm leading-tight truncate">{slip.clientName}</span>
+                  {slip.totalBackordered > 0 && (
+                    <Badge variant="destructive" className="text-xs shrink-0 ml-1">
+                      {slip.totalBackordered}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <StatusBadge status={slip.status} />
+                  <AgeLabel createdAt={slip.createdAt} />
+                </div>
+                <div className="mt-1.5">
+                  <ProgressBar fulfilled={slip.totalFulfilled} total={slip.totalItems} slim />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Right panel: slip detail with inline fulfillment ─────────────────────────
+
+function SlipDetailPanel({
+  slip,
+  pendingItemIds,
+  onFulfillItem,
+  onBack,
+  navigate,
+}: {
+  slip: any;
+  pendingItemIds: Set<number>;
+  onFulfillItem: (itemId: number, quantity: number) => void;
+  onBack: () => void;
+  navigate: (path: string) => void;
+}) {
+  const allPendingDone = (slip.pendingItems || []).length === 0;
+
+  return (
+    <div className="h-full overflow-y-auto flex flex-col">
+      {/* Mobile back button */}
+      <div className="md:hidden px-4 pt-3 pb-1 border-b bg-white sticky top-0 z-10">
+        <Button variant="ghost" size="sm" onClick={onBack} className="text-xs -ml-2">
+          <ChevronLeft className="h-3 w-3 mr-1" aria-hidden="true" />
+          Back to list
+        </Button>
+      </div>
+
+      <div className="p-5 space-y-5 flex-1">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <StatusBadge status={slip.status} />
+              <Badge variant="outline" className="text-xs capitalize">{slip.source}</Badge>
+              {slip.signedAt && (
+                <Badge variant="outline" className="text-xs text-green-700 border-green-300">Signed</Badge>
+              )}
+              {slip.isLocked && (
+                <Badge variant="outline" className="text-xs text-gray-500">Locked</Badge>
+              )}
+              <span className="text-xs text-muted-foreground">PS-{slip.id} •</span>
+              <AgeLabel createdAt={slip.createdAt} />
+            </div>
+            <h2 className="text-lg font-bold">{slip.clientName}</h2>
+            <a
+              href={`mailto:${slip.clientEmail}`}
+              className="text-sm text-muted-foreground hover:text-blue-600 hover:underline"
+              aria-label={`Email ${slip.clientName} at ${slip.clientEmail}`}
+            >
+              {slip.clientEmail}
+            </a>
+            {slip.shippingStreet && (
+              <div className="flex items-start gap-1 mt-1.5 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3 mt-0.5 shrink-0" aria-hidden="true" />
+                <span>{slip.shippingStreet}, {slip.shippingCity}, {slip.shippingState} {slip.shippingZip}</span>
+              </div>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs shrink-0"
+            onClick={() => navigate(`/admin/packing-slips/${slip.id}`)}
+            aria-label={`Open full packing slip for ${slip.clientName} (PS-${slip.id})`}
+          >
+            <ExternalLink className="h-3 w-3 mr-1" aria-hidden="true" />
+            Full Slip
+          </Button>
+        </div>
+
+        {/* Progress */}
+        <ProgressBar fulfilled={slip.totalFulfilled} total={slip.totalItems} />
+
+        {/* Tracking */}
+        {slip.trackingNumber && (
+          <div className="flex items-center gap-2 text-sm bg-blue-50 rounded-md px-3 py-2">
+            <Truck className="h-4 w-4 text-blue-500 shrink-0" aria-hidden="true" />
+            <span className="font-medium text-blue-700">{slip.trackingCarrier || "Tracking"}:</span>
+            {slip.trackingUrl ? (
+              <a
+                href={slip.trackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline flex items-center gap-1 truncate"
+                aria-label={`Track ${slip.trackingNumber} via ${slip.trackingCarrier} (opens in new tab)`}
+              >
+                {slip.trackingNumber}
+                <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
+              </a>
+            ) : (
+              <span className="text-blue-700 truncate">{slip.trackingNumber}</span>
+            )}
+          </div>
+        )}
+
+        {/* Items */}
+        <div>
+          <h3 className="text-sm font-semibold mb-2">Items</h3>
+          <div className="space-y-1 rounded-md border overflow-hidden">
+            {(slip.items || []).length === 0 && (
+              <p className="text-sm text-muted-foreground p-3">No items on this slip.</p>
+            )}
+            {(slip.items || []).map((item: any, idx: number) => {
+              const isFulfilled = item.status === "fulfilled" || item.quantityFulfilled >= item.quantity;
+              const isBackordered = !isFulfilled && (item.status === "backordered" || item.quantityBackordered > 0);
+              const isLoading = pendingItemIds.has(item.id);
+              const isLocked = slip.isLocked || !!slip.signedAt;
+
+              return (
+                <div
+                  key={item.id}
+                  className={`flex items-center gap-3 px-3 py-2.5 text-sm
+                    ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    ${isFulfilled ? "opacity-50" : ""}
+                  `}
+                >
+                  {/* Status icon */}
+                  {isFulfilled ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" aria-hidden="true" />
+                  ) : isBackordered ? (
+                    <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" aria-hidden="true" />
+                  ) : (
+                    <Circle className="h-4 w-4 text-gray-300 shrink-0" aria-hidden="true" />
+                  )}
+
+                  {/* Name + qty */}
+                  <div className="flex-1 min-w-0">
+                    <span className={isFulfilled ? "line-through text-muted-foreground" : "font-medium"}>
+                      {item.itemName}
+                    </span>
+                    <span className="text-muted-foreground ml-1.5">×{item.quantity}</span>
+                    {isBackordered && (
+                      <span className="text-red-600 text-xs ml-2">
+                        {item.quantityBackordered} backordered
+                      </span>
+                    )}
+                    {item.notes && (
+                      <p className="text-xs text-muted-foreground italic mt-0.5 truncate">{item.notes}</p>
+                    )}
+                  </div>
+
+                  <ShipSourceBadge source={item.shipSource} />
+
+                  {/* Inline fulfill */}
+                  {!isFulfilled && !isBackordered && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs h-7 shrink-0"
+                      disabled={isLoading || isLocked}
+                      onClick={() => onFulfillItem(item.id, item.quantity)}
+                      aria-label={`Mark ${item.itemName} as fulfilled`}
+                    >
+                      {isLoading
+                        ? <RefreshCw className="h-3 w-3 animate-spin" aria-hidden="true" />
+                        : "Fulfill"
+                      }
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer CTA */}
+        {allPendingDone && !slip.signedAt && (
+          <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-green-800">Ready to sign</p>
+              <p className="text-xs text-green-700">All items fulfilled — open the full slip to sign and lock.</p>
+            </div>
+            <Button
+              size="sm"
+              className="shrink-0 bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => navigate(`/admin/packing-slips/${slip.id}`)}
+              aria-label={`Sign packing slip for ${slip.clientName}`}
+            >
+              Sign & Lock
+              <ChevronRight className="h-3 w-3 ml-1" aria-hidden="true" />
+            </Button>
+          </div>
+        )}
+
+        {slip.isLocked && !slip.signedAt && (
+          <p className="text-xs text-muted-foreground text-center">
+            This slip is locked. Open the full slip to unlock and make changes.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FulfillmentQueue() {
   const [activeTab, setActiveTab] = useState("queue");
+  const [selectedSlipId, setSelectedSlipId] = useState<number | null>(null);
+  const [pendingItemIds, setPendingItemIds] = useState(new Set<number>());
   const [, navigate] = useLocation();
 
-  const queue = trpc.fulfillmentQueue.list.useQuery(undefined, {
-    refetchInterval: 30000,
-  });
+  const queue = trpc.fulfillmentQueue.list.useQuery(undefined, { refetchInterval: 30000 });
   const backorders = trpc.fulfillmentQueue.backorders.useQuery(undefined, {
     refetchInterval: 30000,
     enabled: activeTab === "backorders",
   });
+  const utils = trpc.useUtils();
+
+  const updateItem = trpc.packingSlip.updateItem.useMutation({
+    onSuccess: () => utils.fulfillmentQueue.list.invalidate(),
+  });
+
+  function fulfillItem(itemId: number, quantity: number) {
+    setPendingItemIds(prev => new Set(prev).add(itemId));
+    updateItem.mutate(
+      { itemId, status: "fulfilled", quantityFulfilled: quantity },
+      {
+        onSettled: () => setPendingItemIds(prev => {
+          const next = new Set(prev);
+          next.delete(itemId);
+          return next;
+        }),
+      }
+    );
+  }
 
   const queueData = queue.data || [];
   const backorderData = backorders.data || [];
@@ -129,26 +393,27 @@ export default function FulfillmentQueue() {
   const partialSlips = queueData.filter(s => s.status === "partial").length;
   const totalBackorderedItems = queueData.reduce((sum, s) => sum + (s.totalBackordered || 0), 0);
   const backorderBadgeCount = backorders.data != null ? backorderData.length : totalBackorderedItems;
-
   const isFetching = queue.isFetching || backorders.isFetching;
 
-  // Sort oldest-first within each urgency band; within "urgent" put backorders first
+  // Sort and group
   const sortedQueue = [...queueData].sort((a, b) => {
     const bandA = getUrgencyBand(a);
     const bandB = getUrgencyBand(b);
     if (bandA === "urgent" && bandB === "urgent") {
-      // Backorders surface first within urgent
-      const backorderDiff = (b.totalBackordered || 0) - (a.totalBackordered || 0);
-      if (backorderDiff !== 0) return backorderDiff;
+      const diff = (b.totalBackordered || 0) - (a.totalBackordered || 0);
+      if (diff !== 0) return diff;
     }
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
 
   const grouped: Record<string, typeof sortedQueue> = {
-    urgent: sortedQueue.filter(s => getUrgencyBand(s) === "urgent"),
+    urgent:    sortedQueue.filter(s => getUrgencyBand(s) === "urgent"),
     attention: sortedQueue.filter(s => getUrgencyBand(s) === "attention"),
-    progress: sortedQueue.filter(s => getUrgencyBand(s) === "progress"),
+    progress:  sortedQueue.filter(s => getUrgencyBand(s) === "progress"),
   };
+
+  // Selected slip — may be stale if it just completed and left the queue
+  const selectedSlip = queueData.find(s => s.id === selectedSlipId) ?? null;
 
   return (
     <AdminLayout>
@@ -245,8 +510,8 @@ export default function FulfillmentQueue() {
             </TabsTrigger>
           </TabsList>
 
-          {/* QUEUE TAB */}
-          <TabsContent value="queue" className="space-y-6 mt-4">
+          {/* ── QUEUE TAB: split-pane ───────────────────────────────────── */}
+          <TabsContent value="queue" className="mt-4">
             {queue.isLoading ? (
               <div className="text-center py-12 text-muted-foreground">Loading fulfillment queue...</div>
             ) : queue.isError ? (
@@ -255,9 +520,7 @@ export default function FulfillmentQueue() {
                   <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-3" aria-hidden="true" />
                   <h3 className="text-lg font-semibold">Failed to load queue</h3>
                   <p className="text-sm text-muted-foreground mt-1">Check your connection and try again.</p>
-                  <Button variant="outline" size="sm" className="mt-4" onClick={() => queue.refetch()}>
-                    Retry
-                  </Button>
+                  <Button variant="outline" size="sm" className="mt-4" onClick={() => queue.refetch()}>Retry</Button>
                 </CardContent>
               </Card>
             ) : sortedQueue.length === 0 ? (
@@ -269,148 +532,48 @@ export default function FulfillmentQueue() {
                 </CardContent>
               </Card>
             ) : (
-              URGENCY_GROUPS.filter(g => grouped[g.key].length > 0).map(group => (
-                <div key={group.key}>
-                  {/* Group header */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${group.dotClass}`} aria-hidden="true" />
-                    <h2 className={`text-sm font-semibold ${group.textClass}`}>
-                      {group.label}
-                    </h2>
-                    <span className="text-xs text-muted-foreground">
-                      — {grouped[group.key].length} slip{grouped[group.key].length !== 1 ? "s" : ""} · {group.description}
-                    </span>
-                  </div>
-
-                  <div className="space-y-3">
-                    {grouped[group.key].map(slip => (
-                      <Card
-                        key={slip.id}
-                        className={slip.totalBackordered > 0 ? "border-red-200" : ""}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              {/* Header row */}
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <StatusBadge status={slip.status} />
-                                <Badge variant="outline" className="text-xs capitalize">{slip.source}</Badge>
-                                {slip.signedAt && (
-                                  <Badge variant="outline" className="text-xs text-green-700 border-green-300">
-                                    Signed
-                                  </Badge>
-                                )}
-                                {slip.totalBackordered > 0 && (
-                                  <Badge variant="destructive" className="text-xs">
-                                    {slip.totalBackordered} backordered
-                                  </Badge>
-                                )}
-                                <span className="text-xs text-muted-foreground">PS-{slip.id} •</span>
-                                <AgeLabel createdAt={slip.createdAt} />
-                              </div>
-
-                              {/* Client info */}
-                              <h3 className="font-semibold">{slip.clientName}</h3>
-                              <a
-                                href={`mailto:${slip.clientEmail}`}
-                                className="text-xs text-muted-foreground hover:text-blue-600 hover:underline"
-                                aria-label={`Email ${slip.clientName} at ${slip.clientEmail}`}
-                              >
-                                {slip.clientEmail}
-                              </a>
-
-                              {/* Shipping address */}
-                              {slip.shippingStreet && (
-                                <div className="flex items-start gap-1 mt-2 text-xs text-muted-foreground">
-                                  <MapPin className="h-3 w-3 mt-0.5 shrink-0" aria-hidden="true" />
-                                  <span>
-                                    {slip.shippingStreet}, {slip.shippingCity}, {slip.shippingState} {slip.shippingZip}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Progress bar */}
-                              <ProgressBar fulfilled={slip.totalFulfilled} total={slip.totalItems} />
-
-                              {/* Items */}
-                              <div className="mt-2 space-y-1">
-                                {(slip.pendingItems || []).map((item: any) => (
-                                  <div
-                                    key={item.id}
-                                    className="flex items-center gap-2 text-xs pl-2 border-l-2 border-yellow-300"
-                                  >
-                                    <span className="font-medium">{item.itemName}</span>
-                                    <span className="text-muted-foreground">×{item.quantity}</span>
-                                    <ShipSourceBadge source={item.shipSource} />
-                                  </div>
-                                ))}
-                                {(slip.backorderedItems || []).map((item: any) => (
-                                  <div
-                                    key={item.id}
-                                    className="flex items-center gap-2 text-xs pl-2 border-l-2 border-red-300"
-                                  >
-                                    <AlertTriangle className="h-3 w-3 text-red-500" aria-hidden="true" />
-                                    <span className="font-medium text-red-700">{item.itemName}</span>
-                                    <span className="text-muted-foreground">
-                                      ×{item.quantityBackordered || item.quantity}
-                                    </span>
-                                    <ShipSourceBadge source={item.shipSource} />
-                                    {item.notes && (
-                                      <span className="text-muted-foreground italic truncate max-w-[200px]">
-                                        {item.notes}
-                                      </span>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-
-                              {/* Tracking */}
-                              {slip.trackingNumber && (
-                                <div className="flex items-center gap-2 mt-2 text-xs">
-                                  <Truck className="h-3 w-3" aria-hidden="true" />
-                                  <span className="font-medium">{slip.trackingCarrier || "Tracking"}:</span>
-                                  {slip.trackingUrl ? (
-                                    <a
-                                      href={slip.trackingUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:underline flex items-center gap-1"
-                                      aria-label={`Track package ${slip.trackingNumber} via ${slip.trackingCarrier} (opens in new tab)`}
-                                    >
-                                      {slip.trackingNumber}
-                                      <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                                    </a>
-                                  ) : (
-                                    <span>{slip.trackingNumber}</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Action */}
-                            <div className="shrink-0">
-                              <Button
-                                size="sm"
-                                variant="default"
-                                className="text-xs h-7"
-                                onClick={() => navigate(`/admin/packing-slips/${slip.id}`)}
-                                aria-label={`Open packing slip for ${slip.clientName} (PS-${slip.id})`}
-                              >
-                                <ChevronRight className="h-3 w-3 mr-1" aria-hidden="true" />
-                                Open Slip
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+              <div className="border rounded-lg overflow-hidden flex" style={{ minHeight: "620px", maxHeight: "calc(100vh - 22rem)" }}>
+                {/* Left rail — hidden on mobile when detail is open */}
+                <div className={`${selectedSlipId ? "hidden md:flex" : "flex"} md:w-72 w-full flex-col border-r`}>
+                  <SlipListRail
+                    grouped={grouped}
+                    selectedSlipId={selectedSlipId}
+                    onSelect={setSelectedSlipId}
+                  />
                 </div>
-              ))
+
+                {/* Right detail panel — hidden on mobile until a slip is selected */}
+                <div className={`${selectedSlipId ? "flex" : "hidden md:flex"} flex-1 flex-col`}>
+                  {selectedSlip ? (
+                    <SlipDetailPanel
+                      slip={selectedSlip}
+                      pendingItemIds={pendingItemIds}
+                      onFulfillItem={fulfillItem}
+                      onBack={() => setSelectedSlipId(null)}
+                      navigate={navigate}
+                    />
+                  ) : selectedSlipId ? (
+                    // Slip just completed and disappeared from queue
+                    <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                      <CheckCircle2 className="h-12 w-12 text-green-500 mb-3" aria-hidden="true" />
+                      <h3 className="text-lg font-semibold">Slip Completed</h3>
+                      <p className="text-sm text-muted-foreground mt-1">This slip has left the queue.</p>
+                      <Button variant="outline" size="sm" className="mt-4" onClick={() => setSelectedSlipId(null)}>
+                        Back to list
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
+                      <Package className="h-12 w-12 mb-3 opacity-20" aria-hidden="true" />
+                      <p className="text-sm">Select a slip from the list to see its details and fulfill items.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </TabsContent>
 
-          {/* BACKORDERS TAB */}
+          {/* ── BACKORDERS TAB ──────────────────────────────────────────── */}
           <TabsContent value="backorders" className="space-y-4">
             {backorders.isLoading ? (
               <div className="text-center py-12 text-muted-foreground">Loading backorders...</div>
@@ -420,9 +583,7 @@ export default function FulfillmentQueue() {
                   <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-3" aria-hidden="true" />
                   <h3 className="text-lg font-semibold">Failed to load backorders</h3>
                   <p className="text-sm text-muted-foreground mt-1">Check your connection and try again.</p>
-                  <Button variant="outline" size="sm" className="mt-4" onClick={() => backorders.refetch()}>
-                    Retry
-                  </Button>
+                  <Button variant="outline" size="sm" className="mt-4" onClick={() => backorders.refetch()}>Retry</Button>
                 </CardContent>
               </Card>
             ) : backorderData.length === 0 ? (
@@ -487,7 +648,7 @@ export default function FulfillmentQueue() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs h-7"
+                          className="text-xs h-7 shrink-0"
                           onClick={() => navigate(`/admin/packing-slips/${item.packingSlipId}`)}
                           aria-label={`View packing slip PS-${item.packingSlipId} for ${item.slipClientName}`}
                         >
