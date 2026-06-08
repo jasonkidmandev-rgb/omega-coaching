@@ -44,7 +44,6 @@ const AdminOnboardingManager = lazyWithRetry(() => import("./pages/admin/Onboard
 const AdminProjectList = lazyWithRetry(() => import("./pages/admin/projects/ProjectList"));
 const AdminProjectDetail = lazyWithRetry(() => import("./pages/admin/projects/ProjectDetail"));
 const AdminWorkflowTemplates = lazyWithRetry(() => import("./pages/admin/projects/WorkflowTemplates"));
-const AdminOperationsDashboard = lazyWithRetry(() => import("./pages/admin/projects/OperationsDashboard"));
 const AdminPayments = lazyWithRetry(() => import("./pages/admin/Payments"));
 const AdminStoreOrders = lazyWithRetry(() => import("./pages/admin/StoreOrders"));
 const AdminCustomOrders = lazyWithRetry(() => import("./pages/admin/CustomOrders"));
@@ -86,7 +85,6 @@ const AdminShannonKanban = lazyWithRetry(() => import("./pages/admin/ShannonKanb
 const AdminUpcomingAppointments = lazyWithRetry(() => import("./pages/admin/UpcomingAppointments"));
 const AdminCalendlySettings = lazyWithRetry(() => import("./pages/admin/CalendlySettings"));
 const AdminContactAdmin = lazyWithRetry(() => import("./pages/admin/ContactAdmin"));
-const AdminDataQuality = lazyWithRetry(() => import("./pages/admin/DataQuality"));
 const AdminDataIntegrityAudit = lazyWithRetry(() => import("./pages/admin/DataIntegrityAudit"));
 const TransformationEntry = lazyWithRetry(() => import("./pages/TransformationEntry"));
 // TransformationJourney removed - page deprecated, route redirects to /transformation
@@ -211,7 +209,6 @@ function Router() {
         <Route path={"/admin/projects/:id"} component={AdminProjectDetail} />
         <Route path={"/admin/projects"} component={AdminProjectList} />
         <Route path={"/admin/workflow-templates"} component={AdminWorkflowTemplates} />
-        <Route path={"/admin/operations"} component={AdminOperationsDashboard} />
         <Route path={"/admin/payments"} component={AdminPayments} />
         <Route path={"/admin/store-orders"} component={AdminStoreOrders} />
         <Route path={"/admin/custom-orders/:id"} component={AdminCustomOrders} />
@@ -247,7 +244,6 @@ function Router() {
         <Route path={"/admin/upcoming-appointments"} component={AdminUpcomingAppointments} />
         <Route path={"/admin/calendly-settings"} component={AdminCalendlySettings} />
         <Route path={"/admin/contact-admin"} component={AdminContactAdmin} />
-        <Route path={"/admin/data-quality"} component={AdminDataQuality} />
         <Route path={"/admin/data-integrity"} component={AdminDataIntegrityAudit} />
         <Route path={"/admin/my-action-items"} component={MyActionItems} />
         <Route path={"/admin/fulfillment-queue"} component={FulfillmentQueue} />

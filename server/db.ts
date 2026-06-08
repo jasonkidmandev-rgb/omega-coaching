@@ -5037,16 +5037,24 @@ export async function updatePackingSlipItem(
     quantityBackordered?: number;
     status?: 'pending' | 'fulfilled' | 'partial' | 'backordered' | 'cancelled';
     notes?: string;
+    shipSource?: 'omega' | 'dropship' | 'vendor' | 'client_sourced';
+    itemTrackingCarrier?: string;
+    itemTrackingNumber?: string;
+    itemTrackingUrl?: string;
   }
 ) {
   const database = await getDb();
   if (!database) throw new Error("Database not available");
-  
+
   const updateData: any = {};
   if (data.quantityFulfilled !== undefined) updateData.quantityFulfilled = data.quantityFulfilled;
   if (data.quantityBackordered !== undefined) updateData.quantityBackordered = data.quantityBackordered;
   if (data.status) updateData.status = data.status;
   if (data.notes !== undefined) updateData.notes = data.notes;
+  if (data.shipSource !== undefined) updateData.shipSource = data.shipSource;
+  if (data.itemTrackingCarrier !== undefined) updateData.itemTrackingCarrier = data.itemTrackingCarrier;
+  if (data.itemTrackingNumber !== undefined) updateData.itemTrackingNumber = data.itemTrackingNumber;
+  if (data.itemTrackingUrl !== undefined) updateData.itemTrackingUrl = data.itemTrackingUrl;
   if (data.status === 'fulfilled') {
     updateData.fulfilledAt = new Date();
     // When an item is fulfilled, clear its backorder count so the slip can reach 'complete' status

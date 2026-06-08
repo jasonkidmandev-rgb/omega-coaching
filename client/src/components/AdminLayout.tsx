@@ -85,7 +85,6 @@ import {
   Sun,
   LayoutGrid,
   CalendarClock,
-  DatabaseZap,
   UserCog,
   ListTodo,
   ShieldCheck,
@@ -244,9 +243,7 @@ const menuCategories: MenuCategory[] = [
       { icon: Bell, label: "Team Email Preferences", path: "/admin/notification-preferences", roles: ['admin', 'manager'] },
       // Data & Admin Tools
       { icon: UserCog, label: "Contact Admin", path: "/admin/contact-admin", roles: ['admin'] },
-      { icon: DatabaseZap, label: "Data Quality", path: "/admin/data-quality", roles: ['admin'] },
       { icon: ShieldCheck, label: "Data Integrity Audit", path: "/admin/data-integrity", roles: ['admin'] },
-      { icon: Activity, label: "Operations", path: "/admin/operations", roles: ['admin', 'manager', 'viewer'] },
       { icon: History, label: "Audit Logs", path: "/admin/audit-logs", roles: ['admin'] },
       { icon: ListTodo, label: "Workflow Templates", path: "/admin/workflow-templates", roles: ['admin', 'manager'] },
       { icon: Sparkles, label: "Onboarding Wizard", path: "/admin/onboarding", roles: ['admin'] },

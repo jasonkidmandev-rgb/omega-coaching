@@ -1845,7 +1845,7 @@ export const onboardingSettings = mysqlTable("onboarding_settings", {
 export const packingSlipAuditLog = mysqlTable("packing_slip_audit_log", {
 	id: int().autoincrement().notNull(),
 	packingSlipId: int().notNull(),
-	action: mysqlEnum(['created','item_added','item_removed','item_status_changed','regenerated','signed','locked','unlocked','bulk_locked','bulk_unlocked','auto_locked','status_changed','tracking_updated','delivery_marked']).notNull(),
+	action: mysqlEnum(['created','item_added','item_removed','item_status_changed','regenerated','signed','locked','unlocked','bulk_locked','bulk_unlocked','auto_locked','status_changed','tracking_updated','delivery_marked','shipping_updated','dimensions_updated','archived','restored']).notNull(),
 	details: text(),
 	performedBy: int(),
 	performedByName: varchar({ length: 255 }),

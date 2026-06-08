@@ -5807,8 +5807,29 @@ const packingSlipRouter = router({
       packingSlipId: z.number(),
       status: z.enum(['pending', 'in_progress', 'partial', 'complete', 'cancelled']),
     }))
-    .mutation(async ({ input }) => {
-      return db.updatePackingSlipStatus(input.packingSlipId, input.status);
+    .mutation(async ({ input, ctx }) => {
+      const slip = await db.getPackingSlipById(input.packingSlipId);
+      if (slip?.isLocked || slip?.signedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This packing slip is locked. Unlock it before changing status.',
+        });
+      }
+      if (slip?.archivedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot modify an archived packing slip.',
+        });
+      }
+      const result = await db.updatePackingSlipStatus(input.packingSlipId, input.status);
+      await db.createPackingSlipAuditEntry({
+        packingSlipId: input.packingSlipId,
+        action: 'status_changed',
+        performedBy: ctx.user.id,
+        performedByName: ctx.user.name || ctx.user.email,
+        details: { status: input.status } as Record<string, unknown>,
+      });
+      return result;
     }),
   
   // Update packing slip shipping address
@@ -5825,6 +5846,19 @@ const packingSlipRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
       const { packingSlipId, ...shippingData } = input;
+      const slip = await db.getPackingSlipById(packingSlipId);
+      if (slip?.isLocked || slip?.signedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This packing slip is locked. Unlock it before modifying the shipping address.',
+        });
+      }
+      if (slip?.archivedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot modify an archived packing slip.',
+        });
+      }
       const result = await db.updatePackingSlipShipping(packingSlipId, shippingData);
       await db.createPackingSlipAuditEntry({
         packingSlipId,
@@ -5847,6 +5881,19 @@ const packingSlipRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
       const { packingSlipId, ...dimensionsData } = input;
+      const slip = await db.getPackingSlipById(packingSlipId);
+      if (slip?.isLocked || slip?.signedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This packing slip is locked. Unlock it before modifying package dimensions.',
+        });
+      }
+      if (slip?.archivedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot modify an archived packing slip.',
+        });
+      }
       const result = await db.updatePackingSlipDimensions(packingSlipId, dimensionsData);
       await db.createPackingSlipAuditEntry({
         packingSlipId,
@@ -5905,10 +5952,36 @@ const packingSlipRouter = router({
   bulkArchive: adminProcedure
     .input(z.object({ ids: z.array(z.number()) }))
     .mutation(async ({ input, ctx }) => {
-      const results = await Promise.all(
-        input.ids.map(id => db.archivePackingSlip(id, ctx.user.id))
-      );
-      return { archived: results.length };
+      const results = [];
+      for (const id of input.ids) {
+        try {
+          const slip = await db.getPackingSlipById(id);
+          if (!slip) {
+            results.push({ id, success: false, error: 'Not found', skipped: true });
+            continue;
+          }
+          if (slip.archivedAt) {
+            results.push({ id, success: false, error: 'Already archived', skipped: true });
+            continue;
+          }
+          await db.archivePackingSlip(id, ctx.user.id);
+          await db.createPackingSlipAuditEntry({
+            packingSlipId: id,
+            action: 'archived',
+            performedBy: ctx.user.id,
+            performedByName: ctx.user.name || ctx.user.email,
+            details: { reason: 'Archived via bulk action' },
+          });
+          results.push({ id, success: true });
+        } catch (error) {
+          results.push({ id, success: false, error: String(error) });
+        }
+      }
+      return {
+        archived: results.filter(r => r.success).length,
+        skipped: results.filter(r => (r as any).skipped).length,
+        results,
+      };
     }),
 
   // Bulk permanent delete
@@ -6061,7 +6134,12 @@ const packingSlipRouter = router({
           results.push({ id: packingSlipId, success: false, error: String(error) });
         }
       }
-      return { regenerated: results.filter(r => r.success).length, results };
+      return {
+        regenerated: results.filter(r => r.success).length,
+        skipped: results.filter(r => (r as any).skipped).length,
+        failed: results.filter(r => !r.success && !(r as any).skipped).length,
+        results,
+      };
     }),
 
   // Bulk lock packing slips
@@ -6212,6 +6290,19 @@ const packingSlipRouter = router({
       price: z.number().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
+      const slip = await db.getPackingSlipById(input.packingSlipId);
+      if (slip?.isLocked || slip?.signedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This packing slip is locked. Unlock it before adding items.',
+        });
+      }
+      if (slip?.archivedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot modify an archived packing slip.',
+        });
+      }
       const { packingSlipId, ...itemData } = input;
       await db.addPackingSlipItems(packingSlipId, [itemData]);
       const slip = await db.getPackingSlipById(packingSlipId);
@@ -6235,6 +6326,19 @@ const packingSlipRouter = router({
       itemId: z.number(),
     }))
     .mutation(async ({ input, ctx }) => {
+      const slip = await db.getPackingSlipById(input.packingSlipId);
+      if (slip?.isLocked || slip?.signedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This packing slip is locked. Unlock it before removing items.',
+        });
+      }
+      if (slip?.archivedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot modify an archived packing slip.',
+        });
+      }
       await db.deletePackingSlipItem(input.itemId);
       const slip = await db.getPackingSlipById(input.packingSlipId);
       if (slip) {
@@ -6277,6 +6381,7 @@ const packingSlipRouter = router({
           const items = packingSlip.items.map((item: any) => ({
             name: item.itemName,
             quantity: item.quantityFulfilled || item.quantity,
+            quantityBackordered: item.quantityBackordered || 0,
           }));
           
           const emailData = {
@@ -6336,7 +6441,7 @@ const packingSlipRouter = router({
                 lifecycleStageId: 6, // Onboarding
                 name: `Schedule kickoff session for ${packingSlip.clientName}`,
                 description: `Package delivered on ${new Date().toLocaleDateString('en-US', { timeZone: 'America/Denver', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Reach out to ${packingSlip.clientName} (${packingSlip.clientEmail}) to schedule their kickoff / reconstitution training session.\n\nPacking Slip: #${input.packingSlipId}${packingSlip.trackingNumber ? `\nTracking: ${packingSlip.trackingNumber}` : ''}`,
-                assignedTeamMemberId: 1, // Lisa
+                assignedTeamMemberId: null,
                 dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
                 sortOrder: 150,
                 isRequired: true,
@@ -6362,16 +6467,19 @@ const packingSlipRouter = router({
       const deliveredAt = input.deliveryStatus === 'delivered' ? new Date() : null;
       await db.updatePackingSlipDeliveryStatus(input.packingSlipId, input.deliveryStatus, deliveredAt);
       
-      // Auto-lock packing slip when marked as delivered
+      // Auto-lock packing slip when marked as delivered (idempotent — skip if already locked)
       if (input.deliveryStatus === 'delivered') {
-        await db.lockPackingSlip(input.packingSlipId, ctx.user?.id || 0, ctx.user?.email || 'system');
-        await db.createPackingSlipAuditEntry({
-          packingSlipId: input.packingSlipId,
-          action: 'auto_locked',
-          performedBy: ctx.user?.id,
-          performedByEmail: ctx.user?.email || 'system',
-          details: { reason: 'Automatically locked when marked as delivered' },
-        });
+        const currentSlip = await db.getPackingSlipById(input.packingSlipId);
+        if (!currentSlip?.isLocked) {
+          await db.lockPackingSlip(input.packingSlipId, ctx.user?.id || 0, ctx.user?.email || 'system');
+          await db.createPackingSlipAuditEntry({
+            packingSlipId: input.packingSlipId,
+            action: 'auto_locked',
+            performedBy: ctx.user?.id,
+            performedByEmail: ctx.user?.email || 'system',
+            details: { reason: 'Automatically locked when marked as delivered' },
+          });
+        }
       }
       
       return { success: true };

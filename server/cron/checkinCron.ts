@@ -939,6 +939,11 @@ export function buildConsolidatedCheckinEmail(params: {
  * Initialize all check-in cron jobs
  */
 export function initCheckinCron() {
+  if (process.env.CHECKIN_ENABLED === 'false') {
+    console.log(`${LOG_PREFIX} DISABLED — set CHECKIN_ENABLED=true to re-enable`);
+    return;
+  }
+
   console.log(`${LOG_PREFIX} Initializing check-in cron jobs...`);
   
   let startupScanCompleted = false;

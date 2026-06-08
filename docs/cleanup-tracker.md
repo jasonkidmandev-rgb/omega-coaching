@@ -1,6 +1,6 @@
 # App Cleanup Tracker
 
-Last updated: 2026-06-05
+Last updated: 2026-06-07
 
 ---
 
@@ -36,7 +36,7 @@ Last updated: 2026-06-05
 
 | Feature | Route | Pre-step Needed | Status |
 |---------|-------|-----------------|--------|
-| Recommendations | `/admin/recommendations` | Export the full recommendations list to a doc/resource before deleting — will be used in program guide templates | ⬜ Pending |
+| Recommendations | `/admin/recommendations` | Ported into Program Guide as Guidelines tab. Data preserved in DB. Admin page removed (`0b99f77`) | ✅ Done |
 
 ---
 
@@ -44,10 +44,10 @@ Last updated: 2026-06-05
 
 | Feature | Route | What to Investigate | Status |
 |---------|-------|---------------------|--------|
-| Operations | `/admin/operations` | Confirm if this is the same as Client Projects — if yes, safe to remove | ⬜ Pending |
-| Data Quality | `/admin/data-quality` | Was a bandaid fix — check what breaks if removed | ⬜ Pending |
-| Audit Logs | `/admin/audit-logs` | Check if any internal process depends on this | ⬜ Pending |
-| Launchpad Settings | `/admin/launchpad-settings` | The "Launchpad" concept is deeper than just this settings page — needs scoped eval of all related code before removing anything | ⬜ Pending |
+| Operations | `/admin/operations` | Different kanban view of same data as Client Projects — redundant, no unique endpoints. Investigated in `docs/investigation-audit.md` | ✅ Done |
+| Data Quality | `/admin/data-quality` | Read-only diagnostic pointing to Contact Admin — no standalone value. Investigated in `docs/investigation-audit.md` | ✅ Done |
+| Audit Logs | `/admin/audit-logs` | **KEPT** — security/compliance log viewer for role changes & admin actions. See audit doc. | 🔴 Kept |
+| Launchpad Settings | `/admin/launchpad-settings` | **KEPT** — `/launchpad` URL embedded in client welcome emails; it's the onboarding entry point. See audit doc. | 🔴 Kept |
 
 ---
 
