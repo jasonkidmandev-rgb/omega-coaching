@@ -33,7 +33,8 @@ import {
   Truck,
   ExternalLink,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Play
 } from "lucide-react";
 import {
   Select,
@@ -89,6 +90,10 @@ export default function PackingSlipDetail() {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const isDrawingRef = React.useRef(false);
   const [expandedItemId, setExpandedItemId] = React.useState<number | null>(null);
+  const [packingMode, setPackingMode] = React.useState(false);
+  const [actionedInSession, setActionedInSession] = React.useState<Set<number>>(new Set());
+  const [fulfilledSectionOpen, setFulfilledSectionOpen] = React.useState(false);
+  const [backorderedSectionOpen, setBackorderedSectionOpen] = React.useState(true);
   
   const { data: packingSlip, isLoading, refetch } = trpc.packingSlip.getById.useQuery(
     { id: parseInt(params.id || "0") },
@@ -98,10 +103,19 @@ export default function PackingSlipDetail() {
   const updateItemMutation = trpc.packingSlip.updateItem.useMutation({
     onSuccess: () => {
       refetch();
-      toast.success("Item updated");
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update item");
+    },
+  });
+
+  const batchFulfillMutation = trpc.packingSlip.batchFulfillItems.useMutation({
+    onSuccess: (data) => {
+      refetch();
+      toast.success(`${data.updated} item${data.updated !== 1 ? 's' : ''} updated`);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update items");
     },
   });
 
@@ -402,6 +416,74 @@ export default function PackingSlipDetail() {
     });
   };
 
+  // Derived item groupings for the grouped view
+  const pendingItems = packingSlip?.items?.filter((i: any) => i.status === 'pending' || i.status === 'partial') ?? [];
+  const fulfilledItems = packingSlip?.items?.filter((i: any) => i.status === 'fulfilled') ?? [];
+  const backorderedItems = packingSlip?.items?.filter((i: any) => i.status === 'backordered' || i.status === 'cancelled') ?? [];
+  const pendingByType = pendingItems.reduce<Record<string, number[]>>((acc, item: any) => {
+    if (!acc[item.itemType]) acc[item.itemType] = [];
+    acc[item.itemType].push(item.id);
+    return acc;
+  }, {});
+
+  // Packing mode: items not yet actioned in this session
+  const packableItems = pendingItems.filter((i: any) => !actionedInSession.has(i.id));
+  const currentPackingItem = packableItems[0] ?? null;
+
+  const startPackingMode = () => {
+    setActionedInSession(new Set());
+    setPackingMode(true);
+  };
+
+  const exitPackingMode = () => {
+    setPackingMode(false);
+    setActionedInSession(new Set());
+    refetch();
+  };
+
+  const handlePackingAction = (action: 'fulfill' | 'backorder') => {
+    if (!currentPackingItem) return;
+    // Optimistically remove from visible queue immediately
+    setActionedInSession(prev => new Set([...prev, currentPackingItem.id]));
+    if (action === 'fulfill') {
+      updateItemMutation.mutate({
+        itemId: currentPackingItem.id,
+        quantityFulfilled: currentPackingItem.quantity,
+        status: 'fulfilled',
+      });
+    } else {
+      updateItemMutation.mutate({
+        itemId: currentPackingItem.id,
+        quantityBackordered: currentPackingItem.quantity,
+        status: 'backordered',
+      });
+    }
+  };
+
+  const skipPackingItem = () => {
+    if (!currentPackingItem) return;
+    setActionedInSession(prev => new Set([...prev, currentPackingItem.id]));
+  };
+
+  // Keyboard shortcuts for packing mode
+  React.useEffect(() => {
+    if (!packingMode) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLButtonElement || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (currentPackingItem && !updateItemMutation.isPending) handlePackingAction('fulfill');
+      } else if (e.key === 'b' || e.key === 'B') {
+        if (currentPackingItem && !updateItemMutation.isPending) handlePackingAction('backorder');
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        skipPackingItem();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [packingMode, currentPackingItem, updateItemMutation.isPending]);
+
   const handleSign = () => {
     if (!signatureData) {
       toast.error("Please provide a signature");
@@ -626,9 +708,174 @@ export default function PackingSlipDetail() {
   }
 
   const slipStatus = statusConfig[packingSlip.status] || statusConfig.pending;
-  const progress = packingSlip.totalItems > 0 
-    ? Math.round((packingSlip.itemsFulfilled / packingSlip.totalItems) * 100) 
+  const progress = packingSlip.totalItems > 0
+    ? Math.round((packingSlip.itemsFulfilled / packingSlip.totalItems) * 100)
     : 0;
+
+  // Item row renderer shared across all three sections
+  const renderItemRow = (item: any) => {
+    const itemStatus = statusConfig[item.status] || statusConfig.pending;
+    const isFulfilled = item.quantityFulfilled >= item.quantity;
+    return (
+      <div
+        key={item.id}
+        className={`grid grid-cols-12 gap-4 p-3 rounded-lg border items-center ${
+          isFulfilled ? 'bg-green-50 border-green-200' :
+          item.status === 'backordered' ? 'bg-orange-50 border-orange-200' : ''
+        }`}
+      >
+        <div className="col-span-1 print:hidden">
+          <Checkbox
+            checked={isFulfilled}
+            onCheckedChange={() => handleFulfillItem(item.id, item.quantity, item.quantityFulfilled)}
+            disabled={updateItemMutation.isPending || !!packingSlip.signedAt || !!packingSlip.isLocked}
+          />
+        </div>
+        <div className="col-span-4 print:col-span-5">
+          <p className={`font-medium ${isFulfilled ? 'line-through text-muted-foreground' : ''}`}>
+            {item.itemName}
+          </p>
+          {item.notes && <p className="text-xs text-muted-foreground">{item.notes}</p>}
+        </div>
+        <div className="col-span-2">
+          <Badge variant="outline" className="text-xs">{item.itemType}</Badge>
+        </div>
+        <div className="col-span-1 text-center font-semibold">{item.quantity}</div>
+        <div className="col-span-2">
+          <Badge className={itemStatus.className}>
+            {itemStatus.icon}
+            <span className="ml-1">{itemStatus.label}</span>
+          </Badge>
+        </div>
+        <div className="col-span-2 print:hidden flex items-center gap-1">
+          {!isFulfilled && item.status !== 'backordered' && !packingSlip.signedAt && !packingSlip.isLocked && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBackorderItem(item.id, item.quantity)}
+              disabled={updateItemMutation.isPending}
+            >
+              <PackageX className="h-3 w-3 mr-1" />
+              Backorder
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
+            className="ml-auto"
+          >
+            {expandedItemId === item.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </Button>
+        </div>
+        {expandedItemId === item.id && (
+          <div className="col-span-12 bg-gray-50 rounded-lg p-3 mt-1 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Ship Source</Label>
+                <Select
+                  value={item.shipSource || 'omega'}
+                  onValueChange={(val) => updateItemMutation.mutate({ itemId: item.id, shipSource: val as 'omega' | 'dropship' | 'vendor' | 'client_sourced' })}
+                >
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="omega">Omega (In-House)</SelectItem>
+                    <SelectItem value="dropship">Drop Ship</SelectItem>
+                    <SelectItem value="vendor">Vendor Direct</SelectItem>
+                    <SelectItem value="client_sourced">Client Sourced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Carrier</Label>
+                <Select
+                  value={item.itemTrackingCarrier || ''}
+                  onValueChange={(val) => updateItemMutation.mutate({ itemId: item.id, itemTrackingCarrier: val })}
+                >
+                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select carrier" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FedEx">FedEx</SelectItem>
+                    <SelectItem value="UPS">UPS</SelectItem>
+                    <SelectItem value="USPS">USPS</SelectItem>
+                    <SelectItem value="DHL">DHL</SelectItem>
+                    <SelectItem value="PirateShip">PirateShip</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Tracking #</Label>
+                <div className="flex gap-1">
+                  <Input
+                    className="h-8 text-xs"
+                    placeholder="Enter tracking number"
+                    defaultValue={item.itemTrackingNumber || ''}
+                    onBlur={(e) => {
+                      const val = e.target.value.trim();
+                      if (val !== (item.itemTrackingNumber || '')) {
+                        updateItemMutation.mutate({ itemId: item.id, itemTrackingNumber: val, itemTrackingCarrier: item.itemTrackingCarrier || undefined });
+                      }
+                    }}
+                  />
+                  {item.itemTrackingUrl && (
+                    <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => window.open(item.itemTrackingUrl, '_blank')}>
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {item.shipSource && (
+                <Badge variant="outline" className={`text-xs ${
+                  item.shipSource === 'omega' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                  item.shipSource === 'dropship' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                  item.shipSource === 'vendor' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                  'bg-gray-50 text-gray-700 border-gray-200'
+                }`}>
+                  <Truck className="h-3 w-3 mr-1" />
+                  {item.shipSource === 'omega' ? 'Omega' : item.shipSource === 'dropship' ? 'Drop Ship' : item.shipSource === 'vendor' ? 'Vendor' : 'Client Sourced'}
+                </Badge>
+              )}
+              {item.itemTrackingNumber && (
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-green-50 text-green-700 border-green-200 cursor-pointer"
+                  onClick={() => item.itemTrackingUrl && window.open(item.itemTrackingUrl, '_blank')}
+                >
+                  <Package className="h-3 w-3 mr-1" />
+                  {item.itemTrackingCarrier || 'Tracking'}: {item.itemTrackingNumber}
+                  {item.itemTrackingUrl && <ExternalLink className="h-3 w-3 ml-1" />}
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+        {expandedItemId !== item.id && (item.shipSource && item.shipSource !== 'omega' || item.itemTrackingNumber) && (
+          <div className="col-span-12 flex gap-2 pl-8 -mt-1 mb-1">
+            {item.shipSource && item.shipSource !== 'omega' && (
+              <Badge variant="outline" className={`text-[10px] py-0 ${
+                item.shipSource === 'dropship' ? 'bg-purple-50 text-purple-600 border-purple-200' :
+                item.shipSource === 'vendor' ? 'bg-orange-50 text-orange-600 border-orange-200' :
+                'bg-gray-50 text-gray-600 border-gray-200'
+              }`}>
+                {item.shipSource === 'dropship' ? 'Drop Ship' : item.shipSource === 'vendor' ? 'Vendor' : 'Client Sourced'}
+              </Badge>
+            )}
+            {item.itemTrackingNumber && (
+              <Badge
+                variant="outline"
+                className="text-[10px] py-0 bg-green-50 text-green-600 border-green-200 cursor-pointer"
+                onClick={() => item.itemTrackingUrl && window.open(item.itemTrackingUrl, '_blank')}
+              >
+                {item.itemTrackingCarrier || 'Track'}: {item.itemTrackingNumber.substring(0, 12)}...
+              </Badge>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <AdminLayout>
@@ -700,6 +947,13 @@ export default function PackingSlipDetail() {
                   <Lock className="h-4 w-4 mr-2" />
                 )}
                 Lock
+              </Button>
+            )}
+            {!packingSlip.signedAt && !packingSlip.isLocked && pendingItems.length > 0 && (
+              <Button onClick={startPackingMode} className="bg-green-600 hover:bg-green-700 text-white">
+                <Play className="h-4 w-4 mr-2" />
+                Packing Mode
+                <span className="ml-1.5 text-xs bg-white/25 px-1.5 py-0.5 rounded-full">{pendingItems.length}</span>
               </Button>
             )}
             {!packingSlip.signedAt && (
@@ -1006,219 +1260,114 @@ export default function PackingSlipDetail() {
         {/* Items List */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Items to Fulfill
-            </CardTitle>
-            <CardDescription>
-              Check off items as you pack them. Use backorder for out-of-stock items.
-            </CardDescription>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Items to Fulfill
+                </CardTitle>
+                <CardDescription>
+                  Check off items as you pack. Fulfilled items collapse automatically.
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 p-3 bg-gray-100 rounded-lg font-medium text-sm">
-                <div className="col-span-1 print:hidden">Done</div>
-                <div className="col-span-4 print:col-span-5">Item</div>
-                <div className="col-span-2">Type</div>
-                <div className="col-span-1 text-center">Qty</div>
-                <div className="col-span-2">Status</div>
-                <div className="col-span-2 print:hidden">Actions</div>
+            {/* Bulk quick-fulfill by item type */}
+            {!packingSlip.signedAt && !packingSlip.isLocked && Object.keys(pendingByType).length > 0 && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg print:hidden">
+                <p className="text-xs font-medium text-blue-700 mb-2">Quick Fulfill by Type:</p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(pendingByType).map(([type, itemIds]) => (
+                    <Button
+                      key={type}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs border-blue-200 text-blue-700 hover:bg-blue-100"
+                      disabled={batchFulfillMutation.isPending}
+                      onClick={() => batchFulfillMutation.mutate({ packingSlipId: packingSlip.id, itemIds, action: 'fulfill' })}
+                    >
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Fulfill all {type} ({itemIds.length})
+                    </Button>
+                  ))}
+                </div>
               </div>
-              
-              {/* Items */}
-              {packingSlip.items?.map((item) => {
-                const itemStatus = statusConfig[item.status] || statusConfig.pending;
-                const isFulfilled = item.quantityFulfilled >= item.quantity;
-                
-                return (
-                  <div 
-                    key={item.id} 
-                    className={`grid grid-cols-12 gap-4 p-3 rounded-lg border items-center ${
-                      isFulfilled ? 'bg-green-50 border-green-200' : 
-                      item.status === 'backordered' ? 'bg-amber-50 border-amber-200' : ''
-                    }`}
-                  >
-                    <div className="col-span-1 print:hidden">
-                      <Checkbox
-                        checked={isFulfilled}
-                        onCheckedChange={() => handleFulfillItem(item.id, item.quantity, item.quantityFulfilled)}
-                        disabled={updateItemMutation.isPending}
-                      />
-                    </div>
-                    <div className="col-span-4 print:col-span-5">
-                      <p className={`font-medium ${isFulfilled ? 'line-through text-muted-foreground' : ''}`}>
-                        {item.itemName}
-                      </p>
-                      {item.notes && (
-                        <p className="text-xs text-muted-foreground">{item.notes}</p>
-                      )}
-                    </div>
-                    <div className="col-span-2">
-                      <Badge variant="outline" className="text-xs">
-                        {item.itemType}
-                      </Badge>
-                    </div>
-                    <div className="col-span-1 text-center font-semibold">
-                      {item.quantity}
-                    </div>
-                    <div className="col-span-2">
-                      <Badge className={itemStatus.className}>
-                        {itemStatus.icon}
-                        <span className="ml-1">{itemStatus.label}</span>
-                      </Badge>
-                    </div>
-                    <div className="col-span-2 print:hidden flex items-center gap-1">
-                      {!isFulfilled && item.status !== 'backordered' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleBackorderItem(item.id, item.quantity)}
-                          disabled={updateItemMutation.isPending}
-                        >
-                          <PackageX className="h-3 w-3 mr-1" />
-                          Backorder
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
-                        className="ml-auto"
-                      >
-                        {expandedItemId === item.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                      </Button>
-                    </div>
-                    {/* Expanded Ship Source + Tracking Row */}
-                    {expandedItemId === item.id && (
-                      <div className="col-span-12 bg-gray-50 rounded-lg p-3 mt-1 space-y-3">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {/* Ship Source */}
-                          <div>
-                            <Label className="text-xs text-muted-foreground mb-1 block">Ship Source</Label>
-                            <Select
-                              value={item.shipSource || 'omega'}
-                              onValueChange={(val) => updateItemMutation.mutate({
-                                itemId: item.id,
-                                shipSource: val as 'omega' | 'dropship' | 'vendor' | 'client_sourced',
-                              })}
-                            >
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="omega">Omega (In-House)</SelectItem>
-                                <SelectItem value="dropship">Drop Ship</SelectItem>
-                                <SelectItem value="vendor">Vendor Direct</SelectItem>
-                                <SelectItem value="client_sourced">Client Sourced</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          {/* Tracking Carrier */}
-                          <div>
-                            <Label className="text-xs text-muted-foreground mb-1 block">Carrier</Label>
-                            <Select
-                              value={item.itemTrackingCarrier || ''}
-                              onValueChange={(val) => updateItemMutation.mutate({
-                                itemId: item.id,
-                                itemTrackingCarrier: val,
-                              })}
-                            >
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue placeholder="Select carrier" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="FedEx">FedEx</SelectItem>
-                                <SelectItem value="UPS">UPS</SelectItem>
-                                <SelectItem value="USPS">USPS</SelectItem>
-                                <SelectItem value="DHL">DHL</SelectItem>
-                                <SelectItem value="PirateShip">PirateShip</SelectItem>
-                                <SelectItem value="Other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          {/* Tracking Number */}
-                          <div>
-                            <Label className="text-xs text-muted-foreground mb-1 block">Tracking #</Label>
-                            <div className="flex gap-1">
-                              <Input
-                                className="h-8 text-xs"
-                                placeholder="Enter tracking number"
-                                defaultValue={item.itemTrackingNumber || ''}
-                                onBlur={(e) => {
-                                  const val = e.target.value.trim();
-                                  if (val !== (item.itemTrackingNumber || '')) {
-                                    updateItemMutation.mutate({
-                                      itemId: item.id,
-                                      itemTrackingNumber: val,
-                                      itemTrackingCarrier: item.itemTrackingCarrier || undefined,
-                                    });
-                                  }
-                                }}
-                              />
-                              {item.itemTrackingUrl && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 px-2"
-                                  onClick={() => window.open(item.itemTrackingUrl, '_blank')}
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        {/* Ship Source + Tracking Summary Badges */}
-                        <div className="flex gap-2 flex-wrap">
-                          {item.shipSource && (
-                            <Badge variant="outline" className={`text-xs ${
-                              item.shipSource === 'omega' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                              item.shipSource === 'dropship' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                              item.shipSource === 'vendor' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                              'bg-gray-50 text-gray-700 border-gray-200'
-                            }`}>
-                              <Truck className="h-3 w-3 mr-1" />
-                              {item.shipSource === 'omega' ? 'Omega' : item.shipSource === 'dropship' ? 'Drop Ship' : item.shipSource === 'vendor' ? 'Vendor' : 'Client Sourced'}
-                            </Badge>
-                          )}
-                          {item.itemTrackingNumber && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 cursor-pointer"
-                              onClick={() => item.itemTrackingUrl && window.open(item.itemTrackingUrl, '_blank')}
-                            >
-                              <Package className="h-3 w-3 mr-1" />
-                              {item.itemTrackingCarrier || 'Tracking'}: {item.itemTrackingNumber}
-                              {item.itemTrackingUrl && <ExternalLink className="h-3 w-3 ml-1" />}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {/* Collapsed inline badges for ship source + tracking */}
-                    {expandedItemId !== item.id && (item.shipSource && item.shipSource !== 'omega' || item.itemTrackingNumber) && (
-                      <div className="col-span-12 flex gap-2 pl-8 -mt-1 mb-1">
-                        {item.shipSource && item.shipSource !== 'omega' && (
-                          <Badge variant="outline" className={`text-[10px] py-0 ${
-                            item.shipSource === 'dropship' ? 'bg-purple-50 text-purple-600 border-purple-200' :
-                            item.shipSource === 'vendor' ? 'bg-orange-50 text-orange-600 border-orange-200' :
-                            'bg-gray-50 text-gray-600 border-gray-200'
-                          }`}>
-                            {item.shipSource === 'dropship' ? 'Drop Ship' : item.shipSource === 'vendor' ? 'Vendor' : 'Client Sourced'}
-                          </Badge>
-                        )}
-                        {item.itemTrackingNumber && (
-                          <Badge variant="outline" className="text-[10px] py-0 bg-green-50 text-green-600 border-green-200 cursor-pointer"
-                            onClick={() => item.itemTrackingUrl && window.open(item.itemTrackingUrl, '_blank')}
-                          >
-                            {item.itemTrackingCarrier || 'Track'}: {item.itemTrackingNumber.substring(0, 12)}...
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            )}
+
+            {/* Column Header */}
+            <div className="grid grid-cols-12 gap-4 p-3 bg-gray-100 rounded-lg font-medium text-sm mb-2">
+              <div className="col-span-1 print:hidden">Done</div>
+              <div className="col-span-4 print:col-span-5">Item</div>
+              <div className="col-span-2">Type</div>
+              <div className="col-span-1 text-center">Qty</div>
+              <div className="col-span-2">Status</div>
+              <div className="col-span-2 print:hidden">Actions</div>
             </div>
+
+            {/* Pending section — always visible */}
+            {pendingItems.length > 0 && (
+              <div className="mb-3">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100 mb-2">
+                  <Clock className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-amber-800">Pending ({pendingItems.length})</span>
+                </div>
+                <div className="space-y-2">
+                  {pendingItems.map((item: any) => renderItemRow(item))}
+                </div>
+              </div>
+            )}
+
+            {/* Backordered section — expanded by default */}
+            {backorderedItems.length > 0 && (
+              <div className="mb-3">
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-100 mb-2 hover:bg-orange-100 transition-colors print:hidden"
+                  onClick={() => setBackorderedSectionOpen(v => !v)}
+                >
+                  <PackageX className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-orange-800">Backordered ({backorderedItems.length})</span>
+                  <span className="ml-auto">{backorderedSectionOpen ? <ChevronUp className="h-4 w-4 text-orange-500" /> : <ChevronDown className="h-4 w-4 text-orange-500" />}</span>
+                </button>
+                {backorderedSectionOpen && (
+                  <div className="space-y-2">
+                    {backorderedItems.map((item: any) => renderItemRow(item))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Fulfilled section — collapsed by default */}
+            {fulfilledItems.length > 0 && (
+              <div>
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-100 mb-2 hover:bg-green-100 transition-colors print:hidden"
+                  onClick={() => setFulfilledSectionOpen(v => !v)}
+                >
+                  <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-green-800">Fulfilled ({fulfilledItems.length})</span>
+                  <span className="ml-auto">{fulfilledSectionOpen ? <ChevronUp className="h-4 w-4 text-green-500" /> : <ChevronDown className="h-4 w-4 text-green-500" />}</span>
+                </button>
+                {fulfilledSectionOpen && (
+                  <div className="space-y-2 print:hidden">
+                    {fulfilledItems.map((item: any) => renderItemRow(item))}
+                  </div>
+                )}
+                {/* Always show on print regardless of collapse state */}
+                <div className="hidden print:block space-y-2">
+                  {fulfilledItems.map((item: any) => renderItemRow(item))}
+                </div>
+              </div>
+            )}
+
+            {packingSlip.items?.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p>No items on this packing slip.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -1607,6 +1756,115 @@ export default function PackingSlipDetail() {
               Yes, Regenerate Items
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Packing Mode Dialog */}
+      <Dialog open={packingMode} onOpenChange={(open) => { if (!open) exitPackingMode(); }}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Play className="h-5 w-5 text-green-600" />
+              Packing Mode
+            </DialogTitle>
+            <DialogDescription>
+              {packableItems.length > 0
+                ? `${packableItems.length} item${packableItems.length !== 1 ? 's' : ''} remaining · Enter = Packed · B = Backorder · → = Skip`
+                : 'All items actioned!'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {currentPackingItem ? (
+            <div className="space-y-5 py-2">
+              {/* Progress bar */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Progress</span>
+                  <span className="font-medium tabular-nums">
+                    {actionedInSession.size + ((packingSlip.items?.length ?? 0) - pendingItems.length)} / {packingSlip.items?.length ?? 0}
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-green-500 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${((actionedInSession.size + ((packingSlip.items?.length ?? 0) - pendingItems.length)) / Math.max(packingSlip.items?.length ?? 1, 1)) * 100}%`
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Current item card */}
+              <div className="border-2 rounded-xl p-6 text-center bg-card shadow-sm">
+                <Badge variant="outline" className="mb-3">{currentPackingItem.itemType}</Badge>
+                <p className="text-xl font-semibold mb-2 leading-tight">{currentPackingItem.itemName}</p>
+                <p className="text-muted-foreground text-sm">
+                  Quantity: <span className="font-bold text-foreground text-base">{currentPackingItem.quantity}</span>
+                </p>
+                {currentPackingItem.notes && (
+                  <p className="text-sm text-amber-700 mt-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                    {currentPackingItem.notes}
+                  </p>
+                )}
+                {currentPackingItem.shipSource && currentPackingItem.shipSource !== 'omega' && (
+                  <Badge variant="outline" className="mt-3 text-xs">
+                    {currentPackingItem.shipSource === 'dropship' ? 'Drop Ship' :
+                     currentPackingItem.shipSource === 'vendor' ? 'Vendor Direct' : 'Client Sourced'}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  className="h-14 text-base bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => handlePackingAction('fulfill')}
+                  disabled={updateItemMutation.isPending}
+                >
+                  {updateItemMutation.isPending ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      Packed
+                      <kbd className="ml-2 text-xs bg-green-800/30 px-1.5 py-0.5 rounded font-mono">↵</kbd>
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-14 text-base border-orange-300 text-orange-700 hover:bg-orange-50"
+                  onClick={() => handlePackingAction('backorder')}
+                  disabled={updateItemMutation.isPending}
+                >
+                  <PackageX className="h-5 w-5 mr-2" />
+                  Backorder
+                  <kbd className="ml-2 text-xs bg-orange-100 px-1.5 py-0.5 rounded font-mono">B</kbd>
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={skipPackingItem}>
+                  Skip →
+                  <kbd className="ml-1 text-xs bg-gray-100 px-1 py-0.5 rounded font-mono">→</kbd>
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={exitPackingMode}>
+                  Exit
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="py-10 text-center space-y-4">
+              <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+              <div>
+                <p className="text-lg font-semibold">All items actioned!</p>
+                <p className="text-sm text-muted-foreground">You've worked through all pending items.</p>
+              </div>
+              <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={exitPackingMode}>
+                Done — Back to Slip
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

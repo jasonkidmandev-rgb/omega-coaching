@@ -5701,7 +5701,44 @@ const packingSlipRouter = router({
       }
       return result;
     }),
-  
+
+  // Batch fulfill or backorder multiple items in one request
+  batchFulfillItems: adminProcedure
+    .input(z.object({
+      packingSlipId: z.number(),
+      itemIds: z.array(z.number()),
+      action: z.enum(['fulfill', 'backorder']),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const slip = await db.getPackingSlipById(input.packingSlipId);
+      if (slip?.isLocked || slip?.signedAt) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This packing slip has been signed and locked. Unlock it before making changes.',
+        });
+      }
+      let updated = 0;
+      for (const itemId of input.itemIds) {
+        const item = await db.getPackingSlipItemById(itemId);
+        if (!item) continue;
+        if (item.status === 'fulfilled' || item.status === 'backordered') continue;
+        if (input.action === 'fulfill') {
+          await db.updatePackingSlipItem(itemId, { quantityFulfilled: item.quantity, status: 'fulfilled' });
+        } else {
+          await db.updatePackingSlipItem(itemId, { quantityBackordered: item.quantity, status: 'backordered' });
+        }
+        updated++;
+      }
+      await db.createPackingSlipAuditEntry({
+        packingSlipId: input.packingSlipId,
+        action: 'item_status_changed',
+        performedBy: ctx.user.id,
+        performedByName: ctx.user.name || ctx.user.email,
+        details: { batchAction: input.action, itemCount: updated } as Record<string, unknown>,
+      });
+      return { updated };
+    }),
+
   // Sign off on packing slip
   sign: adminProcedure
     .input(z.object({
