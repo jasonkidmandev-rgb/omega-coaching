@@ -9796,6 +9796,11 @@ export const appRouter = router({
       .query(async () => {
         return db.getBackorderedItems();
       }),
+    // Get slips signed in the last 7 days (for the "Recently Completed" section)
+    recentlyCompleted: adminProcedure
+      .query(async () => {
+        return db.getRecentlyCompletedPackingSlips(7);
+      }),
   }),
   kpi: router({
     getDashboard: adminProcedure.query(async () => {

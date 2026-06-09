@@ -649,7 +649,7 @@ export default function PackingSlips() {
         {/* Packing Slips List */}
         <Card>
           <CardHeader>
-            <CardTitle>Fulfillment Queue</CardTitle>
+            <CardTitle>Active Packing Slips</CardTitle>
             <CardDescription>
               {filteredSlips.length} packing slip{filteredSlips.length !== 1 ? 's' : ''} found
             </CardDescription>
@@ -782,6 +782,17 @@ export default function PackingSlips() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                        {!['complete', 'cancelled'].includes(slip.status) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-blue-600 hover:text-blue-800 px-2 h-7 shrink-0"
+                            onClick={(e) => { e.stopPropagation(); setLocation('/admin/fulfillment-queue'); }}
+                            title="Open in Fulfillment Queue"
+                          >
+                            Queue →
+                          </Button>
+                        )}
                         <ChevronRight className="h-5 w-5 text-muted-foreground" />
                       </div>
                     </div>

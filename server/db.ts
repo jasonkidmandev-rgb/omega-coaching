@@ -9414,6 +9414,38 @@ export async function getBackorderedItems() {
 }
 
 /**
+ * Get packing slips signed within the last N days (default 7).
+ * Used by the Fulfillment Queue "Recently Completed" section.
+ */
+export async function getRecentlyCompletedPackingSlips(days: number = 7) {
+  const database = await getDb();
+  if (!database) return [];
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+
+  return database
+    .select({
+      id: packingSlips.id,
+      clientName: packingSlips.clientName,
+      source: packingSlips.source,
+      totalItems: packingSlips.totalItems,
+      itemsFulfilled: packingSlips.itemsFulfilled,
+      signedAt: packingSlips.signedAt,
+      createdAt: packingSlips.createdAt,
+    })
+    .from(packingSlips)
+    .where(and(
+      eq(packingSlips.status, 'complete'),
+      isNull(packingSlips.archivedAt),
+      isNotNull(packingSlips.signedAt),
+      gte(packingSlips.signedAt, cutoff)
+    ))
+    .orderBy(desc(packingSlips.signedAt))
+    .limit(20);
+}
+
+/**
  * Get a team member by their linked user ID.
  */
 export async function getTeamMemberByUserId(userId: number) {

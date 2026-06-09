@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Package, AlertTriangle, Truck, Clock, CheckCircle2,
   RefreshCw, ChevronRight, MapPin, ExternalLink, Box,
-  Circle, ChevronLeft,
+  Circle, ChevronLeft, Printer,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { formatDate, formatDaysAgo } from "@/lib/dateUtils";
@@ -98,19 +98,73 @@ const URGENCY_GROUPS = [
   { key: "progress" as const,  label: "In Progress",     dotClass: "bg-green-500",  textClass: "text-green-700",  description: "Under 3 days" },
 ];
 
+function printSingleLabel(slip: any) {
+  const win = window.open("", "_blank", "width=450,height=600");
+  if (!win) { alert("Allow popups to print shipping labels."); return; }
+  const from = { name: "Omega Longevity", street: "1098 W. South Jordan Pkwy #106", city: "South Jordan", state: "UT", zip: "84095" };
+  win.document.write(`<!DOCTYPE html><html><head><title>Label PS-${slip.id}</title><style>
+    @page{size:4in 6in;margin:0}*{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;width:4in;height:6in;padding:0.25in}
+    .header{text-align:center;font-size:14px;font-weight:bold;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:12px}
+    .section{margin-bottom:12px}.label{font-size:9px;font-weight:bold;text-transform:uppercase;color:#666;margin-bottom:2px}
+    .name{font-size:13px;font-weight:bold}.addr{font-size:11px;line-height:1.5}
+    .barcode{text-align:center;border:1px solid #ccc;padding:8px;margin-top:16px;font-size:12px;letter-spacing:2px;font-family:monospace}
+    .footer{display:flex;justify-content:space-between;font-size:9px;color:#666;margin-top:8px}
+  </style></head><body>
+    <div class="header">OMEGA LONGEVITY</div>
+    <div class="section"><div class="label">From:</div><div class="addr">${from.name}<br>${from.street}<br>${from.city}, ${from.state} ${from.zip}</div></div>
+    <div class="section"><div class="label">Ship To:</div><div class="name">${slip.shippingName || slip.clientName}</div>
+    <div class="addr">${slip.shippingStreet || ""}<br>${slip.shippingCity || ""}, ${slip.shippingState || ""} ${slip.shippingZip || ""}</div></div>
+    <div class="barcode">PS-${String(slip.id).padStart(6, "0")}</div>
+    <div class="footer"><span>Order #${slip.id}</span><span>${new Date().toLocaleDateString()}</span></div>
+  </body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); win.close(); }, 300);
+}
+
 // ─── Left rail: compact slip list ────────────────────────────────────────────
 
 function SlipListRail({
   grouped,
   selectedSlipId,
+  recentlyCompleted,
   onSelect,
+  navigate,
 }: {
   grouped: Record<string, any[]>;
   selectedSlipId: number | null;
+  recentlyCompleted: any[];
   onSelect: (id: number) => void;
+  navigate: (path: string) => void;
 }) {
   return (
     <div className="h-full overflow-y-auto bg-gray-50">
+      {recentlyCompleted.length > 0 && (
+        <div>
+          <div className="sticky top-0 z-10 bg-gray-100 border-b border-t px-3 py-1.5 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full shrink-0 bg-gray-400" aria-hidden="true" />
+            <span className="text-xs font-semibold text-gray-500">Recently Completed</span>
+            <span className="text-xs text-muted-foreground ml-auto">{recentlyCompleted.length}</span>
+          </div>
+          {recentlyCompleted.map((slip: any) => (
+            <button
+              key={slip.id}
+              onClick={() => navigate(`/admin/packing-slips/${slip.id}`)}
+              className="w-full text-left px-3 py-2.5 border-b border-l-[3px] border-l-transparent hover:bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 opacity-60 hover:opacity-100"
+              aria-label={`View completed slip for ${slip.clientName}, PS-${slip.id}`}
+            >
+              <div className="flex items-center justify-between gap-1 mb-0.5">
+                <span className="font-medium text-sm truncate">{slip.clientName}</span>
+                <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" aria-hidden="true" />
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Signed {formatDaysAgo(slip.signedAt)} · {slip.totalItems} items
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
       {URGENCY_GROUPS.filter(g => grouped[g.key].length > 0).map(group => (
         <div key={group.key}>
           <div className="sticky top-0 z-10 bg-gray-100 border-b border-t px-3 py-1.5 flex items-center gap-2">
@@ -215,16 +269,30 @@ function SlipDetailPanel({
               </div>
             )}
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs shrink-0"
-            onClick={() => navigate(`/admin/packing-slips/${slip.id}`)}
-            aria-label={`Open full packing slip for ${slip.clientName} (PS-${slip.id})`}
-          >
-            <ExternalLink className="h-3 w-3 mr-1" aria-hidden="true" />
-            Full Slip
-          </Button>
+          <div className="flex gap-1.5 shrink-0">
+            {slip.shippingStreet && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs"
+                onClick={() => printSingleLabel(slip)}
+                aria-label={`Print shipping label for ${slip.clientName}`}
+              >
+                <Printer className="h-3 w-3 mr-1" aria-hidden="true" />
+                Label
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs"
+              onClick={() => navigate(`/admin/packing-slips/${slip.id}`)}
+              aria-label={`Open full packing slip for ${slip.clientName} (PS-${slip.id})`}
+            >
+              <ExternalLink className="h-3 w-3 mr-1" aria-hidden="true" />
+              Full Slip
+            </Button>
+          </div>
         </div>
 
         {/* Progress */}
@@ -364,6 +432,9 @@ export default function FulfillmentQueue() {
     refetchInterval: 30000,
     enabled: activeTab === "backorders",
   });
+  const recentlyCompleted = trpc.fulfillmentQueue.recentlyCompleted.useQuery(undefined, {
+    refetchInterval: 60000,
+  });
   const utils = trpc.useUtils();
 
   const updateItem = trpc.packingSlip.updateItem.useMutation({
@@ -425,6 +496,16 @@ export default function FulfillmentQueue() {
               <Package className="h-6 w-6 text-emerald-600" aria-hidden="true" />
             </div>
             <div>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <button
+                  onClick={() => navigate("/admin/packing-slips")}
+                  className="text-xs text-muted-foreground hover:text-blue-600 hover:underline"
+                >
+                  Slip Management
+                </button>
+                <ChevronRight className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                <span className="text-xs text-muted-foreground">Fulfillment Queue</span>
+              </div>
               <h1 className="text-2xl font-bold">Fulfillment Queue</h1>
               <p className="text-sm text-muted-foreground">
                 {queueData.length === 0
@@ -538,7 +619,9 @@ export default function FulfillmentQueue() {
                   <SlipListRail
                     grouped={grouped}
                     selectedSlipId={selectedSlipId}
+                    recentlyCompleted={recentlyCompleted.data || []}
                     onSelect={setSelectedSlipId}
+                    navigate={navigate}
                   />
                 </div>
 

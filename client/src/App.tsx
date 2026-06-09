@@ -131,6 +131,7 @@ const Login = lazyWithRetry(() => import("./pages/Login"));
 const AcceptInvite = lazyWithRetry(() => import("./pages/AcceptInvite"));
 const MyActionItems = lazyWithRetry(() => import("./pages/admin/MyActionItems"));
 const FulfillmentQueue = lazyWithRetry(() => import("./pages/admin/FulfillmentQueue"));
+const AdminBackorders = lazyWithRetry(() => import("./pages/admin/Backorders"));
 const NotificationPreferences = lazyWithRetry(() => import("./pages/admin/NotificationPreferences"));
 const KPIDashboard = lazyWithRetry(() => import("./pages/admin/KPIDashboard"));
 
@@ -247,6 +248,7 @@ function Router() {
         <Route path={"/admin/data-integrity"} component={AdminDataIntegrityAudit} />
         <Route path={"/admin/my-action-items"} component={MyActionItems} />
         <Route path={"/admin/fulfillment-queue"} component={FulfillmentQueue} />
+        <Route path={"/admin/backorders"} component={AdminBackorders} />
         <Route path={"/admin/notification-preferences"} component={NotificationPreferences} />
         <Route path={"/admin/kpi-dashboard"} component={KPIDashboard} />
         <Route path={"/masterclass"}>{() => { window.location.replace("/transformation"); return null; }}</Route>

@@ -88,6 +88,7 @@ import {
   UserCog,
   ListTodo,
   ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -164,9 +165,10 @@ const menuCategories: MenuCategory[] = [
     label: "Fulfillment & Operations",
     roles: ['admin', 'manager', 'finance'],
     items: [
-      { icon: ClipboardList, label: "Packing Slips", path: "/admin/packing-slips", roles: ['admin', 'manager'] },
+      { icon: ClipboardList, label: "Slip Management", path: "/admin/packing-slips", roles: ['admin', 'manager'] },
       { icon: FilePen, label: "Custom Orders", path: "/admin/custom-orders", roles: ['admin', 'manager', 'finance'] },
       { icon: Package, label: "Fulfillment Queue", path: "/admin/fulfillment-queue", roles: ['admin', 'manager'] },
+      { icon: AlertTriangle, label: "Backorders", path: "/admin/backorders", roles: ['admin', 'manager'] },
       { icon: Warehouse, label: "Inventory", path: "/admin/inventory", roles: ['admin', 'manager'] },
     ],
   },
