@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Save, Loader2, Ban, CheckCircle, Clock, XCircle, RefreshCcw, DollarSign, AlertCircle, CreditCard, Banknote, Wallet, Receipt, MapPin, AlertTriangle, History, Mail, Calendar, Send } from "lucide-react";
+import { Save, Loader2, Ban, CheckCircle, Clock, XCircle, RefreshCcw, DollarSign, AlertCircle, CreditCard, Banknote, Wallet, Receipt, MapPin, AlertTriangle, History, Mail, Calendar, Send, Zap } from "lucide-react";
 import { FormData } from "./types";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -111,7 +111,7 @@ function PaymentHistorySection({ clientProtocolId }: { clientProtocolId: number 
                   )}
                   {event.paymentMethod && (
                     <span className="text-xs text-slate-400">
-                      via {event.paymentMethod === "paypal" ? "PayPal" : event.paymentMethod === "venmo" ? "Venmo (Legacy)" : event.paymentMethod === "cc" ? "Credit Card" : event.paymentMethod.replace(/_/g, " ")}
+                      via {event.paymentMethod === "paypal" ? "PayPal" : event.paymentMethod === "venmo" ? "Venmo" : event.paymentMethod === "cc" ? "Credit Card" : event.paymentMethod === "stripe" ? "Stripe" : event.paymentMethod.replace(/_/g, " ")}
                     </span>
                   )}
                 </div>
@@ -230,6 +230,22 @@ export default function PricingTab({
   const [showInventoryPreview, setShowInventoryPreview] = useState(false);
   const [inventoryConfirmed, setInventoryConfirmed] = useState(false);
   const [packingSlipConfirmed, setPackingSlipConfirmed] = useState(false);
+
+  // Coaching enrollment linked to this protocol (for status visibility)
+  const enrollmentQuery = trpc.transformation.getEnrollmentByProtocolId.useQuery(
+    { clientProtocolId: clientId! },
+    { enabled: !!clientId }
+  );
+  const enrollment = enrollmentQuery.data;
+
+  // Reconciliation fix (admin can manually trigger when mismatch detected)
+  const fixMismatchMutation = trpc.payment.fixPaymentMismatch.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      onPaymentStatusChange?.();
+    },
+    onError: (err) => toast.error(`Fix failed: ${err.message}`),
+  });
 
   // Inventory preview query
   const inventoryPreviewQuery = trpc.payment.previewInventoryDeductions.useQuery(
@@ -433,8 +449,9 @@ export default function PricingTab({
                       const method = client?.paymentMethod || formData.paymentMethod;
                       if (!method) return "Not set";
                       if (method === "paypal") return "PayPal";
-                      if (method === "venmo") return "Venmo (Legacy)";
+                      if (method === "venmo") return "Venmo";
                       if (method === "cc") return "Credit Card";
+                      if (method === "stripe") return "Stripe (Online)";
                       return method.charAt(0).toUpperCase() + method.slice(1);
                     })()}
                   </span>
@@ -562,6 +579,66 @@ export default function PricingTab({
                   )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Coaching Enrollment Status (Stripe) */}
+          {clientId && enrollment && (
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 space-y-3">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-purple-400" />
+                <h3 className="font-semibold text-sm text-white">Coaching Enrollment (Stripe)</h3>
+                {enrollment.coachingFeePaid ? (
+                  <Badge className="ml-auto bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                    <CheckCircle className="w-3 h-3 mr-1" /> Stripe Paid
+                  </Badge>
+                ) : (
+                  <Badge className="ml-auto bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">
+                    <Clock className="w-3 h-3 mr-1" /> Not Paid
+                  </Badge>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-400">
+                <span>Enrollment ID:</span><span className="text-slate-200">#{enrollment.id}</span>
+                <span>Tier:</span><span className="text-slate-200 capitalize">{enrollment.tier || "—"}</span>
+                {enrollment.coachingFeeAmount && (
+                  <><span>Amount:</span><span className="text-slate-200">${parseFloat(enrollment.coachingFeeAmount).toFixed(2)}</span></>
+                )}
+                {enrollment.coachingFeePaidAt && (
+                  <><span>Paid At:</span><span className="text-slate-200">{new Date(enrollment.coachingFeePaidAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>
+                )}
+                {enrollment.coachingFeeStripePaymentId && (
+                  <><span>Stripe ID:</span><span className="text-slate-200 font-mono truncate">{enrollment.coachingFeeStripePaymentId}</span></>
+                )}
+              </div>
+
+              {/* Mismatch alert: Stripe paid but protocol still pending */}
+              {enrollment.coachingFeePaid && client?.paymentStatus !== "paid" && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded p-3 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-red-400">Payment Sync Gap Detected</p>
+                    <p className="text-xs text-red-300/80 mt-0.5">
+                      Stripe recorded this payment but the protocol status was not updated. Click Fix to sync now.
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-red-600 hover:bg-red-700 text-white text-xs h-7 shrink-0"
+                    disabled={fixMismatchMutation.isPending}
+                    onClick={() => {
+                      if (clientId) {
+                        fixMismatchMutation.mutate({
+                          clientProtocolId: clientId,
+                          stripePaymentId: enrollment.coachingFeeStripePaymentId ?? undefined,
+                        });
+                      }
+                    }}
+                  >
+                    {fixMismatchMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Fix Now"}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 

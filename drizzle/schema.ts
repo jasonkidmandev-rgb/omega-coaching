@@ -728,7 +728,7 @@ export const clientProtocols = mysqlTable("client_protocols", {
 	discountPercent: decimal({ precision: 5, scale: 2 }).default('0'),
 	coachingPackage: varchar({ length: 255 }),
 	coachingPrice: decimal({ precision: 10, scale: 2 }).default('0'),
-	paymentMethod: mysqlEnum(['venmo','cc','other','paypal']).default('venmo'),
+	paymentMethod: mysqlEnum(['venmo','cc','stripe','other','paypal']),
 	venmoHandle: varchar({ length: 100 }),
 	customRequirements: text(),
 	notes: text(),

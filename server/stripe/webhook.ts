@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { getDb } from "../db";
 import { sql } from "drizzle-orm";
 import { getStripeSecretKey, getStripeWebhookSecret } from "./stripeConfig";
+import { processProtocolPaymentReceived } from "../payment/paymentService";
 
 // Helper to get db with null check
 async function db() {
@@ -81,7 +82,8 @@ stripeWebhookRouter.post(
       }
     } catch (err: any) {
       console.error(`[Stripe Webhook] Error processing event ${event.type}: ${err.message}`);
-      // Still return 200 to prevent Stripe from retrying
+      // Return 500 so Stripe retries — processProtocolPaymentReceived is idempotent
+      return res.status(500).json({ error: "Internal processing error — will retry" });
     }
 
     res.json({ received: true });
@@ -122,7 +124,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const database = await db();
 
-  // Update enrollment with payment info
+  // 1. Update enrollment with payment info
   await database.execute(sql`
     UPDATE transformation_enrollments
     SET coachingFeePaid = TRUE,
@@ -135,10 +137,63 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         END
     WHERE id = ${enrollmentId}
   `);
+  console.log(`[Stripe Webhook] Enrollment ${enrollmentId} marked paid`);
 
-  console.log(`[Stripe Webhook] Updated enrollment ${enrollmentId} - payment confirmed`);
+  // 2. Look up the linked client_protocols record
+  const [enrollRows] = await database.execute(sql`
+    SELECT clientProtocolId, shippingName, shippingStreet, shippingCity,
+           shippingState, shippingZip, shippingCountry, phone
+    FROM transformation_enrollments
+    WHERE id = ${enrollmentId}
+    LIMIT 1
+  `);
+  const enrollRow = (enrollRows as any[])[0];
+  const clientProtocolId: number | null = enrollRow?.clientProtocolId ?? null;
 
-  // Record promo code usage if one was applied (server-side, reliable)
+  if (!clientProtocolId) {
+    console.warn(`[Stripe Webhook] Enrollment ${enrollmentId} has no linked clientProtocolId — protocol payment status NOT updated`);
+  } else {
+    // 3. Sync shipping address from enrollment → protocol (only fill blank fields)
+    try {
+      await database.execute(sql`
+        UPDATE client_protocols
+        SET
+          shippingName    = CASE WHEN (shippingName    IS NULL OR shippingName    = '') AND ${enrollRow.shippingName    ?? null} IS NOT NULL THEN ${enrollRow.shippingName}    ELSE shippingName    END,
+          shippingStreet  = CASE WHEN (shippingStreet  IS NULL OR shippingStreet  = '') AND ${enrollRow.shippingStreet  ?? null} IS NOT NULL THEN ${enrollRow.shippingStreet}  ELSE shippingStreet  END,
+          shippingCity    = CASE WHEN (shippingCity    IS NULL OR shippingCity    = '') AND ${enrollRow.shippingCity    ?? null} IS NOT NULL THEN ${enrollRow.shippingCity}    ELSE shippingCity    END,
+          shippingState   = CASE WHEN (shippingState   IS NULL OR shippingState   = '') AND ${enrollRow.shippingState   ?? null} IS NOT NULL THEN ${enrollRow.shippingState}   ELSE shippingState   END,
+          shippingZip     = CASE WHEN (shippingZip     IS NULL OR shippingZip     = '') AND ${enrollRow.shippingZip     ?? null} IS NOT NULL THEN ${enrollRow.shippingZip}     ELSE shippingZip     END,
+          shippingPhone   = CASE WHEN (shippingPhone   IS NULL OR shippingPhone   = '') AND ${enrollRow.phone           ?? null} IS NOT NULL THEN ${enrollRow.phone}           ELSE shippingPhone   END
+        WHERE id = ${clientProtocolId}
+      `);
+      console.log(`[Stripe Webhook] Shipping synced from enrollment ${enrollmentId} to protocol ${clientProtocolId}`);
+    } catch (e: any) {
+      console.error(`[Stripe Webhook] Shipping sync failed (non-fatal): ${e.message}`);
+    }
+
+    // 4. Run the full payment processing chain (idempotent)
+    try {
+      const baseUrl = session.success_url?.split("/transformation")[0] || process.env.VITE_APP_URL || "";
+      const result = await processProtocolPaymentReceived(clientProtocolId, 'stripe', {
+        grossAmount: amountTotal.toFixed(2),
+        transactionId: paymentIntentId,
+        notes: `Stripe checkout — enrollment #${enrollmentId}${planName ? ` — ${planName}` : ''}`,
+        performedBy: null,
+        baseUrl,
+      });
+      if (result.alreadyPaid) {
+        console.log(`[Stripe Webhook] Protocol ${clientProtocolId} was already paid — skipped duplicate processing`);
+      } else {
+        console.log(`[Stripe Webhook] Protocol ${clientProtocolId} fully processed (packing slip: ${result.packingSlipId ?? 'none'})`);
+      }
+    } catch (e: any) {
+      console.error(`[Stripe Webhook] processProtocolPaymentReceived failed: ${e.message}`);
+      // Re-throw so the outer catch returns 500 and Stripe retries
+      throw e;
+    }
+  }
+
+  // 5. Record promo code usage if one was applied (server-side, reliable)
   const promoCodeId = metadata.promo_code_id ? parseInt(metadata.promo_code_id) : null;
   const promoCode = metadata.promo_code || null;
   const promoOriginalAmount = metadata.promo_original_amount ? parseFloat(metadata.promo_original_amount) : null;
@@ -172,7 +227,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const baseUrl = session.success_url?.split("/transformation")[0] || process.env.VITE_APP_URL || "";
 
-  // Send confirmation email to client
+  // 6. Send confirmation email to client (transformation-specific template)
   try {
     if (!clientEmail) {
       console.warn(`[Stripe Webhook] No client email for enrollment ${enrollmentId} — skipping confirmation email`);
@@ -191,7 +246,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     console.error(`[Stripe Webhook] Failed to send client confirmation email: ${err.message}`);
   }
 
-  // Send admin email notification
+  // 7. Send admin email notification
   try {
     await sendTransformationPaymentAdminNotification({
       clientName,
@@ -205,7 +260,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     console.error(`[Stripe Webhook] Failed to send admin notification: ${err.message}`);
   }
 
-  // Create in-app notification for admins
+  // 8. Create in-app notification for admins
   try {
     await notifyAdmins(
       database,

@@ -6613,7 +6613,7 @@ export async function updatePayPalOrder(data: {
 export async function updateClientProtocolPaymentStatus(
   clientProtocolId: string,
   paymentStatus: "pending" | "paid" | "failed" | "refunded",
-  paymentMethod?: "venmo" | "cc" | "other" | "paypal"
+  paymentMethod?: "venmo" | "cc" | "stripe" | "other" | "paypal"
 ) {
   const database = await getDb();
   if (!database) return null;

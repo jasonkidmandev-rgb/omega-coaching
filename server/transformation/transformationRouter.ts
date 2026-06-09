@@ -761,6 +761,23 @@ export const transformationRouter = router({
       };
     }),
 
+  // Get enrollment linked to a client protocol (admin — used in PricingTab)
+  getEnrollmentByProtocolId: adminProcedure
+    .input(z.object({ clientProtocolId: z.number() }))
+    .query(async ({ input }) => {
+      const database = await db();
+      const [rows] = await database.execute(sql`
+        SELECT id, status, coachingFeePaid, coachingFeePaidAt, coachingFeeAmount,
+               coachingFeeStripePaymentId, tier, email, clientName, enrolledAt
+        FROM transformation_enrollments
+        WHERE clientProtocolId = ${input.clientProtocolId}
+        ORDER BY id DESC
+        LIMIT 1
+      `);
+      const row = (rows as any[])[0];
+      return row ?? null;
+    }),
+
   // Link enrollment to user (when user logs in after entering access code or after payment)
   linkEnrollmentToUser: protectedProcedure
     .input(z.object({ 

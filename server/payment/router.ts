@@ -1,8 +1,10 @@
 import { router, publicProcedure, adminProcedure } from "../_core/trpc";
 import { z } from "zod";
+import { sql } from "drizzle-orm";
 import * as db from "../db";
 import { sendPaymentStatusNotification } from "../emailService";
 import { sendPaymentConfirmationEmail } from "./emailService";
+import { processProtocolPaymentReceived } from "./paymentService";
 
 export const paymentRouter = router({
   /**
@@ -80,137 +82,44 @@ export const paymentRouter = router({
         grossAmount: z.string().optional(), // Total amount before fees (what client paid)
         feeAmount: z.string().optional(), // PayPal/Venmo processing fee
         netAmount: z.string().optional(), // Amount received after fees
-        paymentMethod: z.string().optional(), // venmo, paypal, cash, check, etc.
-        transactionId: z.string().optional(), // PayPal/Venmo transaction ID
+        paymentMethod: z.string().optional(), // venmo, paypal, cash, check, zelle, etc.
+        transactionId: z.string().optional(), // reference number / transaction ID
       })
     )
     .mutation(async ({ input, ctx }) => {
       try {
         const protocolId = parseInt(input.clientProtocolId);
-        
-        // Get the protocol to ensure it exists and get details
-        const protocol = await db.getClientProtocolById(protocolId);
-        if (!protocol) {
-          throw new Error("Protocol not found");
-        }
+        const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
 
-        // Update payment status and protocol status to active
-        await db.updateClientProtocolPaymentStatus(input.clientProtocolId, "paid");
+        // Map free-text method to enum; treat anything unrecognised as 'other'
+        const methodMap: Record<string, 'venmo' | 'cc' | 'stripe' | 'other' | 'paypal'> = {
+          venmo: 'venmo', paypal: 'paypal', paypal_direct: 'paypal',
+          cc: 'cc', credit_card: 'cc', stripe: 'stripe',
+        };
+        const paymentMethod = methodMap[input.paymentMethod?.toLowerCase() ?? ''] ?? 'other';
 
-        // Record payment_received event for payment history with fee tracking
-        try {
-          const database = await db.getDb();
-          if (database) {
-            const { paymentEvents } = await import("../../drizzle/schema");
-            await database.insert(paymentEvents).values({
-              clientProtocolId: protocolId,
-              eventType: "payment_received",
-              grossAmount: input.grossAmount,
-              feeAmount: input.feeAmount,
-              netAmount: input.netAmount,
-              amount: input.grossAmount, // Legacy field
-              paymentMethod: input.paymentMethod,
-              transactionId: input.transactionId,
-              notes: input.notes,
-              performedBy: ctx.user.id,
-            });
-            console.log(`[Payment] Payment event recorded for protocol ${protocolId}`);
-          }
-        } catch (eventError) {
-          console.error('[Payment] Failed to record payment event:', eventError);
-          // Don't fail the payment if event recording fails
-        }
+        const result = await processProtocolPaymentReceived(protocolId, paymentMethod, {
+          grossAmount: input.grossAmount,
+          feeAmount: input.feeAmount,
+          netAmount: input.netAmount,
+          transactionId: input.transactionId,
+          notes: input.notes,
+          performedBy: ctx.user.id,
+          baseUrl,
+        });
 
-        // Deduct inventory items based on protocol-to-inventory mappings
-        const inventoryDeductions = await db.deductInventoryForProtocol(protocolId, ctx.user.id);
-        console.log(`[Payment] Inventory deducted for protocol ${protocolId}:`, inventoryDeductions);
-
-        // Send in-app notifications to users who have notifications enabled
-        await db.createNotificationsForEnabledUsers(
-          "payment_received",
-          `Payment received for ${protocol.clientName}`,
-          `Manual payment has been confirmed for ${protocol.clientName}'s protocol. The protocol is now active.`,
-          protocolId
-        );
-
-        // Send email notification to client if they have an email
-        if (protocol.clientEmail) {
-          const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
-          const protocolUrl = `${baseUrl}/protocol/${protocol.accessToken}`;
-          
-          await sendPaymentStatusNotification({
-            to: protocol.clientEmail,
-            clientName: protocol.clientName,
-            status: 'paid',
-            protocolName: 'Health Protocol',
-            paymentMethod: protocol.paymentMethod || 'Manual',
-            notes: input.notes,
-            protocolUrl,
-          });
-          console.log(`[Payment] Payment confirmation email sent to ${protocol.clientEmail}`);
-        }
-
-        // Auto-create packing slip for fulfillment if not already exists
-        try {
-          const existingPackingSlip = await db.getPackingSlipByProtocolId(protocolId);
-          
-          if (!existingPackingSlip) {
-            const protocolItems = await db.getClientProtocolItems(protocolId);
-            const allItems = await db.getAllProtocolItems();
-            
-            // Get recommended items that need to be shipped (physical products)
-            // Only items with isRecommended=true (the "Rec" toggle) should be included
-            const shippableItems = protocolItems
-              .filter((item: any) => item.isRecommended)
-              .map((item: any) => {
-                const protocolItem = allItems.find((i: any) => i.id === item.protocolItemId);
-                return {
-                  protocolItemId: item.protocolItemId,
-                  itemName: protocolItem?.name || 'Unknown Item',
-                  itemType: protocolItem?.itemType || 'other',
-                  quantity: item.quantity,
-                  price: parseFloat(item.customPrice || protocolItem?.price || '0'),
-                };
-              })
-              .filter((item: any) => ['peptide', 'supplement', 'supply', 'other'].includes(item.itemType));
-            
-            if (shippableItems.length > 0) {
-              await db.createPackingSlip({
-                clientProtocolId: protocolId,
-                clientName: protocol.clientName,
-                clientEmail: protocol.clientEmail || '',
-                // Include shipping address from protocol
-                shippingName: protocol.shippingName,
-                shippingStreet: protocol.shippingStreet,
-                shippingCity: protocol.shippingCity,
-                shippingState: protocol.shippingState,
-                shippingZip: protocol.shippingZip,
-                shippingCountry: protocol.shippingCountry,
-                shippingPhone: protocol.shippingPhone,
-                items: shippableItems,
-              });
-              console.log(`[Payment] Packing slip created for protocol ${protocolId}`);
-              
-              // Send admin notification for packing slip creation
-              await db.createNotificationsForEnabledUsers(
-                'packing_slip_created',
-                `Packing slip created for ${protocol.clientName}`,
-                `A new packing slip has been created for ${protocol.clientName} with ${shippableItems.length} items ready for fulfillment.`,
-                protocolId
-              );
-            }
-          } else {
-            console.log(`[Payment] Packing slip already exists for protocol ${protocolId}`);
-          }
-        } catch (error) {
-          console.error('[Payment] Failed to create packing slip:', error);
-          // Don't fail the payment confirmation if packing slip creation fails
+        if (result.alreadyPaid) {
+          return {
+            success: true,
+            message: "Payment was already recorded — no duplicate processing done",
+            alreadyPaid: true,
+          };
         }
 
         return {
           success: true,
           message: "Payment marked as received - protocol is now active",
-          inventoryDeductions,
+          alreadyPaid: false,
         };
       } catch (error) {
         console.error("Error marking payment as received:", error);
@@ -367,6 +276,61 @@ export const paymentRouter = router({
         throw new Error(
           `Failed to mark payment as failed: ${error instanceof Error ? error.message : "Unknown error"}`
         );
+      }
+    }),
+
+  /**
+   * Reconciliation: find enrollments where Stripe has been paid but the linked
+   * client_protocols record still shows 'pending'. Admin can trigger a fix from
+   * the UI, or the cron can call this to auto-heal.
+   */
+  findPaymentMismatches: adminProcedure
+    .query(async () => {
+      const database = await db.getDb();
+      if (!database) throw new Error("Database not available");
+      const [rows] = await database.execute(sql`
+        SELECT
+          te.id                           AS enrollmentId,
+          te.clientProtocolId,
+          te.coachingFeeAmount            AS paidAmount,
+          te.coachingFeePaidAt            AS paidAt,
+          te.coachingFeeStripePaymentId   AS stripePaymentId,
+          te.email                        AS enrollmentEmail,
+          te.clientName                   AS enrollmentClientName,
+          cp.clientName                   AS protocolClientName,
+          cp.paymentStatus                AS protocolPaymentStatus
+        FROM transformation_enrollments te
+        INNER JOIN client_protocols cp ON cp.id = te.clientProtocolId
+        WHERE te.coachingFeePaid = 1
+          AND cp.paymentStatus != 'paid'
+        ORDER BY te.coachingFeePaidAt DESC
+        LIMIT 100
+      `);
+      return (rows as any[]) || [];
+    }),
+
+  /**
+   * Fix a single mismatch by re-running processProtocolPaymentReceived for the
+   * linked protocol. Safe to call multiple times — idempotent.
+   */
+  fixPaymentMismatch: adminProcedure
+    .input(z.object({ clientProtocolId: z.number(), stripePaymentId: z.string().optional() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const result = await processProtocolPaymentReceived(input.clientProtocolId, 'stripe', {
+          transactionId: input.stripePaymentId,
+          notes: `Admin reconciliation fix by ${ctx.user.name || ctx.user.email}`,
+          performedBy: ctx.user.id,
+        });
+        return {
+          success: true,
+          alreadyPaid: result.alreadyPaid,
+          message: result.alreadyPaid
+            ? "Already paid — no action needed"
+            : "Protocol payment status fixed and fulfillment triggered",
+        };
+      } catch (error) {
+        throw new Error(`Fix failed: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
     }),
 
