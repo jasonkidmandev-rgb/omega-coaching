@@ -194,9 +194,9 @@ export default function CheckinReview() {
         <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
         <h2 className="text-xl font-semibold">Check-in not found</h2>
         <p className="text-muted-foreground">This check-in may have been deleted or doesn't exist.</p>
-        <Button variant="outline" className="mt-4" onClick={() => setLocation('/admin/checkins')}>
+        <Button variant="outline" className="mt-4" onClick={() => setLocation(params.clientId ? `/admin/clients/${params.clientId}` : '/admin/checkins')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Check-ins
+          Back to Client
         </Button>
       </div>
     );
@@ -207,9 +207,9 @@ export default function CheckinReview() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => setLocation('/admin/checkins')}>
+        <Button variant="ghost" size="sm" onClick={() => setLocation(`/admin/clients/${params.clientId}`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          Back to Client
         </Button>
         <div>
           <h1 className="text-2xl font-bold">Check-in Review</h1>

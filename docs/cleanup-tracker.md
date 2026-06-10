@@ -1,6 +1,6 @@
 # App Cleanup Tracker
 
-Last updated: 2026-06-07
+Last updated: 2026-06-10
 
 ---
 
@@ -29,6 +29,7 @@ Last updated: 2026-06-07
 | QA Testing | `/admin/qa-testing` | `pages/admin/QATestingDashboard.tsx` | ✅ Done |
 | Product Management | `/admin/product-management` | `pages/admin/ProductManagement.tsx` | ✅ Done |
 | Push Notifications page | `/admin/push-notifications` | `pages/admin/PushNotifications.tsx` | ✅ Done (SMS/push backend code — separate task) |
+| PaymentReconciliation (orphaned) | — | `pages/admin/PaymentReconciliation.tsx` | ✅ Deleted — reconciliation UI lives in PricingTab |
 
 ---
 
@@ -55,14 +56,16 @@ Last updated: 2026-06-07
 
 | Item | Priority | Notes | Status |
 |------|----------|-------|--------|
-| Packing Slips | 🔴 High | Lisa's report sent — top priority | ⬜ Pending |
-| Fulfillment Queue | 🔴 High | Make less redundant and more obvious/accessible | ⬜ Pending |
+| Packing Slips | 🔴 High | Full overhaul: 21 audit fixes, ship source tracking, per-item tracking numbers, audit log, lock/unlock, sign & verify, mismatch detection, batch PDF, Packing Mode, grouped sections, Quick Fulfill by Type, batch fulfill mutation | ✅ Done |
+| Fulfillment Queue | 🔴 High | Fully redesigned: urgency groups, progress bars, split-pane master/detail layout, cross-links to packing slip detail and backorders | ✅ Done |
+| Backorders page | 🔴 High | New `/admin/backorders` page with item cards, ship-source badges, tracking links | ✅ Done |
+| Payment system overhaul | 🔴 High | Stripe webhook → client_protocols sync fixed; shared `processProtocolPaymentReceived()` service; PricingTab shows Stripe enrollment panel + sync gap detection + one-click fix; `paymentMethod` enum migration applied to Railway DB | ✅ Done |
 | Back buttons | 🟡 Medium | Many admin pages don't navigate back correctly — needs a pass across all pages | ⬜ Pending |
 | Lead Pipeline + Shannon Kanban | 🟡 Medium | Align the two views per recent discussion | ⬜ Pending |
-| Manage Check-ins | 🟡 Medium | Currently very inefficient — explore surfacing through the client corner view | ⬜ Pending |
+| Manage Check-ins | 🟡 Medium | Page exists and bugs fixed. Goal of surfacing through Client Corner view not yet done | 🟡 Partial |
 | Coaching Payments — remove test payments | 🟡 Medium | Add an easy way to delete test/dummy payment records | ⬜ Pending |
-| Calendly Integration | 🟡 Medium | Lisa & Shannon need to schedule the coach with clients directly through the app. Current booking calendar page exists but is untested and possibly over-complex. Needs: (1) test if two-way sync works, (2) simplify the flow | ⬜ Pending |
-| Email & Notifications overhaul | 🟢 Low | Generally working but needs efficiency improvements | ⬜ Pending |
+| Calendly Integration | 🟡 Medium | 450-line settings page exists, env vars added. Two-way sync untested, flow not yet simplified | 🟡 Partial |
+| Email & Notifications overhaul | 🟢 Low | Resend migration done (major). Efficiency improvements still pending | 🟡 Partial |
 | Data Integrity Audit → prevent at entry | 🟢 Low | Long-term: prevent bad data at the point of entry so this tool becomes unnecessary, then remove it | ⬜ Pending |
 | SMS / Push notification code | 🟢 Low | Remove all Twilio and push notification backend code — push doesn't work on mobile install anyway | ⬜ Pending |
 
