@@ -74,6 +74,7 @@ import {
   Megaphone,
   BookOpen,
   Wrench,
+  Webhook,
   Search,
   MessageSquare,
   Filter,
@@ -224,6 +225,7 @@ const menuCategories: MenuCategory[] = [
       { icon: Shield, label: "Team", path: "/admin/team", roles: ['admin', 'manager'] },
       { icon: Settings, label: "Site Settings", path: "/admin/settings", roles: ['admin'] },
       { icon: CalendarClock, label: "Calendly Settings", path: "/admin/calendly-settings", roles: ['admin'] },
+      { icon: Webhook, label: "Integrations", path: "/admin/integrations", roles: ['admin'] },
       // Protocol Setup
       { icon: FileText, label: "Templates", path: "/admin/templates", roles: ['admin', 'manager', 'viewer'] },
       { icon: Package, label: "Protocol Items", path: "/admin/items", roles: ['admin', 'manager', 'viewer'] },
