@@ -26,6 +26,7 @@ import {
   Sparkles,
   Package,
   ExternalLink,
+  Trash2,
 } from "lucide-react";
 
 type PaymentStatus = "pending" | "verified" | "rejected";
@@ -57,6 +58,7 @@ export default function TransformationPayments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPayment, setSelectedPayment] = useState<PendingPayment | null>(null);
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<PendingPayment | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -87,6 +89,17 @@ export default function TransformationPayments() {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to reject payment");
+    },
+  });
+
+  const deletePayment = trpc.transformation.deletePayment.useMutation({
+    onSuccess: () => {
+      toast.success("Payment record deleted");
+      refetch();
+      setDeleteTarget(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete payment record");
     },
   });
 
@@ -373,6 +386,15 @@ export default function TransformationPayments() {
                           Open Venmo
                         </Button>
                       )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 ml-auto"
+                        onClick={() => setDeleteTarget(payment)}
+                        title="Delete test/dummy payment record"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -478,6 +500,71 @@ export default function TransformationPayments() {
             >
               <CheckCircle2 className="h-4 w-4 mr-1" />
               Verify Payment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Payment Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <DialogContent className="bg-white max-w-[95vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" />
+              Delete Payment Record
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              This is intended for removing test/dummy records.
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteTarget && (
+            <div className="space-y-3 py-2">
+              <div className="bg-gray-50 rounded-lg p-4 space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Client:</span>
+                  <span className="font-medium">{deleteTarget.clientName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Amount:</span>
+                  <span className="font-medium">${deleteTarget.amount?.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className="capitalize">{deleteTarget.status}</span>
+                </div>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                {deleteTarget.source === "auto_verified"
+                  ? "This will clear the payment fields on the enrollment (marking it unpaid). Only do this for test enrollments — a real client would lose their paid status."
+                  : "This will permanently delete this payment record. This cannot be undone."}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="w-full sm:w-auto"
+              disabled={deletePayment.isPending}
+              onClick={() => {
+                if (!deleteTarget) return;
+                if (deleteTarget.source === "auto_verified") {
+                  deletePayment.mutate({ source: "auto_verified", enrollmentId: deleteTarget.enrollmentId });
+                } else {
+                  deletePayment.mutate({ source: "venmo_pending", paymentId: Number(deleteTarget.id) });
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              {deletePayment.isPending ? "Deleting..." : "Delete Record"}
             </Button>
           </DialogFooter>
         </DialogContent>

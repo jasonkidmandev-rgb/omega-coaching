@@ -11,7 +11,6 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
-import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 import { toast } from "sonner";
 import {
   FileText,
@@ -466,8 +465,6 @@ export default function ClientDashboard() {
 
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Push Notification Opt-In Banner */}
-        <PushNotificationBanner />
         {/* Welcome Message */}
         <WelcomeMessage 
           name={user.name || "Client"} 
@@ -475,8 +472,6 @@ export default function ClientDashboard() {
           className="mb-6"
         />
 
-        {/* Push Notification Opt-In Banner */}
-        <PushNotificationBanner />
 
         {/* Get Started Section - Show when user has no protocol */}
         {!myProtocol && (

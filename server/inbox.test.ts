@@ -50,13 +50,6 @@ describe('Centralized Message Inbox', () => {
     });
   });
 
-  describe('Push Notification on Coach Message', () => {
-    it('should have sendPushToClient available for coach messages', async () => {
-      const pushModule = await import('./pushNotification');
-      expect(typeof pushModule.sendPushToClient).toBe('function');
-    });
-  });
-
   describe('Inbox Page Component', () => {
     it('should have the Inbox page file', async () => {
       const fs = await import('fs');

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { formatPhoneE164, formatPhoneDisplay, isSmsConfigured } from "../smsService";
+import { formatPhoneE164, formatPhoneDisplay } from "../utils/phone";
 
 describe("SMS Service", () => {
   describe("formatPhoneE164", () => {
@@ -43,13 +43,6 @@ describe("SMS Service", () => {
     
     it("returns original for unrecognized format", () => {
       expect(formatPhoneDisplay("123")).toBe("123");
-    });
-  });
-  
-  describe("isSmsConfigured", () => {
-    it("returns true when Twilio credentials are configured", () => {
-      // Twilio env vars are now configured in the environment
-      expect(typeof isSmsConfigured()).toBe('boolean');
     });
   });
 });

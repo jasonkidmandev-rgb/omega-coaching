@@ -127,64 +127,6 @@ self.addEventListener('fetch', (event) => {
   // Everything else - just let the browser handle it normally
 });
 
-// Handle push notifications
-self.addEventListener('push', (event) => {
-  console.log('[ServiceWorker] Push received');
-  
-  let data = {
-    title: 'Omega Longevity',
-    body: 'You have a new notification',
-    icon: '/pwa-icon-192x192.png',
-    badge: '/pwa-icon-72x72.png',
-    url: '/'
-  };
-
-  if (event.data) {
-    try {
-      const payload = event.data.json();
-      data = {
-        title: payload.title || data.title,
-        body: payload.body || data.body,
-        icon: payload.icon || data.icon,
-        badge: payload.badge || data.badge,
-        url: payload.url || payload.data?.url || data.url,
-        tag: payload.tag,
-        data: payload.data
-      };
-    } catch (e) {
-      console.log('[ServiceWorker] Error parsing push data:', e);
-    }
-  }
-
-  const options = {
-    body: data.body,
-    icon: data.icon,
-    badge: data.badge,
-    vibrate: [200, 100, 200],
-    tag: data.tag || 'omega-notification',
-    renotify: true,
-    requireInteraction: true,
-    data: {
-      url: data.url,
-      ...data.data
-    },
-    actions: [
-      {
-        action: 'open',
-        title: 'Open'
-      },
-      {
-        action: 'dismiss',
-        title: 'Dismiss'
-      }
-    ]
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
-});
-
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   console.log('[ServiceWorker] Notification clicked:', event.action);
@@ -222,38 +164,3 @@ self.addEventListener('notificationclose', (event) => {
   console.log('[ServiceWorker] Notification closed');
 });
 
-// Handle push subscription change
-self.addEventListener('pushsubscriptionchange', (event) => {
-  console.log('[ServiceWorker] Push subscription changed');
-  
-  event.waitUntil(
-    self.registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array('BImRHF64hUETZkqsXEQgY4G4x6LD4YHadpgyOfhywetfK4U2VDr-JaGMvXBRNQp4jH2Df0wTEoG28432s90TLYM')
-    }).then((subscription) => {
-      return fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(subscription)
-      });
-    })
-  );
-});
-
-// Helper function to convert VAPID key
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
-  
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}

@@ -219,7 +219,6 @@ export default function Prospects() {
   const [activeTab, setActiveTab] = useState("pipeline");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showSmsDialog, setShowSmsDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedProspect, setSelectedProspect] = useState<any>(null);
@@ -228,9 +227,6 @@ export default function Prospects() {
   // Form state
   const [formData, setFormData] = useState({
     name: "", email: "", phone: "", source: "", notes: "", accessCode: "",
-  });
-  const [smsData, setSmsData] = useState({
-    templateKey: "", customMessage: "", destination: "/transformation",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showEngagementForm, setShowEngagementForm] = useState(false);
@@ -275,11 +271,9 @@ export default function Prospects() {
   });
   
   // Queries
-  const smsStatus = trpc.prospect.getSmsStatus.useQuery();
   // Always fetch all prospects so client-side smart views work
   const prospectList = trpc.prospect.list.useQuery({ status: "all" as any });
   const stats = trpc.prospect.getStats.useQuery();
-  const templates = trpc.prospect.getTemplates.useQuery();
   const prospectDetail = trpc.prospect.getById.useQuery(
     { id: selectedProspect?.id },
     { enabled: !!selectedProspect?.id && showDetailDialog }
@@ -318,20 +312,6 @@ export default function Prospects() {
       setSelectedProspect(null);
       prospectList.refetch();
       stats.refetch();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-  
-  const sendSms = trpc.prospect.sendSms.useMutation({
-    onSuccess: (data) => {
-      if (data.success) {
-        toast.success(data.smsConfigured ? "SMS sent! Message delivered via Twilio." : "SMS logged (Twilio not configured yet).");
-      } else {
-        toast.info(data.message || "SMS logged");
-      }
-      setShowSmsDialog(false);
-      setSmsData({ templateKey: "", customMessage: "", destination: "/transformation" });
-      prospectList.refetch();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -454,15 +434,6 @@ export default function Prospects() {
     onError: (err) => toast.error(`Migration failed: ${err.message}`),
   });
 
-  const bulkSendSms = trpc.prospect.bulkSendSms.useMutation({
-    onSuccess: (data) => {
-      toast.success(`Bulk SMS: ${data.totalSent} sent, ${data.totalFailed} failed. ${data.smsConfigured ? "Messages delivered via Twilio." : "Messages logged (Twilio not configured yet)."}`);
-      setSelectedProspects([]);
-      prospectList.refetch();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-  
   function resetForm() {
     setFormData({ name: "", email: "", phone: "", source: "", notes: "", accessCode: "" });
     setIsEditing(false);
@@ -482,14 +453,7 @@ export default function Prospects() {
     setShowAddDialog(true);
   }
   
-  function openSmsDialog(prospect: any) {
-    setSelectedProspect(prospect);
-    setSmsData({ templateKey: "", customMessage: "", destination: "/transformation" });
-    setShowSmsDialog(true);
-  }
-  
   const rawProspects = prospectList.data || [];
-  const smsConfigured = smsStatus.data?.configured || false;
   const statsData = stats.data;
 
   // Smart view filtering (client-side for composite views)
@@ -526,12 +490,11 @@ export default function Prospects() {
               Lead Pipeline
             </h1>
             <p className="text-muted-foreground mt-1">
-              Manage pre-sales leads and send personalized SMS outreach
+              Manage pre-sales leads and track outreach
             </p>
           </div>
           <div className="flex gap-2">
             {selectedProspects.length > 0 && (
-              <>
               <Button
                 variant="outline"
                 onClick={() => setShowBulkStatusDialog(true)}
@@ -539,20 +502,6 @@ export default function Prospects() {
                 <ArrowRightLeft className="h-4 w-4 mr-2" />
                 Change Status ({selectedProspects.length})
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  bulkSendSms.mutate({
-                    prospectIds: selectedProspects,
-                    destination: "/transformation",
-                  });
-                }}
-                disabled={bulkSendSms.isPending}
-              >
-                <Send className="h-4 w-4 mr-2" />
-                Send SMS to {selectedProspects.length} selected
-              </Button>
-              </>
             )}
             <Button
               variant="outline"
@@ -672,22 +621,6 @@ export default function Prospects() {
           </Card>
         )}
 
-        {/* SMS Configuration Banner */}
-        {!smsConfigured && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-amber-900">SMS Not Configured</h3>
-              <p className="text-sm text-amber-700 mt-1">
-                Twilio credentials are not set up yet. You can still add prospects and compose messages — they'll be logged and ready to send once you configure Twilio in Settings.
-              </p>
-              <p className="text-sm text-amber-700 mt-1">
-                <strong>To configure:</strong> Go to Settings and add your Twilio Account SID, Auth Token, and Phone Number.
-              </p>
-            </div>
-          </div>
-        )}
-        
         {/* Dynamic Status Boxes with Drag-and-Drop Reordering */}
         {(() => {
           const builtInStatuses = [
@@ -913,7 +846,6 @@ export default function Prospects() {
               <LayoutGrid className="h-4 w-4 mr-1" />
               Kanban
             </TabsTrigger>
-            <TabsTrigger value="templates">SMS Templates</TabsTrigger>
           </TabsList>
           
           {/* Pipeline Tab */}
@@ -1062,9 +994,6 @@ export default function Prospects() {
                               <Button variant="ghost" size="sm"><MoreHorizontal className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openSmsDialog(prospect)}>
-                                <Send className="h-4 w-4 mr-2" /> Send SMS
-                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => { setSelectedProspect(prospect); setShowDetailDialog(true); }}>
                                 <Eye className="h-4 w-4 mr-2" /> View Details
                               </DropdownMenuItem>
@@ -1132,10 +1061,6 @@ export default function Prospects() {
             />
           </TabsContent>
 
-          {/* Templates Tab */}
-          <TabsContent value="templates" className="space-y-4">
-            <SmsTemplatesTab />
-          </TabsContent>
         </Tabs>
         
         {/* Add/Edit Prospect Dialog */}
@@ -1144,7 +1069,7 @@ export default function Prospects() {
             <DialogHeader>
               <DialogTitle>{isEditing ? "Edit Prospect" : "Add New Prospect"}</DialogTitle>
               <DialogDescription>
-                {isEditing ? "Update prospect information." : "Add a new prospect to your pipeline. You can send them an SMS right after."}
+                {isEditing ? "Update prospect information." : "Add a new prospect to your pipeline."}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -1213,114 +1138,6 @@ export default function Prospects() {
                 disabled={!formData.name || !formData.phone || createProspect.isPending || updateProspect.isPending}
               >
                 {isEditing ? "Save Changes" : "Add Prospect"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        
-        {/* Send SMS Dialog */}
-        <Dialog open={showSmsDialog} onOpenChange={setShowSmsDialog}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Send SMS to {selectedProspect?.name}
-              </DialogTitle>
-              <DialogDescription>
-                Sending to: {selectedProspect?.phoneDisplay || selectedProspect?.phone}
-                {!smsConfigured && (
-                  <span className="block text-amber-600 mt-1">
-                    Twilio not configured — message will be logged but not delivered.
-                  </span>
-                )}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Message Template</Label>
-                <Select
-                  value={smsData.templateKey}
-                  onValueChange={(v) => setSmsData({ ...smsData, templateKey: v, customMessage: "" })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a template or write custom..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="custom">Custom Message</SelectItem>
-                    {(templates.data || []).filter((t: any) => t.isActive).map((t: any) => (
-                      <SelectItem key={t.templateKey} value={t.templateKey}>
-                        {t.name} ({t.category.replace("_", " ")})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {smsData.templateKey === "custom" && (
-                <div>
-                  <Label>Custom Message</Label>
-                  <Textarea
-                    value={smsData.customMessage}
-                    onChange={(e) => setSmsData({ ...smsData, customMessage: e.target.value })}
-                    placeholder="Hey {{name}}, check out our coaching programs: {{link}}"
-                    rows={4}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Available variables: {"{{name}}"}, {"{{link}}"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {smsData.customMessage.length}/160 characters ({Math.ceil(smsData.customMessage.length / 160) || 1} SMS segment{Math.ceil(smsData.customMessage.length / 160) > 1 ? "s" : ""})
-                  </p>
-                </div>
-              )}
-              
-              {smsData.templateKey && smsData.templateKey !== "custom" && (
-                <div className="bg-slate-50 rounded-lg p-3 border">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Preview:</p>
-                  <p className="text-sm">
-                    {(() => {
-                      const template = (templates.data || []).find((t: any) => t.templateKey === smsData.templateKey);
-                      if (!template) return "";
-                      return template.body
-                        .replace(/\{\{name\}\}/g, selectedProspect?.name?.split(" ")[0] || "")
-                        .replace(/\{\{link\}\}/g, "[tracked link]")
-
-                    })()}
-                  </p>
-                </div>
-              )}
-              
-              <div>
-                <Label>Link Destination</Label>
-                <Select value={smsData.destination} onValueChange={(v) => setSmsData({ ...smsData, destination: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="/transformation">Transformation Entry Page</SelectItem>
-                    <SelectItem value="/transformation/select-tier">Tier Selection Page</SelectItem>
-                    <SelectItem value="/launchpad">Launchpad Hub</SelectItem>
-                    <SelectItem value="/">Home Page</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">Where the tracked link in the SMS will take them.</p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowSmsDialog(false)}>Cancel</Button>
-              <Button
-                onClick={() => {
-                  sendSms.mutate({
-                    prospectId: selectedProspect.id,
-                    templateKey: smsData.templateKey === "custom" ? undefined : smsData.templateKey || undefined,
-                    customMessage: smsData.templateKey === "custom" ? smsData.customMessage : undefined,
-                    destination: smsData.destination,
-                  });
-                }}
-                disabled={sendSms.isPending || (smsData.templateKey === "custom" && !smsData.customMessage)}
-              >
-                <Send className="h-4 w-4 mr-2" />
-                {smsConfigured ? "Send SMS" : "Log SMS (Not Configured)"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1722,9 +1539,6 @@ export default function Prospects() {
               <Button variant="outline" onClick={() => openEditDialog(selectedProspect)}>
                 <Pencil className="h-4 w-4 mr-2" /> Edit
               </Button>
-              <Button onClick={() => { setShowDetailDialog(false); openSmsDialog(selectedProspect); }}>
-                <Send className="h-4 w-4 mr-2" /> Send SMS
-              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -2022,216 +1836,3 @@ export default function Prospects() {
   );
 }
 
-// SMS Templates sub-tab component
-function SmsTemplatesTab() {
-  const templates = trpc.prospect.getTemplates.useQuery();
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<any>(null);
-  const [templateForm, setTemplateForm] = useState({
-    templateKey: "", name: "", description: "", body: "",
-    category: "custom" as string, isDefault: false, sendAfterHours: null as number | null,
-  });
-  
-  const createTemplate = trpc.prospect.createTemplate.useMutation({
-    onSuccess: () => {
-      toast.success("Template created");
-      setShowEditDialog(false);
-      templates.refetch();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-  
-  const updateTemplate = trpc.prospect.updateTemplate.useMutation({
-    onSuccess: () => {
-      toast.success("Template updated");
-      setShowEditDialog(false);
-      templates.refetch();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-  
-  const deleteTemplate = trpc.prospect.deleteTemplate.useMutation({
-    onSuccess: () => {
-      toast.success("Template deleted");
-      templates.refetch();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-  
-  function openNewTemplate() {
-    setEditingTemplate(null);
-    setTemplateForm({
-      templateKey: "", name: "", description: "", body: "",
-      category: "custom", isDefault: false, sendAfterHours: null,
-    });
-    setShowEditDialog(true);
-  }
-  
-  function openEditTemplate(t: any) {
-    setEditingTemplate(t);
-    setTemplateForm({
-      templateKey: t.templateKey,
-      name: t.name,
-      description: t.description || "",
-      body: t.body,
-      category: t.category,
-      isDefault: t.isDefault,
-      sendAfterHours: t.sendAfterHours,
-    });
-    setShowEditDialog(true);
-  }
-  
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="font-semibold">SMS Message Templates</h3>
-          <p className="text-sm text-muted-foreground">
-            Customize the messages sent to prospects. Use {"{{name}}"} and {"{{link}}"} as variables.
-          </p>
-        </div>
-        <Button onClick={openNewTemplate}>
-          <Plus className="h-4 w-4 mr-2" /> New Template
-        </Button>
-      </div>
-      
-      <div className="grid gap-3">
-        {(templates.data || []).map((t: any) => (
-          <Card key={t.id} className={!t.isActive ? "opacity-50" : ""}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium">{t.name}</h4>
-                    <Badge variant="outline" className="text-xs">{t.category.replace("_", " ")}</Badge>
-                    {t.isDefault && <Badge className="text-xs bg-blue-100 text-blue-800">Default</Badge>}
-                    {!t.isActive && <Badge variant="destructive" className="text-xs">Inactive</Badge>}
-                    {t.sendAfterHours && (
-                      <Badge variant="secondary" className="text-xs">
-                        <Clock className="h-3 w-3 mr-1" /> After {t.sendAfterHours}h
-                      </Badge>
-                    )}
-                  </div>
-                  {t.description && <p className="text-xs text-muted-foreground mb-2">{t.description}</p>}
-                  <p className="text-sm bg-slate-50 rounded p-2 font-mono">{t.body}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t.body.length} chars • {Math.ceil(t.body.length / 160)} SMS segment{Math.ceil(t.body.length / 160) > 1 ? "s" : ""}
-                  </p>
-                </div>
-                <div className="flex gap-1 ml-3">
-                  <Button variant="ghost" size="sm" onClick={() => openEditTemplate(t)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600"
-                    onClick={() => {
-                      if (confirm(`Delete template "${t.name}"?`)) {
-                        deleteTemplate.mutate({ id: t.id });
-                      }
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      
-      {/* Template Edit Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{editingTemplate ? "Edit Template" : "New SMS Template"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Template Key</Label>
-                <Input
-                  value={templateForm.templateKey}
-                  onChange={(e) => setTemplateForm({ ...templateForm, templateKey: e.target.value.replace(/\s/g, "_").toLowerCase() })}
-                  placeholder="my_template"
-                  disabled={!!editingTemplate}
-                />
-              </div>
-              <div>
-                <Label>Name</Label>
-                <Input
-                  value={templateForm.name}
-                  onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
-                  placeholder="Template Name"
-                />
-              </div>
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Input
-                value={templateForm.description}
-                onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })}
-                placeholder="What is this template for?"
-              />
-            </div>
-            <div>
-              <Label>Message Body</Label>
-              <Textarea
-                value={templateForm.body}
-                onChange={(e) => setTemplateForm({ ...templateForm, body: e.target.value })}
-                placeholder="Hey {{name}}, check out our programs: {{link}}"
-                rows={4}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Variables: {"{{name}}"} (first name), {"{{link}}"} (tracked link)
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {templateForm.body.length}/160 chars • {Math.ceil(templateForm.body.length / 160) || 1} segment{Math.ceil(templateForm.body.length / 160) > 1 ? "s" : ""}
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Category</Label>
-                <Select value={templateForm.category} onValueChange={(v) => setTemplateForm({ ...templateForm, category: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="initial_outreach">Initial Outreach</SelectItem>
-                    <SelectItem value="follow_up">Follow-Up</SelectItem>
-                    <SelectItem value="reminder">Reminder</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Auto-send After (hours)</Label>
-                <Input
-                  type="number"
-                  value={templateForm.sendAfterHours ?? ""}
-                  onChange={(e) => setTemplateForm({ ...templateForm, sendAfterHours: e.target.value ? parseInt(e.target.value) : null })}
-                  placeholder="e.g., 48"
-                />
-                <p className="text-xs text-muted-foreground mt-1">For follow-up automation</p>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
-            <Button
-              onClick={() => {
-                if (editingTemplate) {
-                  updateTemplate.mutate({ id: editingTemplate.id, ...templateForm } as any);
-                } else {
-                  createTemplate.mutate(templateForm as any);
-                }
-              }}
-              disabled={!templateForm.templateKey || !templateForm.name || !templateForm.body}
-            >
-              {editingTemplate ? "Save Changes" : "Create Template"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}

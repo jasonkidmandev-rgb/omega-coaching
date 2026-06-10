@@ -226,39 +226,23 @@ describe('Message Email Notifications', () => {
       expect(notifSection).toContain('New message from your coach');
     });
 
-    it('should send push notification to admins when client sends a message', async () => {
-      const fs = await import('fs');
-      const routerCode = fs.readFileSync('/home/ubuntu/health-coach-protocol-app/server/routers.ts', 'utf-8');
-      const clientBlock = routerCode.indexOf("if (input.authorType === 'client')");
-      const pushAdminsCall = routerCode.indexOf('sendPushToAdmins', clientBlock);
-      expect(pushAdminsCall).toBeGreaterThan(clientBlock);
-    });
-
-    it('should have sendPushToAdmins function in pushNotification.ts', async () => {
-      const fs = await import('fs');
-      const pushCode = fs.readFileSync('/home/ubuntu/health-coach-protocol-app/server/pushNotification.ts', 'utf-8');
-      expect(pushCode).toContain('export async function sendPushToAdmins');
-    });
-
-    it('coach->client flow should have all 3 notification types: push, in-app, email', async () => {
+    it('coach->client flow should have in-app and email notifications', async () => {
       const fs = await import('fs');
       const routerCode = fs.readFileSync('/home/ubuntu/health-coach-protocol-app/server/routers.ts', 'utf-8');
       const coachBlock = routerCode.indexOf("if (input.authorType === 'coach')");
       const clientBlock = routerCode.indexOf("if (input.authorType === 'client')");
       const coachSection = routerCode.substring(coachBlock, clientBlock);
-      expect(coachSection).toContain('sendPushToClient');
       expect(coachSection).toContain('createNotification');
       expect(coachSection).toContain('sendNewMessageEmailToClient');
     });
 
-    it('client->admin flow should have all 4 notification types: owner, in-app, push, email', async () => {
+    it('client->admin flow should have owner, in-app, and email notifications', async () => {
       const fs = await import('fs');
       const routerCode = fs.readFileSync('/home/ubuntu/health-coach-protocol-app/server/routers.ts', 'utf-8');
       const clientBlock = routerCode.indexOf("if (input.authorType === 'client')");
       const clientSection = routerCode.substring(clientBlock, clientBlock + 2000);
       expect(clientSection).toContain('notifyOwner');
       expect(clientSection).toContain('createNotificationsForEnabledUsers');
-      expect(clientSection).toContain('sendPushToAdmins');
       expect(clientSection).toContain('sendNewMessageEmailToAdmins');
     });
   });

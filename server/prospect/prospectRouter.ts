@@ -3,8 +3,7 @@ import { z } from "zod";
 import { getDb, createNotificationsForEnabledUsers } from "../db";
 import { eq, desc, and, sql, inArray, isNull, isNotNull, lte } from "drizzle-orm";
 import { prospects, smsMessages, prospectEngagement, smsTemplates } from "../../drizzle/schema";
-import { sendSms, isSmsConfigured, formatPhoneE164, formatPhoneDisplay } from "../smsService";
-import { ENV } from "../_core/env";
+import { formatPhoneE164, formatPhoneDisplay } from "../utils/phone";
 import crypto from "crypto";
 import { findOrCreateContact } from "../contacts/contactService";
 import { propagateContactChanges } from "../contacts/propagateContactChanges";
@@ -33,14 +32,6 @@ function renderTemplate(template: string, vars: Record<string, string>): string 
 }
 
 export const prospectRouter = router({
-  // ========== SMS Configuration Status ==========
-  getSmsStatus: adminProcedure.query(async () => {
-    return {
-      configured: isSmsConfigured(),
-      phoneNumber: ENV.twilioPhoneNumber || null,
-    };
-  }),
-
   // ========== Prospect CRUD ==========
   list: adminProcedure
     .input(z.object({
@@ -291,216 +282,6 @@ export const prospectRouter = router({
       return { success: true };
     }),
 
-  // ========== SMS Sending ==========
-  sendSms: adminProcedure
-    .input(z.object({
-      prospectId: z.number(),
-      templateKey: z.string().optional(),
-      customMessage: z.string().optional(),
-      destination: z.string().optional(), // URL path to link to
-    }))
-    .mutation(async ({ input, ctx }) => {
-      const d = await db();
-      
-      // Get prospect
-      const [prospect] = await d.select().from(prospects).where(eq(prospects.id, input.prospectId));
-      if (!prospect) throw new Error("Prospect not found");
-      if (prospect.smsOptOut) throw new Error("Prospect has opted out of SMS");
-      
-      // Build the tracked link
-      const baseUrl = ctx.req.headers.origin || process.env.VITE_APP_URL || "";
-      const trackedLink = buildTrackedLink(baseUrl, prospect.trackingToken, input.destination);
-      
-      // Get message body
-      let body: string;
-      let templateKey: string | null = null;
-      
-      if (input.customMessage) {
-        body = renderTemplate(input.customMessage, {
-          name: prospect.name.split(" ")[0], // First name
-          link: trackedLink,
-        });
-      } else if (input.templateKey) {
-        const [template] = await d.select().from(smsTemplates)
-          .where(eq(smsTemplates.templateKey, input.templateKey));
-        if (!template) throw new Error("Template not found");
-        
-        body = renderTemplate(template.body, {
-          name: prospect.name.split(" ")[0],
-          link: trackedLink,
-        });
-        templateKey = input.templateKey;
-      } else {
-        // Use default initial outreach template
-        const [template] = await d.select().from(smsTemplates)
-          .where(and(eq(smsTemplates.category, "initial_outreach"), eq(smsTemplates.isDefault, true)));
-        
-        if (template) {
-          body = renderTemplate(template.body, {
-            name: prospect.name.split(" ")[0],
-            link: trackedLink,
-          });
-          templateKey = template.templateKey;
-        } else {
-          body = `Hey ${prospect.name.split(" ")[0]}, check out our coaching programs: ${trackedLink}`;
-        }
-      }
-      
-      // Send the SMS
-      const result = await sendSms({ to: prospect.phone, body });
-      
-      // Log the message
-      await d.insert(smsMessages).values({
-        prospectId: prospect.id,
-        toPhone: formatPhoneE164(prospect.phone) || prospect.phone,
-        fromPhone: ENV.twilioPhoneNumber || "not_configured",
-        body,
-        twilioSid: result.twilioSid || null,
-        status: result.success ? "sent" : (isSmsConfigured() ? "failed" : "not_configured"),
-        errorMessage: result.success ? null : result.message,
-        templateKey,
-      });
-      
-      // Update prospect stats
-      await d.update(prospects).set({
-        lastContactedAt: new Date(),
-        totalSmsSent: sql`${prospects.totalSmsSent} + 1`,
-        status: prospect.status === "new" ? "contacted" : prospect.status,
-        // Set next follow-up for 48 hours from now
-        nextFollowUpAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
-      }).where(eq(prospects.id, prospect.id));
-      
-      return {
-        success: result.success,
-        message: result.message,
-        smsConfigured: isSmsConfigured(),
-      };
-    }),
-
-  bulkSendSms: adminProcedure
-    .input(z.object({
-      prospectIds: z.array(z.number()),
-      templateKey: z.string().optional(),
-      customMessage: z.string().optional(),
-      destination: z.string().optional(),
-    }))
-    .mutation(async ({ input, ctx }) => {
-      const results: { prospectId: number; success: boolean; message: string }[] = [];
-      
-      for (const prospectId of input.prospectIds) {
-        try {
-          // Reuse the single send logic via direct call
-          const d = await db();
-          const [prospect] = await d.select().from(prospects).where(eq(prospects.id, prospectId));
-          if (!prospect || prospect.smsOptOut) {
-            results.push({ prospectId, success: false, message: prospect?.smsOptOut ? "Opted out" : "Not found" });
-            continue;
-          }
-          
-          const baseUrl = ctx.req.headers.origin || process.env.VITE_APP_URL || "";
-          const trackedLink = buildTrackedLink(baseUrl, prospect.trackingToken, input.destination);
-          
-          let body: string;
-          let templateKey: string | null = null;
-          
-          if (input.customMessage) {
-            body = renderTemplate(input.customMessage, {
-              name: prospect.name.split(" ")[0],
-              link: trackedLink,
-            });
-          } else if (input.templateKey) {
-            const [template] = await d.select().from(smsTemplates)
-              .where(eq(smsTemplates.templateKey, input.templateKey));
-            body = template
-              ? renderTemplate(template.body, { name: prospect.name.split(" ")[0], link: trackedLink })
-              : `Hey ${prospect.name.split(" ")[0]}, check out our coaching programs: ${trackedLink}`;
-            templateKey = input.templateKey;
-          } else {
-            body = `Hey ${prospect.name.split(" ")[0]}, check out our coaching programs: ${trackedLink}`;
-          }
-          
-          const result = await sendSms({ to: prospect.phone, body });
-          
-          await d.insert(smsMessages).values({
-            prospectId: prospect.id,
-            toPhone: formatPhoneE164(prospect.phone) || prospect.phone,
-            fromPhone: ENV.twilioPhoneNumber || "not_configured",
-            body,
-            twilioSid: result.twilioSid || null,
-            status: result.success ? "sent" : (isSmsConfigured() ? "failed" : "not_configured"),
-            errorMessage: result.success ? null : result.message,
-            templateKey,
-          });
-          
-          await d.update(prospects).set({
-            lastContactedAt: new Date(),
-            totalSmsSent: sql`${prospects.totalSmsSent} + 1`,
-            status: prospect.status === "new" ? "contacted" : prospect.status,
-            nextFollowUpAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
-          }).where(eq(prospects.id, prospect.id));
-          
-          results.push({ prospectId, success: result.success, message: result.message });
-        } catch (error: any) {
-          results.push({ prospectId, success: false, message: error.message });
-        }
-      }
-      
-      return {
-        results,
-        totalSent: results.filter(r => r.success).length,
-        totalFailed: results.filter(r => !r.success).length,
-        smsConfigured: isSmsConfigured(),
-      };
-    }),
-
-  // ========== SMS Templates ==========
-  getTemplates: adminProcedure.query(async () => {
-    const d = await db();
-    return d.select().from(smsTemplates).orderBy(smsTemplates.category, smsTemplates.name);
-  }),
-
-  createTemplate: adminProcedure
-    .input(z.object({
-      templateKey: z.string().min(1),
-      name: z.string().min(1),
-      description: z.string().optional(),
-      body: z.string().min(1),
-      category: z.enum(["initial_outreach", "follow_up", "reminder", "custom"]),
-      isDefault: z.boolean().optional(),
-      sendAfterHours: z.number().optional(),
-    }))
-    .mutation(async ({ input }) => {
-      const d = await db();
-      const [result] = await d.insert(smsTemplates).values(input);
-      return { id: result.insertId };
-    }),
-
-  updateTemplate: adminProcedure
-    .input(z.object({
-      id: z.number(),
-      name: z.string().min(1).optional(),
-      description: z.string().optional(),
-      body: z.string().min(1).optional(),
-      category: z.enum(["initial_outreach", "follow_up", "reminder", "custom"]).optional(),
-      isActive: z.boolean().optional(),
-      isDefault: z.boolean().optional(),
-      sendAfterHours: z.number().nullable().optional(),
-    }))
-    .mutation(async ({ input }) => {
-      const d = await db();
-      const { id, ...updates } = input;
-      await d.update(smsTemplates).set(updates).where(eq(smsTemplates.id, id));
-      return { success: true };
-    }),
-
-  deleteTemplate: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      const d = await db();
-      await d.delete(smsTemplates).where(eq(smsTemplates.id, input.id));
-      return { success: true };
-    }),
-
   // ========== Stats ==========
   getStats: adminProcedure.query(async () => {
     const d = await db();
@@ -534,56 +315,11 @@ export const prospectRouter = router({
       customStatusCounts[row.name] = Number(row.count) || 0;
     }
     
-    const [smsCounts] = await d.execute(sql`
-      SELECT 
-        COUNT(*) as "totalSent",
-        SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) as delivered,
-        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
-        SUM(CASE WHEN status = 'not_configured' THEN 1 ELSE 0 END) as "notConfigured"
-      FROM sms_messages
-    `);
-    
     return {
       prospects: (statusCounts as unknown as any[])?.[0] || {},
       customStatusCounts,
-      sms: (smsCounts as unknown as any[])?.[0] || {},
-      smsConfigured: isSmsConfigured(),
     };
   }),
-
-  // ========== Preview template with variables ==========
-  previewTemplate: adminProcedure
-    .input(z.object({
-      templateKey: z.string().optional(),
-      customMessage: z.string().optional(),
-      prospectId: z.number(),
-    }))
-    .query(async ({ input, ctx }) => {
-      const d = await db();
-      const [prospect] = await d.select().from(prospects).where(eq(prospects.id, input.prospectId));
-      if (!prospect) return { preview: "", charCount: 0 };
-      
-      const baseUrl = ctx.req.headers.origin || process.env.VITE_APP_URL || "";
-      const trackedLink = buildTrackedLink(baseUrl, prospect.trackingToken);
-      
-      let body: string;
-      if (input.customMessage) {
-        body = renderTemplate(input.customMessage, {
-          name: prospect.name.split(" ")[0],
-          link: trackedLink,
-        });
-      } else if (input.templateKey) {
-        const [template] = await d.select().from(smsTemplates)
-          .where(eq(smsTemplates.templateKey, input.templateKey));
-        body = template
-          ? renderTemplate(template.body, { name: prospect.name.split(" ")[0], link: trackedLink })
-          : "";
-      } else {
-        body = "";
-      }
-      
-      return { preview: body, charCount: body.length, segments: Math.ceil(body.length / 160) };
-    }),
 
   // ========== Manual Engagement Logging ==========
   addEngagement: adminProcedure

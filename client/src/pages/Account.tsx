@@ -142,16 +142,6 @@ export default function Account() {
     },
   });
   
-  const updateSmsPreference = trpc.users.updateSmsPreference.useMutation({
-    onSuccess: () => {
-      toast.success("SMS preferences updated");
-      // Refresh user data so the toggle updates visually
-      refresh();
-    },
-    onError: () => {
-      toast.error("Failed to update SMS preferences");
-    },
-  });
 
 
 
@@ -458,30 +448,6 @@ export default function Account() {
                 </div>
                 <MessageNotificationToggle />
               </div>
-              <Separator className="bg-slate-700" />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-white flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-green-500" />
-                    SMS Notifications
-                  </Label>
-                  <p className="text-sm text-slate-400">
-                    Receive text messages for shipping updates and order status
-                  </p>
-                </div>
-                <Switch
-                  checked={user.receiveSmsNotifications || false}
-                  disabled={!user.phone}
-                  onCheckedChange={(checked) => {
-                    updateSmsPreference.mutate({ receiveSmsNotifications: checked });
-                  }}
-                />
-              </div>
-              {!user.phone && (
-                <p className="text-xs text-amber-500">
-                  Add a phone number above to enable SMS notifications
-                </p>
-              )}
             </CardContent>
           </Card>
 

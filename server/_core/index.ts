@@ -16,6 +16,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import stripeWebhookRouter from "../stripe/webhook";
+import omegalongevityWebhookRouter from "../integrations/omegalongevity/webhook";
 import { startFollowUpCron } from "../cron/followUpCron";
 import { startLowStockAlertCron } from "../cron/lowStockAlertCron";
 // progressReminderCron removed - consolidated into checkinCron (Mar 2026)
@@ -35,7 +36,6 @@ import { initEnrollmentFollowUpCron } from "../cron/enrollmentFollowUpCron";
 import { initIntakeFormReminderCron } from "../cron/intakeFormReminderCron";
 import { startProtocolExpirationCron } from "../cron/protocolExpirationCron";
 import { startWeeklyExpirationDigestCron } from "../cron/weeklyExpirationDigestCron";
-import { initProspectFollowUpCron } from "../cron/prospectFollowUpCron";
 // DISABLED: Abandoned checkout recovery cron removed per owner request
 // import { startAbandonedCheckoutCron } from "../cron/abandonedCheckoutCron";
 import { initPostDiscoveryFollowUpCron } from "../cron/postDiscoveryFollowUpCron";
@@ -95,6 +95,9 @@ async function startServer() {
   
   // Stripe webhook MUST be registered BEFORE express.json() for raw body signature verification
   app.use('/api/stripe/webhook', stripeWebhookRouter);
+
+  // External partner webhooks (omegalongevity.com purchases) — also raw body for HMAC verification
+  app.use('/api/external/omegalongevity', webhookLimiter, omegalongevityWebhookRouter);
 
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
@@ -229,22 +232,6 @@ async function startServer() {
           } catch (notifErr) {
             console.error('Error creating in-app notification for email open:', notifErr);
           }
-          
-          // 3. Send push notification to all admin subscribers
-          try {
-            const { sendPushToAll } = await import('../pushNotification');
-            await sendPushToAll(
-              {
-                title: `${protocol.clientName} opened their protocol`,
-                body: `${protocol.clientName} just opened their protocol email. They may be reviewing it now.`,
-                url: `/admin/clients/${protocol.id}`,
-                tag: `email-open-${protocol.id}`,
-              },
-              'protocol_updated'
-            );
-          } catch (pushErr) {
-            console.error('Error sending push notification for email open:', pushErr);
-          }
         }
       }
     } catch (error) {
@@ -349,18 +336,6 @@ async function startServer() {
               `${clientName} opened their ${emailType.replace(/_/g, ' ')} email`,
               `${clientName} opened their ${emailType.replace(/_/g, ' ')} email at ${new Date().toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })}.`,
               trackingRecord.clientProtocolId || undefined
-            );
-            
-            // Send push notification
-            const { sendPushToAll } = await import('../pushNotification');
-            await sendPushToAll(
-              {
-                title: `${clientName} opened their email`,
-                body: `${clientName} just opened their ${emailType.replace(/_/g, ' ')} email.`,
-                url: trackingRecord.clientProtocolId ? `/admin/clients/${trackingRecord.clientProtocolId}` : '/admin/notifications',
-                tag: `engagement-open-${trackingId.substring(0, 8)}`,
-              },
-              'protocol_updated'
             );
           }
         } catch (engagementNotifErr) {
@@ -604,9 +579,6 @@ async function startServer() {
     
     // Weekly expiration digest - sends summary email every Monday at 9 AM
     startWeeklyExpirationDigestCron();
-    
-    // Prospect follow-up SMS - sends automated follow-ups every 4 hours
-    initProspectFollowUpCron();
     
     // DISABLED: Abandoned checkout recovery cron removed per owner request
     // startAbandonedCheckoutCron();

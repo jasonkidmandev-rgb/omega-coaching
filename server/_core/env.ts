@@ -12,9 +12,6 @@ export const ENV = {
   smtpUser: process.env.SMTP_USER ?? "",
   smtpPass: process.env.SMTP_PASS ?? "",
   smtpFrom: process.env.SMTP_FROM ?? "",
-  twilioAccountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
-  twilioAuthToken: process.env.TWILIO_AUTH_TOKEN ?? "",
-  twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER ?? "",
   calendlyApiToken: process.env.CALENDLY_API_TOKEN ?? "",
   calendlyWebhookSigningKey: process.env.CALENDLY_WEBHOOK_SIGNING_KEY ?? "",
 };

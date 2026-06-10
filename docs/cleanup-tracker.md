@@ -60,14 +60,15 @@ Last updated: 2026-06-10
 | Fulfillment Queue | 🔴 High | Fully redesigned: urgency groups, progress bars, split-pane master/detail layout, cross-links to packing slip detail and backorders | ✅ Done |
 | Backorders page | 🔴 High | New `/admin/backorders` page with item cards, ship-source badges, tracking links | ✅ Done |
 | Payment system overhaul | 🔴 High | Stripe webhook → client_protocols sync fixed; shared `processProtocolPaymentReceived()` service; PricingTab shows Stripe enrollment panel + sync gap detection + one-click fix; `paymentMethod` enum migration applied to Railway DB | ✅ Done |
-| Back buttons | 🟡 Medium | Many admin pages don't navigate back correctly — needs a pass across all pages | ⬜ Pending |
+| Back buttons | 🟡 Medium | Audit done: CheckinReview + ProtocolPresets destinations fixed, NotificationSettings back button added (`699de91`) | ✅ Done |
+| omegalongevity.com purchase webhook | 🔴 High | Inbound HMAC-signed endpoint `/api/external/omegalongevity/v1/purchase`, event log + replay, admin-managed product mappings, canonical provisioning service (`server/provisioning/`). Spec doc: `docs/integrations/omegalongevity-webhook-spec.md`. Awaiting Alex's package list + secret exchange; migration 0115 to apply on Railway; Settings UI for mappings/event log still to build | 🟡 Partial |
 | Lead Pipeline + Shannon Kanban | 🟡 Medium | Align the two views per recent discussion | ⬜ Pending |
 | Manage Check-ins | 🟡 Medium | Page exists and bugs fixed. Goal of surfacing through Client Corner view not yet done | 🟡 Partial |
-| Coaching Payments — remove test payments | 🟡 Medium | Add an easy way to delete test/dummy payment records | ⬜ Pending |
+| Coaching Payments — remove test payments | 🟡 Medium | Delete button + confirm dialog on each payment card; `transformation.deletePayment` mutation handles both pending-payment rows and auto-verified enrollment records | ✅ Done |
 | Calendly Integration | 🟡 Medium | 450-line settings page exists, env vars added. Two-way sync untested, flow not yet simplified | 🟡 Partial |
 | Email & Notifications overhaul | 🟢 Low | Resend migration done (major). Efficiency improvements still pending | 🟡 Partial |
 | Data Integrity Audit → prevent at entry | 🟢 Low | Long-term: prevent bad data at the point of entry so this tool becomes unnecessary, then remove it | ⬜ Pending |
-| SMS / Push notification code | 🟢 Low | Remove all Twilio and push notification backend code — push doesn't work on mobile install anyway | ⬜ Pending |
+| SMS / Push notification code | 🟢 Low | Removed: smsService (both), pushNotification.ts, push router, prospect SMS sending/templates/cron, Account SMS toggle, NotificationSettings push tab, dashboard push banners, sw.js push handlers, twilio/web-push deps. SMS history display + DB tables kept | ✅ Done |
 
 ---
 

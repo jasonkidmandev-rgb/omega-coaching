@@ -2,7 +2,6 @@ import { adminProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { sendPaymentConfirmationEmail, sendAdminPaymentReceivedEmail } from "./emailService";
-import { sendPushToClient } from "../pushNotification";
 
 /**
  * Create packing slip for a paid protocol if one doesn't exist
@@ -248,26 +247,7 @@ export const paymentReconciliationRouter = router({
           console.error('[Payment Reconciliation] Failed to send admin payment notification email:', adminEmailError);
         }
 
-        // Send push notification to client if they have subscriptions
-        if (protocol.clientId) {
-          try {
-            await sendPushToClient(
-              protocol.clientId,
-              {
-                title: 'Payment Confirmed',
-                body: 'Your payment has been received. Thank you!',
-                url: `/protocol/${protocol.accessToken}`,
-              },
-              'payment_received',
-              { clientProtocolId: input.protocolId }
-            );
-            console.log(`[Payment Reconciliation] Push notification sent to client ${protocol.clientId}`);
-          } catch (pushError) {
-            console.warn(`[Payment Reconciliation] Failed to send push notification:`, pushError);
-          }
-        }
-        
-        return { 
+        return {
           success: true, 
           protocolId: input.protocolId,
           packingSlipCreated: !!packingSlipId,
@@ -397,23 +377,6 @@ export const paymentReconciliationRouter = router({
                 console.error(`[Bulk Reconcile] Failed to send admin payment notification for protocol ${protocolId}:`, adminEmailError);
               }
 
-              // Send push notification to client
-              if (protocol.clientId) {
-                try {
-                  await sendPushToClient(
-                    protocol.clientId,
-                    {
-                      title: 'Payment Confirmed',
-                      body: 'Your payment has been received. Thank you!',
-                      url: `/protocol/${protocol.accessToken}`,
-                    },
-                    'payment_received',
-                    { clientProtocolId: protocolId }
-                  );
-                } catch (pushError) {
-                  console.warn(`[Bulk Reconcile] Failed to send push notification for protocol ${protocolId}:`, pushError);
-                }
-              }
             }
           }
           

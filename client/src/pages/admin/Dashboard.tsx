@@ -11,7 +11,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -111,8 +110,6 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <div className="space-y-4 md:space-y-8">
-        {/* Push Notification Opt-In Banner for Admin */}
-        <PushNotificationBanner />
         <div className="flex items-start justify-between">
           <div>
             <Breadcrumb />

@@ -474,51 +474,6 @@ export async function updateUserEnabledEmailNotificationTypes(userId: number, en
     .where(eq(users.id, userId));
 }
 
-// Critical notification types that can trigger push notifications
-export const PUSH_NOTIFICATION_TYPES = [
-  "low_checkin_score",
-  "payment_received",
-  "payment_failed",
-  "new_store_order",
-  "appointment_booked",
-  "appointment_cancelled",
-  "inventory_out_of_stock",
-  "venmo_pending",
-] as const;
-
-export type PushNotificationType = typeof PUSH_NOTIFICATION_TYPES[number];
-
-// Get user's enabled push notification types
-export async function getUserEnabledPushNotificationTypes(userId: number): Promise<string[]> {
-  const db = await getDb();
-  if (!db) return [...PUSH_NOTIFICATION_TYPES];
-  
-  const result = await db.select({ pushEnabledTypes: users.pushEnabledTypes })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  
-  if (result.length === 0 || !result[0].pushEnabledTypes) {
-    return [...PUSH_NOTIFICATION_TYPES]; // All enabled by default
-  }
-  
-  try {
-    return JSON.parse(result[0].pushEnabledTypes) as string[];
-  } catch (e) {
-    return [...PUSH_NOTIFICATION_TYPES];
-  }
-}
-
-// Update user's enabled push notification types
-export async function updateUserEnabledPushNotificationTypes(userId: number, enabledTypes: string[]): Promise<void> {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  await db.update(users)
-    .set({ pushEnabledTypes: JSON.stringify(enabledTypes) })
-    .where(eq(users.id, userId));
-}
-
 // Get user's digest settings
 export async function getUserDigestSettings(userId: number): Promise<{ frequency: string; sendTime: string; lastSentAt: Date | null }> {
   const db = await getDb();
@@ -554,29 +509,6 @@ export async function updateUserDigestSettings(userId: number, frequency: string
       digestFrequency: frequency as "none" | "daily" | "weekly",
       digestSendTime: sendTime,
     })
-    .where(eq(users.id, userId));
-}
-
-// Get user's push subscription
-export async function getUserPushSubscription(userId: number): Promise<string | null> {
-  const db = await getDb();
-  if (!db) return null;
-  
-  const result = await db.select({ pushSubscription: users.pushSubscription })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  
-  return result.length > 0 ? result[0].pushSubscription : null;
-}
-
-// Update user's push subscription
-export async function updateUserPushSubscription(userId: number, subscription: string | null): Promise<void> {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  await db.update(users)
-    .set({ pushSubscription: subscription })
     .where(eq(users.id, userId));
 }
 
@@ -7211,12 +7143,6 @@ export async function updateUserPhone(userId: number, phone: string) {
 }
 
 // Update user SMS notification preference
-export async function updateUserSmsPreference(userId: number, receiveSmsNotifications: boolean) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(users).set({ receiveSmsNotifications }).where(eq(users.id, userId));
-}
-
 
 // ============ PROGRESS PHOTOS FUNCTIONS ============
 

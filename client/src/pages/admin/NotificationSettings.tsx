@@ -8,7 +8,7 @@ import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Switch } from "../../components/ui/switch";
 import { toast } from "sonner";
-import { Bell, Mail, Clock, Settings2, Save, RefreshCw, CheckCircle2, XCircle, Shield, CreditCard, FileText, Calendar, Package, Users, Volume2, Smartphone, BellRing, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Bell, Mail, Clock, Settings2, Save, RefreshCw, CheckCircle2, XCircle, Shield, CreditCard, FileText, Calendar, Package, Users, AlertTriangle, ArrowLeft } from "lucide-react";
 import { Separator } from "../../components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Badge } from "../../components/ui/badge";
@@ -122,29 +122,6 @@ const EMAIL_NOTIFICATION_CATEGORIES = {
   scheduling: NOTIFICATION_CATEGORIES.scheduling,
 };
 
-// Push notification categories (critical alerts only)
-const PUSH_NOTIFICATION_CATEGORIES = {
-  payment: {
-    ...NOTIFICATION_CATEGORIES.payment,
-    types: NOTIFICATION_CATEGORIES.payment.types.filter(t => 
-      ["payment_received", "payment_failed", "venmo_pending"].includes(t.id)
-    ),
-  },
-  checkin: {
-    ...NOTIFICATION_CATEGORIES.checkin,
-    types: NOTIFICATION_CATEGORIES.checkin.types.filter(t => 
-      ["low_checkin_score"].includes(t.id)
-    ),
-  },
-  store: {
-    ...NOTIFICATION_CATEGORIES.store,
-    types: NOTIFICATION_CATEGORIES.store.types.filter(t => 
-      ["new_store_order", "inventory_out_of_stock"].includes(t.id)
-    ),
-  },
-  scheduling: NOTIFICATION_CATEGORIES.scheduling,
-};
-
 export default function NotificationSettings() {
   const [, setLocation] = useLocation();
   // Local state for payment reminder form
@@ -170,14 +147,6 @@ export default function NotificationSettings() {
   const [hasDigestChanges, setHasDigestChanges] = useState(false);
   const [initialDigestLoaded, setInitialDigestLoaded] = useState(false);
 
-  // Local state for push notification preferences
-  const [enabledPushTypes, setEnabledPushTypes] = useState<string[]>([]);
-  const [hasPushTypeChanges, setHasPushTypeChanges] = useState(false);
-  const [initialPushTypesLoaded, setInitialPushTypesLoaded] = useState(false);
-  const [pushSupported, setPushSupported] = useState(false);
-  const [pushPermission, setPushPermission] = useState<NotificationPermission>("default");
-  const [hasSubscription, setHasSubscription] = useState(false);
-
   // Query for payment reminder settings
   const { data: settingsData, refetch: refetchSettings } = trpc.adminSettings.getByCategory.useQuery({
     category: "notifications",
@@ -191,9 +160,6 @@ export default function NotificationSettings() {
 
   // Query for digest settings
   const { data: digestData, refetch: refetchDigest } = trpc.users.getDigestSettings.useQuery();
-
-  // Query for push notification preferences
-  const { data: pushTypePrefsData, refetch: refetchPushTypePrefs } = trpc.users.getEnabledPushNotificationTypes.useQuery();
 
   // Mutations
   const bulkUpdateMutation = trpc.adminSettings.bulkUpdate.useMutation({
@@ -240,36 +206,6 @@ export default function NotificationSettings() {
     },
   });
 
-  const updatePushTypesMutation = trpc.users.updateEnabledPushNotificationTypes.useMutation({
-    onSuccess: () => {
-      toast.success("Push notification preferences saved");
-      setHasPushTypeChanges(false);
-      refetchPushTypePrefs();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const savePushSubscriptionMutation = trpc.users.savePushSubscription.useMutation({
-    onSuccess: () => {
-      toast.success("Push notifications enabled");
-      setHasSubscription(true);
-      refetchPushTypePrefs();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  // Check push notification support
-  useEffect(() => {
-    if ("Notification" in window && "serviceWorker" in navigator) {
-      setPushSupported(true);
-      setPushPermission(Notification.permission);
-    }
-  }, []);
-
   // Load payment reminder settings
   useEffect(() => {
     if (settingsData?.data) {
@@ -306,15 +242,6 @@ export default function NotificationSettings() {
     }
   }, [digestData, initialDigestLoaded]);
 
-  // Load push notification type preferences
-  useEffect(() => {
-    if (pushTypePrefsData && !initialPushTypesLoaded) {
-      setEnabledPushTypes(pushTypePrefsData.enabledTypes);
-      setHasSubscription(pushTypePrefsData.hasSubscription);
-      setInitialPushTypesLoaded(true);
-    }
-  }, [pushTypePrefsData, initialPushTypesLoaded]);
-
   // Save handlers
   const handleSavePaymentSettings = () => {
     bulkUpdateMutation.mutate({
@@ -337,10 +264,6 @@ export default function NotificationSettings() {
 
   const handleSaveDigestSettings = () => {
     updateDigestMutation.mutate({ frequency: digestFrequency, sendTime: digestSendTime });
-  };
-
-  const handleSavePushTypePreferences = () => {
-    updatePushTypesMutation.mutate({ enabledTypes: enabledPushTypes });
   };
 
   // Toggle handlers for in-app notifications
@@ -429,89 +352,6 @@ export default function NotificationSettings() {
     setHasEmailTypeChanges(true);
   };
 
-  // Toggle handlers for push notifications
-  const togglePushNotificationType = (typeId: string) => {
-    setEnabledPushTypes(prev => {
-      const newTypes = prev.includes(typeId)
-        ? prev.filter(t => t !== typeId)
-        : [...prev, typeId];
-      return newTypes;
-    });
-    setHasPushTypeChanges(true);
-  };
-
-  const togglePushCategory = (categoryKey: string, enable: boolean) => {
-    const category = PUSH_NOTIFICATION_CATEGORIES[categoryKey as keyof typeof PUSH_NOTIFICATION_CATEGORIES];
-    if (!category) return;
-
-    setEnabledPushTypes(prev => {
-      const categoryTypeIds = category.types.map(t => t.id);
-      if (enable) {
-        const newTypes = [...prev];
-        categoryTypeIds.forEach(id => {
-          if (!newTypes.includes(id)) {
-            newTypes.push(id);
-          }
-        });
-        return newTypes;
-      } else {
-        return prev.filter(t => !categoryTypeIds.includes(t));
-      }
-    });
-    setHasPushTypeChanges(true);
-  };
-
-  const enableAllPushTypes = () => {
-    const allTypeIds = Object.values(PUSH_NOTIFICATION_CATEGORIES).flatMap(cat => cat.types.map(t => t.id));
-    setEnabledPushTypes(allTypeIds);
-    setHasPushTypeChanges(true);
-  };
-
-  const disableAllPushTypes = () => {
-    setEnabledPushTypes([]);
-    setHasPushTypeChanges(true);
-  };
-
-  // Request push notification permission
-  const requestPushPermission = async () => {
-    if (!pushSupported) {
-      toast.error("Push notifications are not supported in this browser");
-      return;
-    }
-
-    try {
-      const permission = await Notification.requestPermission();
-      setPushPermission(permission);
-
-      if (permission === "granted") {
-        // Register service worker and get subscription
-        const registration = await navigator.serviceWorker.ready;
-        
-        // For now, we'll just save a placeholder subscription
-        // In production, you'd use web-push with VAPID keys
-        const subscriptionData = JSON.stringify({
-          endpoint: "browser-notification",
-          enabled: true,
-          timestamp: new Date().toISOString(),
-        });
-        
-        savePushSubscriptionMutation.mutate({ subscription: subscriptionData });
-      } else if (permission === "denied") {
-        toast.error("Push notifications were denied. Please enable them in your browser settings.");
-      }
-    } catch (error) {
-      console.error("Error requesting push permission:", error);
-      toast.error("Failed to enable push notifications");
-    }
-  };
-
-  // Disable push notifications
-  const disablePushNotifications = () => {
-    savePushSubscriptionMutation.mutate({ subscription: null });
-    setHasSubscription(false);
-    toast.success("Push notifications disabled");
-  };
-
   // Helper functions
   const getCategoryEnabledCount = (categoryKey: string, categories: typeof NOTIFICATION_CATEGORIES, enabledList: string[]) => {
     const category = categories[categoryKey as keyof typeof categories];
@@ -539,8 +379,6 @@ export default function NotificationSettings() {
   const totalTypes = Object.values(NOTIFICATION_CATEGORIES).flatMap(cat => cat.types).length;
   const totalEmailEnabled = enabledEmailTypes.length;
   const totalEmailTypes = Object.values(EMAIL_NOTIFICATION_CATEGORIES).flatMap(cat => cat.types).length;
-  const totalPushEnabled = enabledPushTypes.length;
-  const totalPushTypes = Object.values(PUSH_NOTIFICATION_CATEGORIES).flatMap(cat => cat.types).length;
 
   // Render category card helper
   const renderCategoryCard = (
@@ -624,7 +462,7 @@ export default function NotificationSettings() {
       </div>
 
       <Tabs defaultValue="inapp" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+        <TabsList className="grid w-full grid-cols-4 max-w-3xl">
           <TabsTrigger value="inapp" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             <span className="hidden sm:inline">In-App</span>
@@ -636,10 +474,6 @@ export default function NotificationSettings() {
           <TabsTrigger value="digest" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             <span className="hidden sm:inline">Digest</span>
-          </TabsTrigger>
-          <TabsTrigger value="push" className="flex items-center gap-2">
-            <BellRing className="h-4 w-4" />
-            <span className="hidden sm:inline">Push</span>
           </TabsTrigger>
           <TabsTrigger value="reminders" className="flex items-center gap-2">
             <RefreshCw className="h-4 w-4" />
@@ -848,117 +682,6 @@ export default function NotificationSettings() {
                       </div>
                     </>
                   )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Push Notifications Tab */}
-        <TabsContent value="push" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BellRing className="h-5 w-5" />
-                Browser Push Notifications
-              </CardTitle>
-              <CardDescription>
-                Receive instant desktop alerts for critical events even when the app is closed
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Push Status */}
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  {hasSubscription ? (
-                    <>
-                      <div className="p-2 rounded-full bg-green-100 text-green-600">
-                        <CheckCircle2 className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Push Notifications Enabled</p>
-                        <p className="text-sm text-muted-foreground">You will receive desktop alerts for selected events</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="p-2 rounded-full bg-gray-100 text-gray-600">
-                        <Volume2 className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Push Notifications Disabled</p>
-                        <p className="text-sm text-muted-foreground">
-                          {!pushSupported 
-                            ? "Your browser doesn't support push notifications"
-                            : pushPermission === "denied"
-                            ? "Notifications are blocked. Please enable them in browser settings."
-                            : "Enable to receive instant alerts for critical events"}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </div>
-                {hasSubscription ? (
-                  <Button variant="outline" onClick={disablePushNotifications}>
-                    Disable
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={requestPushPermission}
-                    disabled={!pushSupported || pushPermission === "denied"}
-                  >
-                    <BellRing className="h-4 w-4 mr-2" />
-                    Enable Push
-                  </Button>
-                )}
-              </div>
-
-              {hasSubscription && (
-                <>
-                  <Separator />
-
-                  <div className="flex gap-2 flex-wrap">
-                    <Button variant="outline" size="sm" onClick={enableAllPushTypes}>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Enable All
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={disableAllPushTypes}>
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Disable All
-                    </Button>
-                    <div className="flex-1" />
-                    <Badge variant={totalPushEnabled === totalPushTypes ? "default" : "secondary"}>
-                      {totalPushEnabled} / {totalPushTypes} enabled
-                    </Badge>
-                    <Button 
-                      onClick={handleSavePushTypePreferences} 
-                      disabled={!hasPushTypeChanges || updatePushTypesMutation.isPending}
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      {updatePushTypesMutation.isPending ? "Saving..." : "Save Preferences"}
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-4">
-                    {Object.entries(PUSH_NOTIFICATION_CATEGORIES).map(([key, category]) =>
-                      renderCategoryCard(key, category, PUSH_NOTIFICATION_CATEGORIES as typeof NOTIFICATION_CATEGORIES, enabledPushTypes, togglePushNotificationType, togglePushCategory)
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Push Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-blue-900">About Push Notifications</p>
-                    <p className="text-blue-700 mt-1">
-                      Push notifications are designed for critical alerts that require immediate attention.
-                      They work even when the browser is closed (but the computer must be on).
-                      For less urgent updates, use in-app notifications or email digests.
-                    </p>
-                  </div>
                 </div>
               </div>
             </CardContent>

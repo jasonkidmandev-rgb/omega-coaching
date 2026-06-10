@@ -3297,3 +3297,45 @@ export const teamNotificationPreferences = mysqlTable("team_notification_prefere
 (table) => [
 	index("team_notif_prefs_member_idx").on(table.teamMemberId),
 ]);
+
+// ============ EXTERNAL INTEGRATIONS (omegalongevity.com etc.) ============
+
+// Every inbound webhook event from an external partner site is logged here.
+// Failed events can be replayed from the admin UI without asking the sender to re-send.
+export const externalWebhookEvents = mysqlTable("external_webhook_events", {
+	id: int().autoincrement().notNull(),
+	source: varchar({ length: 50 }).default('omegalongevity').notNull(),
+	eventId: varchar({ length: 255 }).notNull(),
+	eventType: varchar({ length: 100 }).notNull(),
+	payload: json().notNull(),
+	status: mysqlEnum(['received', 'processed', 'failed', 'skipped']).default('received').notNull(),
+	errorMessage: text(),
+	enrollmentId: int(),
+	clientProtocolId: int(),
+	processedAt: timestamp({ mode: 'string' }),
+	receivedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	unique("external_webhook_events_source_event_idx").on(table.source, table.eventId),
+	index("external_webhook_events_status_idx").on(table.status),
+	index("external_webhook_events_received_idx").on(table.receivedAt),
+]);
+
+// Maps an external site's product identifier to our protocol template / tier.
+// Admin-managed: when the partner adds a package, map it here — no deploy needed.
+export const externalProductMappings = mysqlTable("external_product_mappings", {
+	id: int().autoincrement().notNull(),
+	source: varchar({ length: 50 }).default('omegalongevity').notNull(),
+	externalProductId: varchar({ length: 255 }).notNull(),
+	externalProductName: varchar({ length: 255 }),
+	protocolTemplateId: int(),
+	tier: varchar({ length: 100 }),
+	programType: varchar({ length: 50 }).default('90_day_transformation'),
+	isActive: tinyint().default(1).notNull(),
+	notes: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	unique("external_product_mappings_source_product_idx").on(table.source, table.externalProductId),
+]);

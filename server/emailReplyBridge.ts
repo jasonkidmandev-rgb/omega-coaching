@@ -232,18 +232,6 @@ async function processReplyEmail(
       console.warn('[EmailReplyBridge] Failed to create in-app notification:', e);
     }
 
-    // Send push notification to admins
-    try {
-      const { sendPushToAdmins } = await import('./pushNotification');
-      await sendPushToAdmins({
-        title: `Email Reply from ${protocol.clientName || 'Client'}`,
-        body: replyText.substring(0, 200),
-        url: `/admin/clients/${protocolId}`,
-      });
-    } catch (e) {
-      console.warn('[EmailReplyBridge] Failed to send push to admins:', e);
-    }
-
     return { processed: true, protocolId };
   } catch (error) {
     console.error('[EmailReplyBridge] Error processing reply email:', error);

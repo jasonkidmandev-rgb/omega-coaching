@@ -30,8 +30,8 @@ import { paymentEventsRouter } from "./payments/paymentEventsRouter";
 import { clientPaymentPortalRouter } from "./client/paymentPortalRouter";
 import { bulkProfileReminderRouter } from "./client/bulkProfileReminderRouter";
 import { checkinRouter, documentRouter, clientInventoryRouter, metricsRouter, achievementsRouter, notificationHistoryRouter } from "./clientCorner";
-import { pushRouter } from "./push/router";
 import { transformationRouter } from "./transformation/transformationRouter";
+import { externalIntegrationsRouter } from "./integrations/omegalongevity/adminRouter";
 import { promoCodeRouter } from "./promoCode/promoCodeRouter";
 import { storePromoRouter } from "./storePromo/storePromoRouter";
 import { prospectRouter } from "./prospect/prospectRouter";
@@ -1356,27 +1356,6 @@ const clientProtocolRouter = router({
         // Update remaining fields if any
         if (Object.keys(cleanData).length > 0) {
           await db.updateClientProtocol(id, cleanData);
-        }
-        
-        // Send push notification to client if protocol was updated
-        const protocol = await db.getClientProtocolById(id);
-        if (protocol?.clientId) {
-          try {
-            const { sendPushToClient } = await import('./pushNotification');
-            await sendPushToClient(
-              protocol.clientId,
-              {
-                title: 'Protocol Updated',
-                body: 'Your health protocol has been updated. Tap to view the changes.',
-                url: `/protocol/${protocol.accessToken}`,
-              },
-              'protocol_updated',
-              { clientProtocolId: id }
-            );
-            console.log(`[Protocol Update] Push notification sent to client ${protocol.clientId}`);
-          } catch (pushError) {
-            console.warn(`[Protocol Update] Failed to send push notification:`, pushError);
-          }
         }
         
         // Propagate name/email/phone changes to master contact and all linked records
@@ -3040,13 +3019,6 @@ const userRouter = router({
       await db.updateUserPhone(ctx.user.id, input.phone);
       return { success: true };
     }),
-  // Update SMS notification preference
-  updateSmsPreference: protectedProcedure
-    .input(z.object({ receiveSmsNotifications: z.boolean() }))
-    .mutation(async ({ ctx, input }) => {
-      await db.updateUserSmsPreference(ctx.user.id, input.receiveSmsNotifications);
-      return { success: true };
-    }),
   // Get enabled notification types for current user
   getEnabledNotificationTypes: protectedProcedure
     .query(async ({ ctx }) => {
@@ -3086,27 +3058,6 @@ const userRouter = router({
     }))
     .mutation(async ({ ctx, input }) => {
       await db.updateUserDigestSettings(ctx.user.id, input.frequency, input.sendTime);
-      return { success: true };
-    }),
-  // Get enabled push notification types for current user
-  getEnabledPushNotificationTypes: protectedProcedure
-    .query(async ({ ctx }) => {
-      const enabledTypes = await db.getUserEnabledPushNotificationTypes(ctx.user.id);
-      const subscription = await db.getUserPushSubscription(ctx.user.id);
-      return { enabledTypes, allTypes: db.PUSH_NOTIFICATION_TYPES, hasSubscription: !!subscription };
-    }),
-  // Update enabled push notification types for current user
-  updateEnabledPushNotificationTypes: protectedProcedure
-    .input(z.object({ enabledTypes: z.array(z.string()) }))
-    .mutation(async ({ ctx, input }) => {
-      await db.updateUserEnabledPushNotificationTypes(ctx.user.id, input.enabledTypes);
-      return { success: true };
-    }),
-  // Save push subscription for current user
-  savePushSubscription: protectedProcedure
-    .input(z.object({ subscription: z.string().nullable() }))
-    .mutation(async ({ ctx, input }) => {
-      await db.updateUserPushSubscription(ctx.user.id, input.subscription);
       return { success: true };
     }),
   // Get user by email (admin only)
@@ -3368,24 +3319,10 @@ const commentsRouter = router({
         console.warn('[Comments] Failed to track comment history:', e);
       }
       
-      // Send push notification to client when coach sends a message
       if (input.authorType === 'coach') {
         try {
           const protocol = await db.getClientProtocolById(input.clientProtocolId);
-          if (protocol && protocol.clientId) {
-            const { sendPushToClient } = await import('./pushNotification');
-            await sendPushToClient(
-              protocol.clientId,
-              {
-                title: `New message from your coach`,
-                body: htmlToPreview(input.message, 200),
-                url: `/protocol/${protocol.accessToken}?tab=chat`,
-              },
-              'custom'
-            );
-            console.log(`[Comments] Push notification sent to client ${protocol.clientId}`);
-          }
-          // Also create in-app notification for client (if they have an account)
+          // Create in-app notification for client (if they have an account)
           if (protocol && protocol.clientEmail) {
             try {
               const clientUser = await db.getUserByEmail(protocol.clientEmail);
@@ -3450,20 +3387,6 @@ const commentsRouter = router({
 
               input.clientProtocolId,
             );
-            // Also send push notification to admins
-            try {
-              const { sendPushToAdmins } = await import('./pushNotification');
-              await sendPushToAdmins(
-                {
-                  title: `New message from ${protocol.clientName || 'Client'}`,
-                  body: htmlToPreview(input.message, 200),
-                  url: `/admin/protocols/${input.clientProtocolId}?tab=chat`,
-                },
-                'custom'
-              );
-            } catch (pushErr) {
-              console.warn('[Comments] Failed to send push notification to admins:', pushErr);
-            }
             // Also send email notification to admins
             const { sendNewMessageEmailToAdmins } = await import('./emailService');
             await sendNewMessageEmailToAdmins({
@@ -7233,9 +7156,9 @@ export const appRouter = router({
   clientMetrics: metricsRouter,
   achievements: achievementsRouter,
   notificationHistory: notificationHistoryRouter,
-  push: pushRouter,
   inbox: inboxRouter,
   transformation: transformationRouter,
+  externalIntegrations: externalIntegrationsRouter,
   promoCode: promoCodeRouter,
   storePromo: storePromoRouter,
   prospect: prospectRouter,
@@ -8415,8 +8338,7 @@ export const appRouter = router({
         // Import services
         const { generateShippingNotificationEmail } = await import('./emailTemplates/shippingNotification');
         const { sendEmail } = await import('./emailService');
-        const { sendShippingNotificationSMS } = await import('./services/smsService');
-        
+
         // Get order details
         const order = await db.getStoreOrder(input.orderId);
         if (!order) {
@@ -8455,25 +8377,6 @@ export const appRouter = router({
             console.log(`[Shipping] Email notification sent to ${order.payerEmail}`);
           } catch (emailError) {
             console.error('[Shipping] Failed to send email notification:', emailError);
-          }
-          
-          // Get user phone for SMS (if available)
-          try {
-            const user = await db.getUserById(order.userId);
-            // Note: User phone would need to be stored in user profile
-            // For now, we'll log that SMS would be sent
-            console.log(`[Shipping] SMS notification would be sent to user ${order.userId}`);
-            
-            // If we had phone number:
-            // await sendShippingNotificationSMS({
-            //   phone: user.phone,
-            //   customerName: order.payerName || 'Customer',
-            //   orderId: order.id,
-            //   trackingNumber: input.trackingNumber,
-            //   trackingCarrier: input.trackingCarrier,
-            // });
-          } catch (smsError) {
-            console.error('[Shipping] Failed to send SMS notification:', smsError);
           }
         }
         
