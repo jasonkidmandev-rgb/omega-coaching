@@ -59,6 +59,7 @@ const AdminCheckinManagement = lazyWithRetry(() => import("./pages/admin/Checkin
 const AdminCheckinReview = lazyWithRetry(() => import("./pages/admin/CheckinReview"));
 const AdminNotificationTemplates = lazyWithRetry(() => import("./pages/admin/NotificationTemplates"));
 const AdminProtocolPresets = lazyWithRetry(() => import("./pages/admin/ProtocolPresets"));
+const AdminIntegrationSettings = lazyWithRetry(() => import("./pages/admin/IntegrationSettings"));
 const AdminEmailReportSettings = lazyWithRetry(() => import("./pages/admin/EmailReportSettings"));
 const AdminEmailEngagement = lazyWithRetry(() => import("./pages/admin/EmailEngagement"));
 // Access codes removed
@@ -222,6 +223,7 @@ function Router() {
         <Route path={"/admin/clients/:clientId/checkins/:checkinId"} component={AdminCheckinReview} />
         <Route path={"/admin/notification-templates"} component={AdminNotificationTemplates} />
         <Route path={"/admin/protocol-presets"} component={AdminProtocolPresets} />
+        <Route path={"/admin/integrations"} component={AdminIntegrationSettings} />
         <Route path={"/admin/promo-codes"} component={AdminPromoCodes} />
         <Route path={"/admin/promo-code-analytics"} component={AdminPromoCodeAnalytics} />
         <Route path={"/admin/store-promos"} component={AdminStorePromos} />

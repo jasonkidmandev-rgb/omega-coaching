@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Settings as SettingsIcon, Shield, FileText, Bell, Loader2, Mail, Save, Clock, Users, Eye, DollarSign, Wrench, ExternalLink, BarChart3, Layout, FileCheck, Package, X, Check, AlertTriangle, Send, MessageSquare, RefreshCw } from "lucide-react";
+import { Settings as SettingsIcon, Shield, FileText, Bell, Loader2, Mail, Save, Clock, Users, Eye, DollarSign, Wrench, ExternalLink, BarChart3, Layout, FileCheck, Package, X, Check, AlertTriangle, Send, MessageSquare, RefreshCw, Webhook } from "lucide-react";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useMemo } from "react";
@@ -1574,6 +1574,13 @@ function ToolsSection() {
       description: "Preview and test automated email templates before they're sent to clients",
       icon: Mail,
       path: "/admin/email-templates",
+      color: "blue",
+    },
+    {
+      title: "External Integrations",
+      description: "omegalongevity.com purchase webhook — product mappings and inbound event log",
+      icon: Webhook,
+      path: "/admin/integrations",
       color: "blue",
     },
     {
