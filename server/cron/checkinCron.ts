@@ -88,11 +88,40 @@ export function calculateNextScheduledTime(
 
 const LOG_PREFIX = "[CheckinCron]";
 
+// Global kill switch for ALL check-in activity. Stored in site_settings so it
+// can be toggled at runtime from the admin UI without a redeploy. This is the
+// single source of truth honored by every send path (scheduled, reminders,
+// low-score alerts, the manual trigger) AND by the engagement-level auto-enable,
+// so "off" means off regardless of per-client schedule flags.
+export const GLOBAL_CHECKIN_SETTING_KEY = 'checkins_globally_enabled';
+
 // Helper to get db with null check
 async function db() {
   const database = await getDb();
   if (!database) throw new Error("Database not available");
   return database;
+}
+
+/**
+ * Returns true ONLY when the global check-in switch is explicitly set to
+ * 'true'. Default is OFF: a missing/other value means disabled. This is a
+ * deliberate fail-safe — check-ins must be explicitly turned on (via the
+ * toggle in Check-in Management), so they can never silently resume after a
+ * deploy, DB reset, or config gap. On a read error we also return false so a
+ * DB hiccup never resurrects sending.
+ */
+export async function areCheckinsGloballyEnabled(): Promise<boolean> {
+  try {
+    const database = await db();
+    const [row] = await database
+      .select()
+      .from(siteSettings)
+      .where(eq(siteSettings.key, GLOBAL_CHECKIN_SETTING_KEY));
+    return row?.value === 'true';
+  } catch (e) {
+    console.error(`${LOG_PREFIX} Could not read global check-in setting, defaulting to OFF:`, e);
+    return false;
+  }
 }
 
 /**
@@ -227,6 +256,10 @@ let currentTriggerSource: 'cron' | 'manual' | 'startup' = 'cron';
  * Runs every Thursday at 10 AM
  */
 export async function sendScheduledCheckins() {
+  if (!(await areCheckinsGloballyEnabled())) {
+    console.log(`${LOG_PREFIX} Check-ins globally disabled — skipping scheduled send.`);
+    return;
+  }
   console.log(`${LOG_PREFIX} Running scheduled check-in sender...`);
   const runStartedAt = new Date();
   let processedCount = 0;
@@ -552,6 +585,10 @@ export async function sendScheduledCheckins() {
  * Runs every hour
  */
 export async function sendCheckinReminders() {
+  if (!(await areCheckinsGloballyEnabled())) {
+    console.log(`${LOG_PREFIX} Check-ins globally disabled — skipping reminder send.`);
+    return;
+  }
   console.log(`${LOG_PREFIX} Running check-in reminder sender...`);
   const runStartedAt = new Date();
   let processedCount = 0;
@@ -704,6 +741,10 @@ export async function sendCheckinReminders() {
  * Runs every hour
  */
 export async function processLowScoreAlerts() {
+  if (!(await areCheckinsGloballyEnabled())) {
+    console.log(`${LOG_PREFIX} Check-ins globally disabled — skipping low-score alerts.`);
+    return;
+  }
   console.log(`${LOG_PREFIX} Running low score alert processor...`);
   const runStartedAt = new Date();
   let processedCount = 0;
@@ -1031,9 +1072,22 @@ export async function manualTriggerCheckins(): Promise<{
   alertsProcessed: number;
 }> {
   console.log(`${LOG_PREFIX} MANUAL TRIGGER: Admin initiated check-in send`);
+
+  if (!(await areCheckinsGloballyEnabled())) {
+    console.log(`${LOG_PREFIX} MANUAL TRIGGER blocked — check-ins are globally disabled.`);
+    return {
+      success: false,
+      message: 'Check-ins are globally disabled. Enable them in Check-In settings before sending.',
+      schedulesProcessed: 0,
+      checkinsSent: 0,
+      remindersProcessed: 0,
+      alertsProcessed: 0,
+    };
+  }
+
   const previousSource = currentTriggerSource;
   currentTriggerSource = 'manual';
-  
+
   try {
     // Get counts before running
     const database = await db();

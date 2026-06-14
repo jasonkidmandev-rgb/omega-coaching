@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { router, adminProcedure, protectedProcedure, publicProcedure } from "../_core/trpc";
-import { getDb } from "../db";
+import { getDb, getSiteSetting, setSiteSetting } from "../db";
 import { 
   checkinTemplates, checkins, checkinResponses, checkinCoachResponses,
   checkinSchedules, checkinNotificationLogs, checkinNotificationTemplates,
@@ -9,7 +9,7 @@ import {
 import { eq, and, desc, asc, sql, isNull, gte, lte, or } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { generateCheckinPdf, generateCheckinHistoryPdf } from "./checkinPdf";
-import { calculateNextScheduledTime } from "../cron/checkinCron";
+import { calculateNextScheduledTime, GLOBAL_CHECKIN_SETTING_KEY } from "../cron/checkinCron";
 
 // Helper to get db with null check
 async function db() {
@@ -29,6 +29,25 @@ function parseQuestions(questions: unknown): unknown[] {
 
 // ============ CHECK-IN ROUTER ============
 export const checkinRouter = router({
+  // ============ GLOBAL KILL SWITCH ============
+  // Master on/off for ALL check-in sending. Honored by every send path and by
+  // the engagement-level auto-enable. Lets admins stop check-ins platform-wide
+  // without touching per-client schedules or redeploying.
+  global: router({
+    getStatus: adminProcedure.query(async () => {
+      const value = await getSiteSetting(GLOBAL_CHECKIN_SETTING_KEY);
+      // Default OFF: enabled only when explicitly set to 'true'
+      return { enabled: value === 'true' };
+    }),
+    setStatus: adminProcedure
+      .input(z.object({ enabled: z.boolean() }))
+      .mutation(async ({ input, ctx }) => {
+        await setSiteSetting(GLOBAL_CHECKIN_SETTING_KEY, input.enabled ? 'true' : 'false');
+        console.log(`[CheckinRouter] Global check-ins ${input.enabled ? 'ENABLED' : 'DISABLED'} by ${ctx.user?.email || ctx.user?.id}`);
+        return { success: true, enabled: input.enabled };
+      }),
+  }),
+
   // ============ TEMPLATES ============
   templates: router({
     list: adminProcedure.query(async () => {

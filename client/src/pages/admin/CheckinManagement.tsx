@@ -67,6 +67,18 @@ export default function CheckinManagement() {
       refetchInterval: 60000, // Auto-refresh every 60 seconds
     });
   
+  // Global kill switch
+  const { data: globalStatus, refetch: refetchGlobalStatus } = trpc.checkin.global.getStatus.useQuery();
+  const setGlobalStatusMutation = trpc.checkin.global.setStatus.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.enabled ? "Check-ins enabled platform-wide" : "All check-ins disabled platform-wide");
+      refetchGlobalStatus();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   // Manual trigger mutation
   const manualTriggerMutation = trpc.checkin.manualTrigger.useMutation({
     onSuccess: (data) => {
@@ -236,6 +248,37 @@ export default function CheckinManagement() {
           Settings
         </Button>
       </div>
+
+      {/* Global kill switch */}
+      <Card className={globalStatus && !globalStatus.enabled ? "border-red-300 bg-red-50" : "border-green-200 bg-green-50/40"}>
+        <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-4">
+          <div className="flex items-start gap-3">
+            {globalStatus && !globalStatus.enabled
+              ? <XCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+              : <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />}
+            <div>
+              <p className="font-semibold">
+                {globalStatus && !globalStatus.enabled
+                  ? "Check-ins are OFF platform-wide"
+                  : "Check-ins are ON platform-wide"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Master switch for all check-in sending (scheduled emails, reminders, low-score alerts,
+                and the manual trigger). When off, no client receives a check-in regardless of their
+                individual schedule, and changing a client's engagement level will not re-enable them.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-sm font-medium">{globalStatus?.enabled ? "Enabled" : "Disabled"}</span>
+            <Switch
+              checked={!!globalStatus?.enabled}
+              disabled={setGlobalStatusMutation.isPending || !globalStatus}
+              onCheckedChange={(checked) => setGlobalStatusMutation.mutate({ enabled: checked })}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">

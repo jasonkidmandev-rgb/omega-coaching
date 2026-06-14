@@ -2481,8 +2481,15 @@ const clientProtocolRouter = router({
           console.log('[updateEngagementLevel] Could not auto-disable check-ins:', e);
         }
       }
-      // Auto-enable check-ins when set to a coaching/check-in tier
+      // Auto-enable check-ins when set to a coaching/check-in tier —
+      // but NEVER while the global check-in kill switch is off, otherwise an
+      // engagement-level change would silently resurrect disabled schedules.
       if (input.engagementLevel === 'full_coaching' || input.engagementLevel === 'self_guided_checkins') {
+        const { areCheckinsGloballyEnabled } = await import('./cron/checkinCron');
+        const globallyEnabled = await areCheckinsGloballyEnabled();
+        if (!globallyEnabled) {
+          console.log(`[updateEngagementLevel] Check-ins globally disabled — skipping auto-enable for protocol ${input.id}.`);
+        } else {
         try {
           const { checkinSchedules } = await import('../drizzle/schema');
           const { eq: eqOp } = await import('drizzle-orm');
@@ -2537,6 +2544,7 @@ const clientProtocolRouter = router({
           console.error('[updateEngagementLevel] FAILED to auto-enable check-ins for protocol', input.id, ':', e);
           // Don't silently swallow — throw so the frontend knows something went wrong
           throw new Error('Engagement level updated but check-ins could not be auto-enabled. Please enable check-ins manually in Check-In Settings.');
+        }
         }
       }
       return { success: true };
