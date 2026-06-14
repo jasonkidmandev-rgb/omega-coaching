@@ -9,7 +9,7 @@ import {
 import { eq, and, desc, asc, sql, isNull, gte, lte, or } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { generateCheckinPdf, generateCheckinHistoryPdf } from "./checkinPdf";
-import { calculateNextScheduledTime, GLOBAL_CHECKIN_SETTING_KEY } from "../cron/checkinCron";
+import { calculateNextScheduledTime, GLOBAL_CHECKIN_SETTING_KEY, areCheckinsGloballyEnabled } from "../cron/checkinCron";
 
 // Helper to get db with null check
 async function db() {
@@ -2061,14 +2061,18 @@ export const checkinRouter = router({
       clientProtocolId: z.number(),
     }))
     .mutation(async ({ input }) => {
+      // Respect the global kill switch — this sends a real check-in to the client
+      if (!(await areCheckinsGloballyEnabled())) {
+        throw new Error('Check-ins are globally disabled. Enable them in Check-in Management before sending.');
+      }
       const database = await db();
-      
+
       // Get client protocol info
       const [protocol] = await database
         .select()
         .from(clientProtocols)
         .where(eq(clientProtocols.id, input.clientProtocolId));
-      
+
       if (!protocol) throw new Error('Client protocol not found');
       if (!protocol.clientEmail) throw new Error('Client has no email address');
       
@@ -2188,8 +2192,12 @@ export const checkinRouter = router({
       checkinId: z.number(),
     }))
     .mutation(async ({ input }) => {
+      // Respect the global kill switch — this resends a real check-in email
+      if (!(await areCheckinsGloballyEnabled())) {
+        throw new Error('Check-ins are globally disabled. Enable them in Check-in Management before resending.');
+      }
       const database = await db();
-      
+
       // Get the check-in
       const [checkin] = await database
         .select()
