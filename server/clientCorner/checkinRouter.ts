@@ -1456,18 +1456,25 @@ export const checkinRouter = router({
       })),
     }))
     .mutation(async ({ input }) => {
+      // Honor the global kill switch — when check-ins are disabled platform-wide,
+      // reject submissions too, so outstanding links already in inboxes cannot be
+      // completed while off.
+      if (!(await areCheckinsGloballyEnabled())) {
+        throw new Error("Check-ins are currently paused. You don't need to complete this one — please disregard this check-in.");
+      }
+
       const database = await db();
-      
+
       // Get the check-in
       const [checkin] = await database
         .select()
         .from(checkins)
         .where(eq(checkins.id, input.checkinId));
-      
+
       if (!checkin) {
         throw new Error("Check-in not found");
       }
-      
+
       if (checkin.status === 'submitted' || checkin.status === 'reviewed') {
         throw new Error("Check-in already submitted");
       }
