@@ -2,6 +2,7 @@ import { createGzip } from 'zlib';
 import { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import { createConnection } from 'mysql2/promise';
 import cron from 'node-cron';
+import { runCronJob } from './cronRunner';
 
 const BACKUP_PREFIX = 'db-backups/';
 const KEEP_DAYS = 7;
@@ -119,6 +120,7 @@ async function runBackup(): Promise<void> {
     console.log(`[DBBackup] Complete — ${(data.length / 1024).toFixed(1)} KB compressed`);
   } catch (err) {
     console.error('[DBBackup] Failed:', err);
+    throw err; // propagate so runCronJob records the failure + alerts admins (a silent backup failure is dangerous)
   }
 }
 
@@ -128,6 +130,6 @@ export function initDbBackupCron(): void {
     return;
   }
   // Daily at 3:00 AM UTC
-  cron.schedule('0 3 * * *', runBackup, { timezone: 'UTC' });
+  cron.schedule('0 3 * * *', () => runCronJob("db_backup", () => runBackup()), { timezone: 'UTC' });
   console.log('[DBBackup] Daily backup cron scheduled (3:00 AM UTC → R2)');
 }
