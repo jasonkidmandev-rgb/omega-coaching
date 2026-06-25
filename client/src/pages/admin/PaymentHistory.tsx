@@ -44,6 +44,7 @@ import {
 import { PaymentExport } from "@/components/PaymentExport";
 import { VenmoVerificationQueue } from "@/components/VenmoVerificationQueue";
 import { useLocation } from "wouter";
+import { toast } from "sonner";
 
 export default function PaymentHistory() {
   const [, navigate] = useLocation();
@@ -82,6 +83,13 @@ export default function PaymentHistory() {
 
   // Fetch monthly trends
   const { data: trendsData } = trpc.paymentHistory.getMonthlyTrends.useQuery();
+
+  // Payment failover mode (resilient payment layer)
+  const { data: paymentMode, refetch: refetchPaymentMode } = trpc.payment.getPaymentMode.useQuery();
+  const setPaymentModeMutation = trpc.payment.setPaymentMode.useMutation({
+    onSuccess: (r) => { toast.success(`Payment mode set to "${r.mode}"`); refetchPaymentMode(); },
+    onError: (e) => toast.error(`Failed to set payment mode: ${e.message}`),
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -222,6 +230,38 @@ export default function PaymentHistory() {
           Export Data
         </Button>
       </div>
+
+      {/* Payment Mode — failover switch */}
+      <Card className={paymentMode?.mode === "manual" ? "border-amber-500/50 bg-amber-50 dark:bg-amber-900/10" : ""}>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <CreditCard className="w-4 h-4" />
+            Payment Mode
+          </CardTitle>
+          <CardDescription>
+            Which payment methods clients are offered. Switch to <strong>Manual only</strong> if Stripe is
+            unavailable — clients pay via Venmo/PayPal and you record it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-2">
+            {(["both", "stripe", "manual"] as const).map((m) => (
+              <Button
+                key={m}
+                size="sm"
+                variant={paymentMode?.mode === m ? "default" : "outline"}
+                disabled={setPaymentModeMutation.isPending || paymentMode?.mode === m}
+                onClick={() => setPaymentModeMutation.mutate({ mode: m })}
+              >
+                {m === "both" ? "Stripe + Manual" : m === "stripe" ? "Stripe only" : "Manual only"}
+              </Button>
+            ))}
+            {paymentMode?.mode === "manual" && (
+              <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30">Failover active</Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Venmo Verification Queue */}
       <VenmoVerificationQueue />

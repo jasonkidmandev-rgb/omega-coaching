@@ -45,7 +45,6 @@ const AdminOnboardingManager = lazyWithRetry(() => import("./pages/admin/Onboard
 const AdminProjectList = lazyWithRetry(() => import("./pages/admin/projects/ProjectList"));
 const AdminProjectDetail = lazyWithRetry(() => import("./pages/admin/projects/ProjectDetail"));
 const AdminWorkflowTemplates = lazyWithRetry(() => import("./pages/admin/projects/WorkflowTemplates"));
-const AdminPayments = lazyWithRetry(() => import("./pages/admin/Payments"));
 const AdminStoreOrders = lazyWithRetry(() => import("./pages/admin/StoreOrders"));
 const AdminCustomOrders = lazyWithRetry(() => import("./pages/admin/CustomOrders"));
 const AdminStoreWaivers = lazyWithRetry(() => import("./pages/admin/StoreWaivers"));
@@ -212,7 +211,6 @@ function Router() {
         <Route path={"/admin/projects/:id"} component={AdminProjectDetail} />
         <Route path={"/admin/projects"} component={AdminProjectList} />
         <Route path={"/admin/workflow-templates"} component={AdminWorkflowTemplates} />
-        <Route path={"/admin/payments"} component={AdminPayments} />
         <Route path={"/admin/store-orders"} component={AdminStoreOrders} />
         <Route path={"/admin/custom-orders/:id"} component={AdminCustomOrders} />
         <Route path={"/admin/custom-orders"} component={AdminCustomOrders} />
