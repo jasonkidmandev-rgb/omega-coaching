@@ -192,6 +192,7 @@ const menuCategories: MenuCategory[] = [
     roles: ['admin', 'finance'],
     items: [
       { icon: History, label: "Payment History", path: "/admin/payment-history", roles: ['admin', 'finance'] },
+      { icon: Activity, label: "Job Health", path: "/admin/job-health", roles: ['admin'] },
     ],
   },
   // 5. Marketing & Outreach

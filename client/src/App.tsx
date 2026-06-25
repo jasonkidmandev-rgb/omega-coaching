@@ -45,6 +45,7 @@ const AdminOnboardingManager = lazyWithRetry(() => import("./pages/admin/Onboard
 const AdminProjectList = lazyWithRetry(() => import("./pages/admin/projects/ProjectList"));
 const AdminProjectDetail = lazyWithRetry(() => import("./pages/admin/projects/ProjectDetail"));
 const AdminWorkflowTemplates = lazyWithRetry(() => import("./pages/admin/projects/WorkflowTemplates"));
+const AdminJobHealth = lazyWithRetry(() => import("./pages/admin/JobHealth"));
 const AdminStoreOrders = lazyWithRetry(() => import("./pages/admin/StoreOrders"));
 const AdminCustomOrders = lazyWithRetry(() => import("./pages/admin/CustomOrders"));
 const AdminStoreWaivers = lazyWithRetry(() => import("./pages/admin/StoreWaivers"));
@@ -196,6 +197,7 @@ function Router() {
         <Route path={"/admin/email-engagement"} component={AdminEmailEngagement} />
         <Route path={"/admin/notification-settings"} component={AdminNotificationSettings} />
         <Route path={"/admin/payment-history"} component={AdminPaymentHistory} />
+        <Route path={"/admin/job-health"} component={AdminJobHealth} />
         <Route path={"/admin/affiliate-partners"} component={AdminAffiliatePartners} />
         <Route path={"/admin/email-branding"} component={AdminEmailBranding} />
         <Route path={"/admin/email-preview"} component={AdminEmailPreview} />
