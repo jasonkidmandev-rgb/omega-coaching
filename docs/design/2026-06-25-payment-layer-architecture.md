@@ -93,3 +93,21 @@ adding infrastructure rather than removing tangle means we've gone too far.
 3. Route coaching-plan + protocol funnels through the ledger; keep their existing fields in sync.
 4. Admin "payments to confirm" queue + money-in reconciliation report.
 5. Migrate custom order + store funnels, one at a time.
+
+## Implementation status & decisions (2026-06-25)
+
+**Shipped & validated (committed, deployed to staging):**
+- `payments` ledger table (migration 0116, applied) + `paymentLedger.ts` service (record / settle / `onPaid` dispatch + `getPaymentMode`/`isMethodEnabled`).
+- **Shadow recording** wired into the two protocol/coaching-plan settlement points (`markAsReceived`, Stripe webhook). Verified end-to-end: a real Venmo payment produced a correct ledger row with zero change to existing behavior.
+- Venmo restored as a manual payment method.
+- **`payment_mode` failover switch** — `getPaymentMode`/`setPaymentMode` + admin toggle (on `/admin/payment-history`) + mode-aware client checkout (Stripe + manual / Stripe only / Manual only). Validated across all three modes.
+- Removed the dead `/admin/payments` route + `Payments.tsx` (orphaned, infinite-loading duplicate of `/admin/payment-history`).
+
+**Deferred — fulfillment cutover (DECISION: not doing it now):**
+The ledger currently runs in **shadow mode** — it *records* settlements but the existing `processProtocolPaymentReceived` calls still *drive* fulfillment. The "cutover" would record an `open` row at checkout, route settlement through `settlePayment` → `onPaid`, and remove the direct fulfillment calls so the ledger is the single fulfillment trigger.
+
+**Decision (2026-06-25): defer.** The resilience goal (Stripe⇄manual failover) is already delivered by the switch + shadow ledger. The cutover only buys architectural purity (no shadow-divergence) — not new capability — while it is the single highest-stakes change in the effort (it touches live fulfillment: provisioning, inventory, packing slips). At 5–10 customers/month the divergence risk is vanishingly small and visible in logs. Revisit only when there's a concrete reason to make the ledger the strict single source of truth.
+
+**Also left intentionally:** 3 now-orphaned procedures in `paymentEventsRouter` (`getAll`/`getStats`/`backfillFromProtocols`) — harmless dead code in an otherwise-live shared router; not worth the risk of editing for no gain.
+
+**Still backlogged (Fork 3 later):** route custom-order + store funnels through the ledger; optional client self-serve "I've paid" → admin confirm (`awaiting_confirmation` already supported); editable `payment_manual_instructions` (Venmo/PayPal handles) shown in manual mode.
