@@ -43,6 +43,7 @@ import { initStrategySessionMonitorCron } from "../cron/strategySessionMonitorCr
 import { initBackorderAndTrackingCron } from "../cron/backorderAndTrackingCron";
 import { initTaskEscalationCron } from "../cron/taskEscalationCron";
 import { startEmailReplyPolling } from '../emailReplyBridge';
+import { isStaging } from './appEnv';
 import { initDbBackupCron } from '../cron/dbBackupCron';
 import calendlyWebhookRouter from "../calendly/webhook";
 import { generalLimiter, authLimiter, trackingLimiter, webhookLimiter, publicApiLimiter } from "./rateLimiter";
@@ -537,7 +538,12 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
-    
+
+    if (isStaging()) {
+      console.log('[Startup] STAGING environment — cron jobs and email-reply polling are disabled.');
+      return;
+    }
+
     // Start the automated follow-up email cron job
     startFollowUpCron();
     

@@ -4,6 +4,7 @@ import autoTable from "jspdf-autotable";
 
 import { getSiteSetting } from './db';
 import { logNotification } from './clientCorner/notificationHistoryRouter';
+import { isStaging } from './_core/appEnv';
 
 // Helper function to check if a notification type is enabled
 async function isNotificationEnabled(notificationType: string): Promise<boolean> {
@@ -50,6 +51,12 @@ const getTransporter = () => {
       text?: string;
       attachments?: Array<{ filename: string; content: Buffer | string; contentType?: string }>;
     }): Promise<{ messageId: string }> => {
+      // Staging kill switch: never deliver real email from a test environment.
+      if (isStaging()) {
+        const to = Array.isArray(options.to) ? options.to.join(', ') : options.to;
+        console.log(`[Email] STAGING — suppressed (not sent) | to: ${to} | subject: ${options.subject}`);
+        return { messageId: 'staging-suppressed' };
+      }
       const fromAddr = normalizeAddr(options.from || defaultFrom);
       console.log('[Email] Sending | from:', fromAddr, '| to:', Array.isArray(options.to) ? options.to.join(', ') : options.to);
 
