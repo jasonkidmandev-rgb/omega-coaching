@@ -8,10 +8,15 @@
 import { getDb } from "../db";
 import { sql } from "drizzle-orm";
 import nodemailer from "nodemailer";
+import { isStaging } from "../_core/appEnv";
 import crypto from "crypto";
 import { createEmailTracking, generateTrackingPixel, generateTrackedLink } from "../emailTracking";
 
 const getTransporter = () => {
+  // Staging seal: never send real email from a test environment, even via a
+  // manual/admin trigger that bypasses the boot-time cron skip.
+  if (isStaging()) return null;
+
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = process.env.SMTP_PORT;
   const smtpUser = process.env.SMTP_USER;

@@ -16,6 +16,7 @@
 
 import { ImapFlow, type FetchMessageObject } from 'imapflow';
 import { simpleParser, type ParsedMail } from 'mailparser';
+import { isStaging } from './_core/appEnv';
 
 // Reply token format: REPLY-{protocolId}-{timestamp}
 const REPLY_TOKEN_REGEX = /\[REPLY-(\d+)-(\d+)\]/;
@@ -247,6 +248,13 @@ export async function pollForReplies(): Promise<{
   processed: number;
   errors: number;
 }> {
+  // Staging seal: the IMAP reply bridge reads and auto-processes real client
+  // email replies. Never run it from a test environment, even via the admin
+  // pollNow trigger that bypasses the boot-time skip.
+  if (isStaging()) {
+    return { checked: 0, processed: 0, errors: 0 };
+  }
+
   const stats = { checked: 0, processed: 0, errors: 0 };
 
   const client = createImapClient();
@@ -355,6 +363,13 @@ const DEFAULT_POLL_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
  * Start the email reply polling service
  */
 export function startEmailReplyPolling(intervalMs?: number): void {
+  // Staging seal: never start IMAP polling from a test environment, even via
+  // the admin restart endpoint that bypasses the boot-time skip.
+  if (isStaging()) {
+    console.log('[EmailReplyBridge] STAGING — email reply polling disabled');
+    return;
+  }
+
   const user = process.env.GMAIL_IMAP_USER;
   const pass = process.env.GMAIL_IMAP_APP_PASSWORD;
 
