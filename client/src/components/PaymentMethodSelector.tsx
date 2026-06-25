@@ -51,6 +51,7 @@ export function PaymentMethodSelector({
   // Payment failover: when Stripe is disabled, show manual instructions instead.
   const { data: paymentMode } = trpc.payment.getPaymentMode.useQuery();
   const showStripe = paymentMode?.stripeEnabled !== false; // default to Stripe while loading
+  const showManual = paymentMode?.manualEnabled === true;  // shown in "both" and "manual" modes
 
   const amountNum = parseFloat(amount);
   const processingFee = Math.round(amountNum * PROCESSING_FEE_RATE * 100) / 100;
@@ -142,7 +143,7 @@ export function PaymentMethodSelector({
           )}
         </div>
 
-        {showStripe ? (
+        {showStripe && (
           <>
             {/* Stripe Checkout Button */}
             <Button
@@ -169,15 +170,25 @@ export function PaymentMethodSelector({
               <span>Secured by Stripe • 256-bit encryption • PCI compliant</span>
             </div>
           </>
-        ) : (
-          /* Manual-only failover mode — Stripe unavailable */
+        )}
+
+        {showStripe && showManual && (
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex-1 border-t" />
+            <span>or pay another way</span>
+            <div className="flex-1 border-t" />
+          </div>
+        )}
+
+        {showManual && (
+          /* Manual payment option (Venmo/PayPal) */
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-2">
             <p className="text-sm font-semibold text-amber-800">Pay by Venmo or PayPal</p>
             <p className="text-sm text-amber-700 whitespace-pre-line">
               {paymentMode?.manualInstructions}
             </p>
             <p className="text-xs text-amber-700 pt-1">
-              Amount due:{" "}
+              Amount due{showStripe ? " (no card fee)" : ""}:{" "}
               <strong>${amountNum.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong>
             </p>
           </div>
