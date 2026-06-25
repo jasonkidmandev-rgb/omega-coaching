@@ -48,6 +48,9 @@ export function PaymentMethodSelector({
 }: PaymentMethodSelectorProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const createCheckout = trpc.transformation.createCheckoutSession.useMutation();
+  // Payment failover: when Stripe is disabled, show manual instructions instead.
+  const { data: paymentMode } = trpc.payment.getPaymentMode.useQuery();
+  const showStripe = paymentMode?.stripeEnabled !== false; // default to Stripe while loading
 
   const amountNum = parseFloat(amount);
   const processingFee = Math.round(amountNum * PROCESSING_FEE_RATE * 100) / 100;
@@ -120,43 +123,65 @@ export function PaymentMethodSelector({
             <span className="text-muted-foreground">Program Fee</span>
             <span>${amountNum.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">CC Processing Fee (3.5%)</span>
-            <span>${processingFee.toFixed(2)}</span>
-          </div>
+          {showStripe && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">CC Processing Fee (3.5%)</span>
+              <span>${processingFee.toFixed(2)}</span>
+            </div>
+          )}
           <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
             <span>Total</span>
-            <span className="text-slate-900">{grandTotalFormatted}</span>
+            <span className="text-slate-900">
+              {showStripe
+                ? grandTotalFormatted
+                : `$${amountNum.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+            </span>
           </div>
           {clientName && (
             <p className="text-xs text-muted-foreground text-center mt-1">for {clientName}</p>
           )}
         </div>
 
-        {/* Stripe Checkout Button */}
-        <Button
-          onClick={handleStripeCheckout}
-          disabled={isProcessing}
-          className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-base shadow-lg"
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <Lock className="w-4 h-4 mr-2" />
-              Pay {grandTotalFormatted} with Card
-            </>
-          )}
-        </Button>
+        {showStripe ? (
+          <>
+            {/* Stripe Checkout Button */}
+            <Button
+              onClick={handleStripeCheckout}
+              disabled={isProcessing}
+              className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-base shadow-lg"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4 mr-2" />
+                  Pay {grandTotalFormatted} with Card
+                </>
+              )}
+            </Button>
 
-        {/* Security Badge */}
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-1">
-          <Shield className="w-3.5 h-3.5 text-green-600" />
-          <span>Secured by Stripe • 256-bit encryption • PCI compliant</span>
-        </div>
+            {/* Security Badge */}
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-1">
+              <Shield className="w-3.5 h-3.5 text-green-600" />
+              <span>Secured by Stripe • 256-bit encryption • PCI compliant</span>
+            </div>
+          </>
+        ) : (
+          /* Manual-only failover mode — Stripe unavailable */
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-2">
+            <p className="text-sm font-semibold text-amber-800">Pay by Venmo or PayPal</p>
+            <p className="text-sm text-amber-700 whitespace-pre-line">
+              {paymentMode?.manualInstructions}
+            </p>
+            <p className="text-xs text-amber-700 pt-1">
+              Amount due:{" "}
+              <strong>${amountNum.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong>
+            </p>
+          </div>
+        )}
 
         {/* Test Mode Notice (only in development) */}
         {import.meta.env.DEV && (
