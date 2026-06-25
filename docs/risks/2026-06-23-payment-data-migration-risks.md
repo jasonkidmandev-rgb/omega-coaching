@@ -70,8 +70,36 @@ See architecture audit F4. In-memory rate limiting/cache, no cron leader electio
 
 ---
 
+## Update 2026-06-25 — funnel/platform sprawl (from Jason's team meeting summary)
+
+> Source: Jason's website/ops meeting (Alex, Shane, Vilma, Tyler). Confirms omegalongevity.com now has its own Stripe checkout + member login, GoHighLevel is being adopted as the lead/payment/asset store, and a DocuSign "soft-commit" consult funnel is being added. The fragmentation flagged in R2 is now the as-built reality and is growing.
+
+### R10 — Four-system payment/customer-data sprawl 🔴 High
+**Evidence (meeting):** customer/payment data now spans **Manus** (live app + payments), **HumanEdge** (payments), **omegalongevity.com** (own Stripe checkout + member login, per Alex), and **GoHighLevel** (leads + "payment details for future processing" + email outreach + image hosting).
+**Impact:** no single source of truth for customers, payments, or membership; each new funnel multiplies reconciliation, duplicate-charge, and mis-provisioning risk (extends R2) and makes a clean cutover harder.
+**Fix:** escalate the single-source-of-truth decision with Jason; define which system owns the customer/membership record post-cutover and make every funnel report into it.
+
+### R11 — omega→app handoff direction unconfirmed (our integration may be bypassed) 🟠 Medium-High
+**Evidence (meeting):** Alex reports "member login integration," "Start 7-day free trial," and "Omega Elite onboarding" built on omegalongevity + GHL. We built `/api/external/omegalongevity/v1/purchase` expecting omegalongevity to provision accounts into our app.
+**Impact:** if omegalongevity now handles membership directly (GHL + its own Stripe), the webhook we built is being walled off — wasted effort plus a parallel membership silo that never reaches our app/DB.
+**Fix:** confirm with Alex/Jason whether omegalongevity provisions into our app or is self-contained, **before** further webhook work. (Clarifying question drafted 2026-06-25.)
+
+### R12 — omegalongevity Stripe: likely same ban-prone account, named items outside our control 🟠 High
+**Evidence (meeting):** omegalongevity has "completed Stripe payment workflows" (Alex's code, not this repo). Their YouTube channel was also banned without warning — a second platform ban after the Stripe peptide ban.
+**Impact:** if omegalongevity's checkout runs on the same Stripe account and lists peptide/compound names, a leak there bans the account every funnel depends on (ties R1 + R7). We just hardened this repo; that surface is outside it.
+**Fix:** confirm omegalongevity's Stripe account identity and that its line items + statement descriptor are neutral. If it's the same account, the R1 neutral-naming discipline must apply to Alex's checkout too.
+
+### R13 — DocuSign/GHL "soft-commit" stores payment details for later charging 🟡 Medium
+**Evidence (meeting):** new mini-consult funnel — DocuSign soft-commit, no card upfront, but GHL records "payment details for future processing" with reminders before the charge date.
+**Impact:** storing card/payment data for delayed charging carries PCI/compliance weight if not done natively.
+**Fix:** confirm the delayed charge is executed by Stripe/GHL via tokenization (not raw card storage), and which system actually performs the charge.
+
+---
+
 ## Immediate actions (this week)
 1. Verify live receipt content on Manus / a real Stripe charge (R1). If compound names are present, remediate on the live system first.
 2. Leave humanedge's Stripe webhook **disabled**; do not re-enable into live (R2/R4).
 3. Seal humanedge as a staging environment (test Stripe keys, suppressed email, staging bucket) before any further work.
 4. Get Jason's confirmation on the single-source-of-truth direction and omegalongevity funnelling in.
+5. Confirm the omega→app handoff direction (R11) with Alex/Jason **before** further webhook work.
+6. Confirm omegalongevity's Stripe account identity + neutral line-item naming (R12); if it's the same account, the R1 discipline applies to Alex's checkout.
