@@ -199,6 +199,7 @@ type PricingTabProps = {
 
 // Payment method options for external payments
 const EXTERNAL_PAYMENT_METHODS = [
+  { value: "venmo", label: "Venmo", icon: Wallet },
   { value: "cash", label: "Cash", icon: Banknote },
   { value: "check", label: "Check", icon: Receipt },
   { value: "zelle", label: "Zelle", icon: CreditCard },
