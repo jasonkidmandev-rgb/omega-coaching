@@ -7,6 +7,81 @@ import { sendPaymentConfirmationEmail } from "./emailService";
 import { processProtocolPaymentReceived } from "./paymentService";
 
 export const paymentRouter = router({
+  // ── Resilient payment layer: failover switch + unified ledger views ────────
+  // See docs/design/2026-06-25-payment-layer-architecture.md
+
+  /** Current payment mode — which settlement methods the app should offer. */
+  getPaymentMode: publicProcedure.query(async () => {
+    const { getPaymentMode } = await import("./paymentLedger");
+    const mode = await getPaymentMode();
+    const manualInstructions =
+      (await db.getSiteSetting("payment_manual_instructions")) ||
+      "To complete payment, send the total via Venmo or PayPal, then reply to let us know. Once we confirm receipt, your order is activated. Contact us if you need the payment details.";
+    return {
+      mode,
+      stripeEnabled: mode !== "manual",
+      manualEnabled: mode !== "stripe",
+      manualInstructions,
+    };
+  }),
+
+  /** Flip the failover switch (e.g. Stripe banned → "manual"). Admin only. */
+  setPaymentMode: adminProcedure
+    .input(z.object({ mode: z.enum(["stripe", "manual", "both"]) }))
+    .mutation(async ({ input }) => {
+      await db.setSiteSetting("payment_mode", input.mode);
+      return { success: true, mode: input.mode };
+    }),
+
+  /** Unified payments ledger view (newest first). Admin only. */
+  ledger: adminProcedure
+    .input(
+      z
+        .object({
+          status: z
+            .enum(["open", "awaiting_confirmation", "paid", "failed", "refunded", "void"])
+            .optional(),
+          limit: z.number().min(1).max(500).optional(),
+        })
+        .optional()
+    )
+    .query(async ({ input }) => {
+      const { payments } = await import("../../drizzle/schema");
+      const { desc, eq } = await import("drizzle-orm");
+      const database = await db.getDb();
+      if (!database) return [];
+      const limit = input?.limit ?? 100;
+      if (input?.status) {
+        return database
+          .select()
+          .from(payments)
+          .where(eq(payments.status, input.status))
+          .orderBy(desc(payments.id))
+          .limit(limit);
+      }
+      return database.select().from(payments).orderBy(desc(payments.id)).limit(limit);
+    }),
+
+  /** Money-in reconciliation: paid totals grouped by method. Admin only. */
+  reconciliation: adminProcedure
+    .input(z.object({ sinceDays: z.number().min(1).max(365).optional() }).optional())
+    .query(async ({ input }) => {
+      const database = await db.getDb();
+      if (!database) return [] as any[];
+      const since = input?.sinceDays ?? 90;
+      const [rows] = await database.execute(sql`
+        SELECT COALESCE(method, 'unknown') AS method,
+               COUNT(*)          AS count,
+               SUM(amountCents)  AS totalCents
+        FROM payments
+        WHERE status = 'paid'
+          AND settledAt >= DATE_SUB(NOW(), INTERVAL ${since} DAY)
+        GROUP BY method
+        ORDER BY totalCents DESC
+      `);
+      return rows as any[];
+    }),
+
   /**
    * Get payment status for a client protocol
    */
