@@ -1,5 +1,6 @@
 import * as db from "../db";
 import { sendWaiverAnnouncementEmail } from "../emailService";
+import { runCronJob } from "./cronRunner";
 
 /**
  * Cron job to process scheduled announcements
@@ -115,7 +116,10 @@ export function startScheduledAnnouncementCron() {
   console.log("[ScheduledAnnouncementCron] Starting scheduled announcement cron (runs every minute)");
   
   // Run every minute
-  cronInterval = setInterval(processScheduledAnnouncements, 60 * 1000);
+  cronInterval = setInterval(
+    () => runCronJob("scheduled_announcements", () => processScheduledAnnouncements()),
+    60 * 1000
+  );
   
   // Also run immediately on startup
   processScheduledAnnouncements();

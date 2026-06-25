@@ -16,6 +16,7 @@
 import { getDb } from "../db";
 import * as db from "../db";
 import { sql } from "drizzle-orm";
+import { runCronJob } from "./cronRunner";
 
 // Team member IDs — override via env vars if IDs differ across environments.
 // Missing IDs are warned at init time; affected notifications/tasks are skipped rather than
@@ -33,7 +34,10 @@ export function initBackorderAndTrackingCron() {
   if (!TEAM_LISA) console.warn("[BackorderTracking] TEAM_LISA_ID not set — client notification tasks will not be created");
   if (!TEAM_SHANNON) console.warn("[BackorderTracking] TEAM_SHANNON_ID not set — Shannon will not receive shipping notifications");
   setTimeout(() => runBackorderAndTrackingCheck(), 240000); // Run after 4 minutes
-  cronInterval = setInterval(() => runBackorderAndTrackingCheck(), CHECK_INTERVAL_MS);
+  cronInterval = setInterval(
+    () => runCronJob("backorder_tracking", () => runBackorderAndTrackingCheck()),
+    CHECK_INTERVAL_MS
+  );
 }
 
 export async function runBackorderAndTrackingCheck(): Promise<{

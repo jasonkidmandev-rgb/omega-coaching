@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { getDb } from "../db";
 import { sql } from "drizzle-orm";
+import { runCronJob } from "./cronRunner";
 
 /**
  * Nightly Reconciliation Cron
@@ -25,9 +26,11 @@ const LIFECYCLE_STAGES: Record<string, number> = {
 
 export function startNightlyReconciliationCron() {
   // Run at 2:00 AM every day
-  cron.schedule("0 2 * * *", async () => {
-    console.log("[NightlyReconciliation] Starting nightly reconciliation...");
-    await runNightlyReconciliation();
+  cron.schedule("0 2 * * *", () => {
+    runCronJob("nightly_reconciliation", async () => {
+      console.log("[NightlyReconciliation] Starting nightly reconciliation...");
+      await runNightlyReconciliation();
+    });
   });
   console.log("[NightlyReconciliation] Cron scheduled for 2:00 AM daily");
 }
