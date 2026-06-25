@@ -3239,8 +3239,8 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'VIP Supply Concierge',
-              description: 'Pharmaceutical-grade supply sourcing & delivery coordination',
+              name: 'VIP Concierge Service',
+              description: 'Premium coordination and delivery support',
             },
             unit_amount: Math.round(vipConciergeFee * 100),
           },

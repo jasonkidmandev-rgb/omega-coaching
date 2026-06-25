@@ -259,14 +259,22 @@ export const customOrdersRouter = router({
       const PROCESSING_FEE_RATE = 0.035;
       const processingFee = Math.round(total * PROCESSING_FEE_RATE * 100) / 100;
 
-      const lineItems: any[] = items.map((item: any) => ({
+      // Single neutral line item — compound/peptide item names must not reach
+      // Stripe. See docs/risks/2026-06-23-payment-data-migration-risks.md (R1).
+      // Itemized detail stays in our custom-order records.
+      const itemsSubtotalCents = items.reduce(
+        (sum: number, item: any) =>
+          sum + Math.round(parseFloat(item.pricePerUnit?.toString() || '0') * 100) * item.quantity,
+        0
+      );
+      const lineItems: any[] = [{
         price_data: {
           currency: 'usd',
-          product_data: { name: item.name || 'Custom Item' },
-          unit_amount: Math.round(parseFloat(item.pricePerUnit?.toString() || '0') * 100),
+          product_data: { name: 'Coaching Program' },
+          unit_amount: itemsSubtotalCents,
         },
-        quantity: item.quantity,
-      }));
+        quantity: 1,
+      }];
 
       // Add processing fee line item
       lineItems.push({
@@ -332,14 +340,22 @@ export const customOrdersRouter = router({
       const PROCESSING_FEE_RATE = 0.035;
       const processingFee = Math.round(total * PROCESSING_FEE_RATE * 100) / 100;
 
-      const lineItems: any[] = items.map((item: any) => ({
+      // Single neutral line item — compound/peptide item names must not reach
+      // Stripe. See docs/risks/2026-06-23-payment-data-migration-risks.md (R1).
+      // Itemized detail stays in our custom-order records.
+      const itemsSubtotalCents = items.reduce(
+        (sum: number, item: any) =>
+          sum + Math.round(parseFloat(item.pricePerUnit?.toString() || '0') * 100) * item.quantity,
+        0
+      );
+      const lineItems: any[] = [{
         price_data: {
           currency: 'usd',
-          product_data: { name: item.name || 'Custom Item' },
-          unit_amount: Math.round(parseFloat(item.pricePerUnit?.toString() || '0') * 100),
+          product_data: { name: 'Coaching Program' },
+          unit_amount: itemsSubtotalCents,
         },
-        quantity: item.quantity,
-      }));
+        quantity: 1,
+      }];
 
       lineItems.push({
         price_data: {
@@ -555,7 +571,17 @@ export const customOrdersRouter = router({
   myOrders: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.user?.id;
     if (!userId) return [];
-    return customOrderDb.getUserCustomOrders(userId);
+    const orders = await customOrderDb.getUserCustomOrders(userId);
+    // Client-facing: never expose compound/peptide item names or descriptions.
+    // Real detail stays admin/DB-only. See docs/risks/2026-06-23-payment-data-migration-risks.md (R1).
+    return orders.map((order: any) => ({
+      ...order,
+      items: (order.items || []).map((item: any, index: number) => ({
+        ...item,
+        name: `Custom Item #${index + 1}`,
+        description: null,
+      })),
+    }));
   }),
 
   // ─── Client: Get a single custom order ────────────────────────────────────
@@ -567,7 +593,14 @@ export const customOrdersRouter = router({
       const order = await customOrderDb.getCustomOrder(input.orderId);
       if (!order || order.userId !== userId) return null;
       const items = await customOrderDb.getCustomOrderItems(order.id);
-      return { ...order, items };
+      // Client-facing: never expose compound/peptide item names or descriptions.
+      // Real detail stays admin/DB-only. See docs/risks/2026-06-23-payment-data-migration-risks.md (R1).
+      const sanitizedItems = items.map((item: any, index: number) => ({
+        ...item,
+        name: `Custom Item #${index + 1}`,
+        description: null,
+      }));
+      return { ...order, items: sanitizedItems };
     }),
 
   // ─── Public: Confirm payment by order ID (for Stripe redirect callback) ───
@@ -654,11 +687,13 @@ async function sendInvoiceEmail(
   checkoutUrl?: string,
   processingFee?: number,
 ) {
+  // Customer-facing invoice must not expose compound/peptide item names.
+  // Real names stay in admin/DB only. See docs/risks/2026-06-23-payment-data-migration-risks.md (R1).
   const itemsHtml = items
     .map(
-      (item) =>
+      (item, index) =>
         `<tr>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.name}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">Custom Item #${index + 1}</td>
           <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
           <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${parseFloat(item.pricePerUnit?.toString() || "0").toFixed(2)}</td>
           <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${(parseFloat(item.pricePerUnit?.toString() || "0") * item.quantity).toFixed(2)}</td>

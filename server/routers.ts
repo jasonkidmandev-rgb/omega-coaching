@@ -4114,17 +4114,22 @@ const ordersRouter = router({
       const totalDollars = input.totalCents / 100;
       const processingFee = Math.round(totalDollars * PROCESSING_FEE_RATE * 100) / 100;
 
-      // Build line items from cart
-      const lineItems: any[] = input.items.map(item => ({
+      // Single neutral line item — item names (compound/peptide names) must
+      // never reach Stripe receipts/checkout. See
+      // docs/risks/2026-06-23-payment-data-migration-risks.md (R1). Itemized
+      // detail is preserved in our own store_order_items records below.
+      const itemsSubtotalCents = input.items.reduce(
+        (sum: number, item: any) => sum + item.price * item.quantity,
+        0
+      );
+      const lineItems: any[] = [{
         price_data: {
           currency: 'usd',
-          product_data: {
-            name: item.name,
-          },
-          unit_amount: item.price, // already in cents
+          product_data: { name: 'Coaching Program' },
+          unit_amount: itemsSubtotalCents, // already in cents
         },
-        quantity: item.quantity,
-      }));
+        quantity: 1,
+      }];
 
       // Add discount as negative line item if applicable
       if (input.discountAmountCents && input.discountAmountCents > 0) {

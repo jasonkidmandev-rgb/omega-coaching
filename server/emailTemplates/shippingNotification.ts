@@ -24,9 +24,11 @@ export async function generateShippingNotificationEmail(data: ShippingNotificati
     ? `${carrierUrls[data.trackingCarrier]}${data.trackingNumber}`
     : '';
 
-  const itemsList = data.items.map(item => 
+  // Customer-facing shipping notice must not expose compound/peptide item names.
+  // Real names stay in admin/DB only. See docs/risks/2026-06-23-payment-data-migration-risks.md (R1).
+  const itemsList = data.items.map((item, index) =>
     `<tr>
-      <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${item.name}</td>
+      <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Custom Item #${index + 1}</td>
       <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
     </tr>`
   ).join('');
