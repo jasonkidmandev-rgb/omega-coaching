@@ -2479,6 +2479,34 @@ export const protocolOrders = mysqlTable("protocol_orders", {
 	index("protocol_orders_stripeSessionId_unique").on(table.stripeSessionId),
 ]);
 
+// Unified payments ledger ("logbook"): one row per payment, pointing at the
+// entity it settles. The single cross-funnel money record and the basis for
+// Stripe<->manual failover. See docs/design/2026-06-25-payment-layer-architecture.md
+export const payments = mysqlTable("payments", {
+	id: int().autoincrement().notNull(),
+	entityType: mysqlEnum(['protocol','coaching_plan','custom_order','store_order']).notNull(),
+	entityId: int().notNull(),
+	customerId: int(),
+	customerEmail: varchar({ length: 320 }),
+	customerName: varchar({ length: 255 }),
+	amountCents: int().notNull(),
+	currency: varchar({ length: 3 }).default('usd').notNull(),
+	processorLabel: varchar({ length: 255 }),
+	status: mysqlEnum(['open','awaiting_confirmation','paid','failed','refunded','void']).default('open').notNull(),
+	method: varchar({ length: 50 }),
+	externalRef: varchar({ length: 255 }),
+	settledAt: timestamp({ mode: 'string' }),
+	settledBy: int(),
+	notes: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("payments_entity_idx").on(table.entityType, table.entityId),
+	index("payments_status_idx").on(table.status),
+	unique("payments_externalRef_unique").on(table.externalRef),
+]);
+
 export const protocolRequirements = mysqlTable("protocol_requirements", {
 	id: int().autoincrement().notNull(),
 	text: text().notNull(),
