@@ -10,6 +10,7 @@ import { logRoleChange, logAuditEvent, getRecentAuditLogs, type AuditAction } fr
 import * as invitation from "./invitation";
 import { customOrdersRouter } from "./customOrders/router";
 import { paymentRouter } from "./payment/router";
+import { cronHealthRouter } from "./cron/cronHealthRouter";
 import { paymentHistoryRouter } from "./payment/historyRouter";
 import { paymentAnalyticsRouter } from "./payment/analyticsRouter";
 import { bulkPaymentActionsRouter } from "./payment/bulkActionsRouter";
@@ -7130,6 +7131,7 @@ export const appRouter = router({
   // Healthie integration removed - no license available
   // PayPal and Venmo removed - migrating to Stripe
   payment: paymentRouter,
+  cronHealth: cronHealthRouter,
   paymentHistory: paymentHistoryRouter,
   paymentAnalytics: paymentAnalyticsRouter,
   bulkPaymentActions: bulkPaymentActionsRouter,
