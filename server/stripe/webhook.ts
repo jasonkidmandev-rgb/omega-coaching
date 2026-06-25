@@ -186,6 +186,29 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       } else {
         console.log(`[Stripe Webhook] Protocol ${clientProtocolId} fully processed (packing slip: ${result.packingSlipId ?? 'none'})`);
       }
+
+      // Shadow-record into the unified payments ledger (non-fatal; the ledger does
+      // not yet control fulfillment). See docs/design/2026-06-25-payment-layer-architecture.md
+      if (!result.alreadyPaid) {
+        try {
+          const { recordPayment } = await import("../payment/paymentLedger");
+          await recordPayment({
+            entityType: 'coaching_plan',
+            entityId: enrollmentId,
+            amountCents: Math.round(amountTotal * 100),
+            customerId: userId,
+            customerEmail: clientEmail,
+            customerName: clientName,
+            processorLabel: planName || 'Coaching Program',
+            method: 'stripe',
+            externalRef: paymentIntentId,
+            status: 'paid',
+            notes: `Stripe checkout — enrollment #${enrollmentId}`,
+          });
+        } catch (ledgerErr: any) {
+          console.error(`[PaymentLedger] shadow record failed (non-fatal): ${ledgerErr.message}`);
+        }
+      }
     } catch (e: any) {
       console.error(`[Stripe Webhook] processProtocolPaymentReceived failed: ${e.message}`);
       // Re-throw so the outer catch returns 500 and Stripe retries

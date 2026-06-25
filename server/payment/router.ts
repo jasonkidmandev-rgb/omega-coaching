@@ -108,6 +108,26 @@ export const paymentRouter = router({
           baseUrl,
         });
 
+        // Shadow-record into the unified payments ledger (non-fatal; the ledger
+        // does not yet control fulfillment). See docs/design/2026-06-25-payment-layer-architecture.md
+        if (!result.alreadyPaid) {
+          try {
+            const { recordPayment } = await import("./paymentLedger");
+            await recordPayment({
+              entityType: 'protocol',
+              entityId: protocolId,
+              amountCents: input.grossAmount ? Math.round(parseFloat(input.grossAmount) * 100) : 0,
+              method: paymentMethod as any,
+              externalRef: input.transactionId || null,
+              status: 'paid',
+              settledBy: ctx.user.id,
+              notes: input.notes,
+            });
+          } catch (ledgerErr: any) {
+            console.error(`[PaymentLedger] shadow record failed (non-fatal): ${ledgerErr.message}`);
+          }
+        }
+
         if (result.alreadyPaid) {
           return {
             success: true,
