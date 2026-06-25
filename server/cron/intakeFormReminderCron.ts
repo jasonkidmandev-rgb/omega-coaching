@@ -11,6 +11,7 @@ import { getDb } from "../db";
 import { sql } from "drizzle-orm";
 import nodemailer from "nodemailer";
 import { isStaging } from "../_core/appEnv";
+import { runCronJob } from "./cronRunner";
 import { createEmailTracking, generateTrackingPixel, generateTrackedLink } from "../emailTracking";
 
 const getTransporter = () => {
@@ -411,7 +412,14 @@ export function initIntakeFormReminderCron(): void {
   }
   
   // Run every 2 hours
-  cronInterval = setInterval(processIntakeFormReminders, 2 * 60 * 60 * 1000);
+  cronInterval = setInterval(
+    () =>
+      runCronJob("intake_form_reminders", async () => {
+        const r = await processIntakeFormReminders();
+        return { itemsSucceeded: (r?.sent24h ?? 0) + (r?.sent72h ?? 0), itemsFailed: r?.failed ?? 0 };
+      }),
+    2 * 60 * 60 * 1000
+  );
   
   console.log("[IntakeFormReminderCron] Initialized - checking every 2 hours");
   

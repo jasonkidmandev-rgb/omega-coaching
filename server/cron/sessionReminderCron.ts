@@ -9,6 +9,7 @@ import { appointments, appointmentTypes, emailTracking } from "../../drizzle/sch
 import { eq, and, gte, lte, isNull } from "drizzle-orm";
 import nodemailer from "nodemailer";
 import { isStaging } from "../_core/appEnv";
+import { runCronJob } from "./cronRunner";
 import { v4 as uuidv4 } from "uuid";
 import * as db from "../db";
 
@@ -600,9 +601,11 @@ export function initSessionReminderCron(): void {
   console.log("[Session Reminder Cron] Initialized - checking every hour");
 
   // Run every 15 minutes to catch both 24h and 1h reminders
-  cronInterval = setInterval(async () => {
-    await processSessionReminders();
-    await process1HourReminders();
+  cronInterval = setInterval(() => {
+    runCronJob("session_reminders", async () => {
+      await processSessionReminders();
+      await process1HourReminders();
+    });
   }, 15 * 60 * 1000); // Every 15 minutes
 
   // Also run immediately on startup (after a short delay)

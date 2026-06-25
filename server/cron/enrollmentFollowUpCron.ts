@@ -9,6 +9,7 @@ import { getDb } from "../db";
 import { sql } from "drizzle-orm";
 import nodemailer from "nodemailer";
 import { isStaging } from "../_core/appEnv";
+import { runCronJob } from "./cronRunner";
 import crypto from "crypto";
 import { createEmailTracking, generateTrackingPixel, generateTrackedLink } from "../emailTracking";
 
@@ -303,7 +304,14 @@ export function initEnrollmentFollowUpCron(): void {
   }
   
   // Run every 6 hours (6 * 60 * 60 * 1000 = 21600000ms)
-  cronInterval = setInterval(processEnrollmentFollowUps, 6 * 60 * 60 * 1000);
+  cronInterval = setInterval(
+    () =>
+      runCronJob("enrollment_followups", async () => {
+        const r = await processEnrollmentFollowUps();
+        return { itemsSucceeded: r?.sent ?? 0, itemsFailed: r?.failed ?? 0 };
+      }),
+    6 * 60 * 60 * 1000
+  );
   
   console.log("[EnrollmentFollowUpCron] Initialized - checking every 6 hours");
   

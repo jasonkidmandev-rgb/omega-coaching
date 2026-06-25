@@ -12,6 +12,7 @@
 import * as db from "../db";
 import nodemailer from "nodemailer";
 import { isStaging } from "../_core/appEnv";
+import { runCronJob } from "./cronRunner";
 import {
   generatePaymentReminderHTML,
   generatePaymentReminderText,
@@ -463,6 +464,7 @@ async function runPaymentReminderJob(): Promise<void> {
     );
   } catch (error) {
     console.error("[Payment Reminder Cron] Error:", error);
+    throw error; // propagate so runCronJob records the failure + alerts admins
   }
 }
 
@@ -473,7 +475,7 @@ export function startPaymentReminderCron() {
   // Check every minute if we should run
   cronInterval = setInterval(async () => {
     if (shouldRunCron()) {
-      await runPaymentReminderJob();
+      await runCronJob("payment_reminders", () => runPaymentReminderJob());
     }
   }, 60000); // Check every minute
 
