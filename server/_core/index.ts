@@ -46,6 +46,7 @@ import { startEmailReplyPolling } from '../emailReplyBridge';
 import { isStaging } from './appEnv';
 import { initDbBackupCron } from '../cron/dbBackupCron';
 import calendlyWebhookRouter from "../calendly/webhook";
+import ghlWebhookRouter from "../integrations/ghl/webhook";
 import { generalLimiter, authLimiter, trackingLimiter, webhookLimiter, publicApiLimiter } from "./rateLimiter";
 import { recordEmailOpen, recordEmailClick } from "../emailTracking";
 
@@ -146,6 +147,10 @@ async function startServer() {
 
   // Calendly webhook for real-time event notifications
   app.use('/api/calendly', webhookLimiter, calendlyWebhookRouter);
+
+  // GoHighLevel inbound webhooks (Omega Longevity coaching-package lifecycle).
+  // Bearer-token auth (not HMAC), so it can run after express.json().
+  app.use('/api/webhooks', webhookLimiter, ghlWebhookRouter);
   
   // Known bot/prefetch user agent patterns that auto-load images
   const BOT_UA_PATTERNS = [
