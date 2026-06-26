@@ -2970,7 +2970,29 @@ export async function deductInventoryForProtocol(clientProtocolId: number, userI
     // Find mappings for this protocol item
     const mappings = await getProtocolInventoryMappingsByProtocolItem(protocolItem.protocolItemId);
     console.log(`[Inventory] Protocol item ${protocolItem.protocolItemId} (qty: ${protocolItem.quantity}) has ${mappings.length} inventory mappings`);
-    
+
+    // Surface coach-fulfilled PHYSICAL items that have NO inventory mapping: today
+    // they sell without ever deducting, silently. Record them as a failed deduction
+    // so the caller can alert. Skip services/"other" and client-sourced items
+    // (legitimately not tracked in inventory) to avoid false alarms.
+    if (mappings.length === 0) {
+      if (protocolItem.fulfillmentSource === 'coach') {
+        const [catalog] = await db.select({ name: protocolItems.name, itemType: protocolItems.itemType })
+          .from(protocolItems)
+          .where(eq(protocolItems.id, protocolItem.protocolItemId))
+          .limit(1);
+        if (catalog && ['peptide', 'supplement', 'adjunct', 'supply'].includes(catalog.itemType)) {
+          deductions.push({
+            itemName: protocolItem.snapshotName || catalog.name || `Item #${protocolItem.protocolItemId}`,
+            quantity: protocolItem.quantity || 1,
+            success: false,
+            error: 'No inventory mapping — item not deducted (map it to an inventory item)',
+          });
+        }
+      }
+      continue;
+    }
+
     for (const mapping of mappings) {
       const quantityToDeduct = (protocolItem.quantity || 1) * (mapping.quantityPerUnit || 1);
       

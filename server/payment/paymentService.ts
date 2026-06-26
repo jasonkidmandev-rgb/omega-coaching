@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import * as db from "../db";
 import { paymentEvents } from "../../drizzle/schema";
 import { sendPaymentStatusNotification } from "../emailService";
@@ -23,6 +24,34 @@ export interface ProcessPaymentResult {
   /** true if the protocol was already paid — no duplicate processing done */
   alreadyPaid: boolean;
   packingSlipId: number | null;
+}
+
+/**
+ * Alert admins + owners directly when inventory wasn't fully deducted for a paid
+ * protocol. Direct insert (not preference-gated) so a deduction problem is never
+ * silently lost — the count drives fulfillment, so a miss must be visible.
+ */
+async function alertAdminsInventoryIssue(
+  clientProtocolId: number,
+  clientName: string,
+  issues: string[]
+): Promise<void> {
+  const database = await db.getDb();
+  if (!database) return;
+  const [rows] = await database.execute(
+    sql`SELECT id FROM users WHERE role IN ('admin', 'owner')`
+  );
+  const adminIds = ((rows as unknown) as any[]).map((r: any) => r.id as number);
+  const title = `⚠️ Inventory not fully deducted: ${clientName}`;
+  const message =
+    `Protocol #${clientProtocolId} (${clientName}) was paid but ${issues.length} ` +
+    `item(s) did not deduct: ${issues.join('; ')}. Check stock levels / inventory mappings.`;
+  for (const userId of adminIds) {
+    await database.execute(sql`
+      INSERT INTO notifications (userId, type, title, message, clientProtocolId, createdAt)
+      VALUES (${userId}, 'other', ${title}, ${message}, ${clientProtocolId}, NOW())
+    `);
+  }
 }
 
 /**
@@ -75,12 +104,26 @@ export async function processProtocolPaymentReceived(
     }
   }
 
-  // 3. Inventory deduction
+  // 3. Inventory deduction — fail LOUD: a deduction problem must alert admins,
+  // not pass silently. Payment itself stays unaffected (alerting is best-effort).
   try {
-    await db.deductInventoryForProtocol(clientProtocolId, options.performedBy ?? 0);
-    console.log(`[PaymentService] Inventory deducted for protocol ${clientProtocolId}`);
+    const deductions = await db.deductInventoryForProtocol(clientProtocolId, options.performedBy ?? 0);
+    const failures = (deductions ?? []).filter((d: any) => d && d.success === false);
+    if (failures.length > 0) {
+      const issues = failures.map((f: any) => `${f.itemName} (x${f.quantity}): ${f.error ?? 'not deducted'}`);
+      console.warn(`[PaymentService] Inventory issues for protocol ${clientProtocolId}: ${issues.join('; ')}`);
+      await alertAdminsInventoryIssue(clientProtocolId, protocol.clientName, issues)
+        .catch(err => console.error('[PaymentService] Inventory alert failed:', err));
+    } else {
+      console.log(`[PaymentService] Inventory deducted for protocol ${clientProtocolId}`);
+    }
   } catch (e) {
-    console.error('[PaymentService] Inventory deduction failed (non-fatal):', e);
+    console.error('[PaymentService] Inventory deduction threw (non-fatal to payment):', e);
+    await alertAdminsInventoryIssue(
+      clientProtocolId,
+      protocol.clientName,
+      [`Deduction failed entirely: ${e instanceof Error ? e.message : 'unknown error'}`]
+    ).catch(err => console.error('[PaymentService] Inventory alert failed:', err));
   }
 
   // 4. Packing slip — createPackingSlipOnPayment already has its own idempotency check
