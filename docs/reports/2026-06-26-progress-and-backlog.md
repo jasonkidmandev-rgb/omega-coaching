@@ -47,6 +47,19 @@ sealed staging environment.
   swallowed-error bugs (payment reminders, DB backup).
 - Admin **Job Health** page at `/admin/job-health`.
 
+### GHL inbound webhook integration (Omega coaching packages)
+- Built + HTTP-verified the six `/api/webhooks/*` endpoints from Alex's brief,
+  slotted into the **existing** external-webhook framework as `source='ghl'` —
+  **no new tables / no migration** (reuses `external_webhook_events`,
+  `external_product_mappings`, `clients.ghlContactId`).
+- Corrected the brief's dedup rule: keyed idempotency per-charge so payment-plan
+  months 2/3 aren't silently dropped. Required bearer-token auth.
+- Processing is **park-only** (logs + resolves client/mapping) pending Alex's
+  product mapping + the replace/coexist routing decision — won't trigger
+  fulfillment yet. Spec: `docs/integrations/ghl-webhook-spec.md`.
+- Reply to Alex (dedup fix, contract-value reconciliation question, mapping
+  request) recorded: `docs/communications/2026-06-26-alex-ghl-webhook-reply.md`.
+
 ### Cleanup & docs
 - Removed the dead `/admin/payments` route (infinite-loading duplicate of
   `/admin/payment-history`); relocated the failover toggle to the live page.
@@ -60,6 +73,13 @@ sealed staging environment.
 ### Client change requests
 - **Lisa CR-1 — continuous client Chat thread** (not per protocol version). New;
   tracked in `docs/change-requests/lisa-humanedge-requests.md`. Medium effort.
+
+### GHL integration (after Alex + routing decision)
+- Wire `processEvent.ts` per-event business logic (client upsert → enrollment →
+  ledger record/confirm as `coaching_plan`). Blocked on product mapping + the
+  replace/coexist routing decision.
+- Provision `GHL_WEBHOOK_TOKEN`; send Alex final URLs + token (or staging test creds).
+- Admin view for GHL events + mapping management (omega `adminRouter` is a template).
 
 ### Payment layer (Fork 3 + deferred)
 - **Fulfillment cutover** — make the ledger *drive* fulfillment (record `open` at
@@ -79,16 +99,27 @@ sealed staging environment.
 - Protocol payment flow confirmed working (R3 resolved — manual recording +
   transformation Stripe). No cutover blocker there.
 - Fresh DB re-sync at cutover (the Railway DB holds a stale production snapshot).
-- Single source of truth for the customer record (decision — see below).
+- **Single source of truth — DECIDED (2026-06-27, Jason):** the HumanEdge app is
+  the official record of customer/clinical/fulfillment data; GHL/Omega are upstream
+  feeders into it, not parallel records. Guiding principle: **simplify, don't add
+  systems.** This resolves R11/R12 direction and frames every integration as
+  "feed the app's record," not "run alongside it."
 
 ---
 
 ## Waiting on others
-- **Jason:** single-source-of-truth direction; is the store funnel active?; verify
-  Stripe statement descriptor is neutral; archive any named Stripe Products.
+- **Jason:** is a store worth building (reorder volume) + public-vs-gated —
+  advised a **login-gated client reorder portal**, not a public shop (see the
+  2026-06-26 store comms); verify Stripe statement descriptor is neutral; archive
+  any named Stripe Products. _(Single-source-of-truth direction: RESOLVED — app is
+  the official record.)_
 - **Alex:** omega→app handoff direction (does omegalongevity still provision into
-  our app?); product mappings for the webhook; omegalongevity Stripe account
-  identity + neutral line-item naming.
+  our app?); **GHL** per-product contract-value table + product list for the
+  webhook mapping + whether GHL can send a `transaction_id` (see the 2026-06-26
+  reply); omegalongevity Stripe account identity + neutral line-item naming.
+- **Jason (internal):** GHL replace-or-coexist — direction now set (app is the
+  official record → GHL/Omega feed it). Still need Alex's per-event product mapping
+  before GHL events can drive fulfillment in the app (R11/R12).
 
 See the risk register (`docs/risks/2026-06-23-payment-data-migration-risks.md`,
 R1–R13) for the detailed funnel-sprawl and single-source-of-truth context.
