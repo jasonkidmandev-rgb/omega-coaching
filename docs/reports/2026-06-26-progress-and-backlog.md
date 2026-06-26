@@ -99,6 +99,13 @@ sealed staging environment.
 - Protocol payment flow confirmed working (R3 resolved — manual recording +
   transformation Stripe). No cutover blocker there.
 - Fresh DB re-sync at cutover (the Railway DB holds a stale production snapshot).
+- **Inventory at cutover (OPEN QUESTION — ask Jason/Vilma at cutover-planning
+  time):** is a one-time physical count of the hero stocked SKUs feasible at
+  cutover, and what is the hero list? Leaning toward an **opening-balance reset**
+  (keep catalog/mappings/archived history; do NOT trust-migrate the old
+  quantities; count the hero SKUs fresh; mine old negatives for owed backorders
+  first) rather than reconcile (no trusted anchor exists) or blanket-wipe (loses
+  catalog/mappings/history). Hinges on that count being feasible.
 - **Single source of truth — DECIDED (2026-06-27, Jason):** the HumanEdge app is
   the official record of customer/clinical/fulfillment data; GHL/Omega are upstream
   feeders into it, not parallel records. Guiding principle: **simplify, don't add
