@@ -27,25 +27,17 @@ export interface ProcessPaymentResult {
 }
 
 /**
- * Alert admins + owners directly when inventory wasn't fully deducted for a paid
- * protocol. Direct insert (not preference-gated) so a deduction problem is never
- * silently lost — the count drives fulfillment, so a miss must be visible.
+ * Notify all admins + owners directly (not preference-gated), so inventory
+ * problems are never silently lost — the count drives fulfillment, so anything
+ * off must be visible.
  */
-async function alertAdminsInventoryIssue(
-  clientProtocolId: number,
-  clientName: string,
-  issues: string[]
-): Promise<void> {
+async function notifyAdmins(title: string, message: string, clientProtocolId: number): Promise<void> {
   const database = await db.getDb();
   if (!database) return;
   const [rows] = await database.execute(
     sql`SELECT id FROM users WHERE role IN ('admin', 'owner')`
   );
   const adminIds = ((rows as unknown) as any[]).map((r: any) => r.id as number);
-  const title = `⚠️ Inventory not fully deducted: ${clientName}`;
-  const message =
-    `Protocol #${clientProtocolId} (${clientName}) was paid but ${issues.length} ` +
-    `item(s) did not deduct: ${issues.join('; ')}. Check stock levels / inventory mappings.`;
   for (const userId of adminIds) {
     await database.execute(sql`
       INSERT INTO notifications (userId, type, title, message, clientProtocolId, createdAt)
@@ -104,25 +96,46 @@ export async function processProtocolPaymentReceived(
     }
   }
 
-  // 3. Inventory deduction — fail LOUD: a deduction problem must alert admins,
-  // not pass silently. Payment itself stays unaffected (alerting is best-effort).
+  // 3. Inventory deduction — fail LOUD: deduction problems AND backorders must
+  // alert admins, not pass silently. Payment itself stays unaffected (best-effort).
   try {
     const deductions = await db.deductInventoryForProtocol(clientProtocolId, options.performedBy ?? 0);
-    const failures = (deductions ?? []).filter((d: any) => d && d.success === false);
+    const list = (deductions ?? []) as any[];
+
+    // (a) Hard failures + unmapped items — something couldn't deduct / isn't set up.
+    const failures = list.filter(d => d && d.success === false);
     if (failures.length > 0) {
-      const issues = failures.map((f: any) => `${f.itemName} (x${f.quantity}): ${f.error ?? 'not deducted'}`);
-      console.warn(`[PaymentService] Inventory issues for protocol ${clientProtocolId}: ${issues.join('; ')}`);
-      await alertAdminsInventoryIssue(clientProtocolId, protocol.clientName, issues)
-        .catch(err => console.error('[PaymentService] Inventory alert failed:', err));
-    } else {
+      const issues = failures.map(f => `${f.itemName} (x${f.quantity}): ${f.error ?? 'not deducted'}`).join('; ');
+      console.warn(`[PaymentService] Inventory issues for protocol ${clientProtocolId}: ${issues}`);
+      await notifyAdmins(
+        `⚠️ Inventory not fully deducted: ${protocol.clientName}`,
+        `Protocol #${clientProtocolId} (${protocol.clientName}) was paid but ${failures.length} item(s) did not deduct: ${issues}. Check stock levels / inventory mappings.`,
+        clientProtocolId
+      ).catch(err => console.error('[PaymentService] Inventory alert failed:', err));
+    }
+
+    // (b) Backorders — stock deliberately went negative (we owe the customer).
+    // Loud, but DISTINCT from a failure: the deduction worked, the shelf is short.
+    const backorders = list.filter(d => d && d.success === true && d.wentNegative === true);
+    if (backorders.length > 0) {
+      const items = backorders.map(b => `${b.itemName} (${b.previousQuantity}→${b.newQuantity})`).join('; ');
+      console.warn(`[PaymentService] Backorder (negative stock) for protocol ${clientProtocolId}: ${items}`);
+      await notifyAdmins(
+        `📦 Backorder — stock went negative: ${protocol.clientName}`,
+        `Protocol #${clientProtocolId} (${protocol.clientName}): ${backorders.length} item(s) went to negative stock (owed / backordered): ${items}. Restock or dropship to fulfill.`,
+        clientProtocolId
+      ).catch(err => console.error('[PaymentService] Backorder alert failed:', err));
+    }
+
+    if (failures.length === 0 && backorders.length === 0) {
       console.log(`[PaymentService] Inventory deducted for protocol ${clientProtocolId}`);
     }
   } catch (e) {
     console.error('[PaymentService] Inventory deduction threw (non-fatal to payment):', e);
-    await alertAdminsInventoryIssue(
-      clientProtocolId,
-      protocol.clientName,
-      [`Deduction failed entirely: ${e instanceof Error ? e.message : 'unknown error'}`]
+    await notifyAdmins(
+      `⚠️ Inventory not fully deducted: ${protocol.clientName}`,
+      `Protocol #${clientProtocolId} (${protocol.clientName}) was paid but inventory deduction failed entirely: ${e instanceof Error ? e.message : 'unknown error'}. Check stock / mappings.`,
+      clientProtocolId
     ).catch(err => console.error('[PaymentService] Inventory alert failed:', err));
   }
 

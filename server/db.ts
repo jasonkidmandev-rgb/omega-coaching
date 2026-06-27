@@ -2964,7 +2964,7 @@ export async function deductInventoryForProtocol(clientProtocolId: number, userI
   
   console.log(`[Inventory] Processing ${protocolItemsList.length} included items for protocol ${clientProtocolId}`);
   
-  const deductions: { itemName: string; quantity: number; success: boolean; error?: string }[] = [];
+  const deductions: { itemName: string; quantity: number; success: boolean; error?: string; wentNegative?: boolean; previousQuantity?: number; newQuantity?: number }[] = [];
   
   for (const protocolItem of protocolItemsList) {
     // Find mappings for this protocol item
@@ -3026,7 +3026,12 @@ export async function deductInventoryForProtocol(clientProtocolId: number, userI
           itemName: inventoryItem.name,
           quantity: quantityToDeduct,
           success: true,
-          ...(willGoNegative ? { error: `Stock went negative (was ${inventoryItem.quantity}, now ${inventoryItem.quantity - quantityToDeduct})` } : {}),
+          ...(willGoNegative ? {
+            wentNegative: true,
+            previousQuantity: inventoryItem.quantity,
+            newQuantity: inventoryItem.quantity - quantityToDeduct,
+            error: `Stock went negative (was ${inventoryItem.quantity}, now ${inventoryItem.quantity - quantityToDeduct})`,
+          } : {}),
         });
       } catch (error) {
         deductions.push({
