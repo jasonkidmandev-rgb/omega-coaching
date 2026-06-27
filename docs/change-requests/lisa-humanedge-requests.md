@@ -33,6 +33,57 @@ protocol versions — not reset or archived when a new protocol version is made.
 chat UIs. Needs a short design pass before implementation (esp. the
 historical-merge approach).
 
+### Batch reported 2026-06-27 (Lisa, email) — diagnosed
+
+> Key context: HumanEdge runs the **same source** as peptidecoach.pro (Manus) on
+> Railway, against a **stale DB snapshot** and its own build/runtime config. So a
+> thing that works on Manus but breaks on HumanEdge is almost always an
+> environment/data/config delta, not a code defect. That holds for 4 of these 5.
+
+#### CR-2 — Master template "not pulling" · **NOT REPRODUCED (live DB verified OK) — pending Lisa**
+- Update 2026-06-27 (queried the live DB): the Master Template (id=1, `isDefault`)
+  exists with 196 items, and they **are** copied into client protocols — Lisa's
+  current protocol **1740011** has all 196. The `/admin/clients/1740009` in her link
+  is a **deleted** protocol (she "started over"), which is why it looked empty.
+- Caveat: 13 of the 196 master-template items are **orphaned** (reference products
+  missing from the stale snapshot) — could break the item list if the UI doesn't
+  null-check.
+- Next: Lisa to confirm on her **current** protocol (1740011). If items still don't
+  render there → harden item rendering to skip orphaned products (code fix, no data
+  edit). Otherwise → no bug (stale link).
+
+#### CR-3 — Protocol Section templates not loading (Periodization / Training Split / Program Guide) · **RESOLVED 2026-06-27**
+- Diagnosis (queried live DB): the 16 `protocol_section_templates` rows existed but
+  their `content` was empty (`{}`) — the JSON content was lost in the original
+  snapshot migration. Confirmed Manus still had it.
+- Fix: exported the real content from Manus and loaded it into the 15 empty rows in
+  the staging DB (1 row was empty on Manus too). Sections now load.
+- Made permanent by the cutover re-sync. **Done (staging DB patch).**
+
+#### CR-4 — Address auto-complete not working · **CONFIG (not code)**
+- Diagnosis: `AddressAutocomplete` uses `VITE_GOOGLE_PLACES_API_KEY`, a
+  **build-time** Vite var baked into the client bundle at `vite build`, and loads
+  Google Places. Two likely causes: (a) the var isn't set in Railway's **build**
+  env (bundle ships with an empty key), and/or (b) the Google Cloud key's
+  HTTP-referrer allowlist doesn't include `humanedge.health` (key was restricted
+  to peptidecoach.pro).
+- Fix (not code): set `VITE_GOOGLE_PLACES_API_KEY` in Railway's build env **and**
+  add `humanedge.health` to the key's allowed referrers in Google Cloud Console.
+  **Owner: ops (Jason).**
+
+#### CR-5 — Timezone inconsistency across pages · **CODE (pre-existing, not migration-specific)**
+- Diagnosis: `client/src/lib/timezone.ts` normalizes everything to America/Denver
+  and is meant to be used everywhere, but many admin pages call raw
+  `toLocaleString/toLocaleDateString` (~93 raw occurrences across ~30 files; a
+  subset are dates) which render in the browser's local time → mixed zones.
+  Present on Manus too; Lisa just noticed it.
+- Fix (code): replace raw **date** `toLocale*` calls with the timezone helpers.
+  Medium effort (must separate date vs number usages); needs a visual/runtime check.
+
+#### CR-6 — Remove admin "Client Corner" page · **RESOLVED 2026-06-27 (commit b665f7c)**
+- Removed the admin route + nav item + dashboard component. The client-facing
+  `/client-corner` (used by clients) is untouched.
+
 ---
 
 ## Resolved
