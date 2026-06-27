@@ -165,9 +165,10 @@ export function isSameDayMT(date1: Date | string | number, date2: Date | string 
  * Useful for places that used raw .toLocaleString() or .toLocaleDateString().
  */
 export function toLocaleDateStringMT(
-  date: Date | string | number,
+  date: Date | string | number | null | undefined,
   options?: Intl.DateTimeFormatOptions
 ): string {
+  if (date == null || date === "") return "";
   const d = normalizeToUTC(date);
   return d.toLocaleString("en-US", {
     timeZone: APP_TIMEZONE,
@@ -179,9 +180,10 @@ export function toLocaleDateStringMT(
  * Format a date for display using toLocaleTimeString with Mountain Time.
  */
 export function toLocaleTimeStringMT(
-  date: Date | string | number,
+  date: Date | string | number | null | undefined,
   options?: Intl.DateTimeFormatOptions
 ): string {
+  if (date == null || date === "") return "";
   const d = normalizeToUTC(date);
   return d.toLocaleTimeString("en-US", {
     timeZone: APP_TIMEZONE,

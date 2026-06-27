@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { toLocaleDateStringMT, toLocaleTimeStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -87,7 +88,7 @@ export default function CloneHistoryTab({
                       </p>
                       <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                         <span>{entry.itemsCloned} items cloned</span>
-                        <span>{new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString()}</span>
+                        <span>{toLocaleDateStringMT(entry.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })} at {toLocaleTimeStringMT(entry.createdAt)}</span>
                       </div>
                       {isSource && entry.targetProtocolId && (
                         <Button

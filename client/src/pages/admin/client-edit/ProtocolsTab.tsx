@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { toast } from "sonner";
 import { ClientProtocolItem, ProtocolItem, Category, ClientProgramInfo } from "./types";
 import { Badge } from "@/components/ui/badge";
@@ -267,7 +268,7 @@ function ProtocolSectionsToggle({ clientProtocolId }: { clientProtocolId: number
                   <div>
                     <p className="text-sm font-medium">{tmpl.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {sectionTypeLabels[tmpl.sectionType] || tmpl.sectionType} • {new Date(tmpl.createdAt).toLocaleDateString()}
+                      {sectionTypeLabels[tmpl.sectionType] || tmpl.sectionType} • {toLocaleDateStringMT(tmpl.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

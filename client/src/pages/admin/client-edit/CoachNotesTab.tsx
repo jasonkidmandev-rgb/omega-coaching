@@ -12,6 +12,7 @@ import { processMessageForDisplay } from "@/lib/htmlUtils";
 import NotesHistoryViewer from "@/components/NotesHistoryViewer";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT, toLocaleTimeStringMT } from "@/lib/timezone";
 import { toast } from "sonner";
 import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 
@@ -153,7 +154,7 @@ export default function CoachNotesTab({
                           {comment.authorName || (comment.authorType === "coach" ? "You" : formData.clientName)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(comment.createdAt).toLocaleString()}
+                          {toLocaleDateStringMT(comment.createdAt)}
                         </p>
                       </div>
                       {comment.authorType === "client" && !comment.isRead && (
@@ -269,7 +270,7 @@ export default function CoachNotesTab({
                       <span className="font-medium">Saved</span>
                       {lastSavedAt && (
                         <span className="text-muted-foreground font-normal">
-                          {lastSavedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                          {toLocaleTimeStringMT(lastSavedAt, { hour: 'numeric', minute: '2-digit', hour12: true })}
                         </span>
                       )}
                     </span>
@@ -287,7 +288,7 @@ export default function CoachNotesTab({
                         <>
                           <span>Last saved</span>
                           <span className="font-medium">
-                            {lastSavedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            {toLocaleTimeStringMT(lastSavedAt, { hour: 'numeric', minute: '2-digit', hour12: true })}
                           </span>
                         </>
                       ) : (

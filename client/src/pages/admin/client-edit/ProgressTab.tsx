@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { TabsContent } from "@/components/ui/tabs";
 import { Camera, Image, FileText } from "lucide-react";
 
@@ -70,7 +71,7 @@ export default function ProgressTab({
                           />
                           <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-2 rounded-b-lg">
                             <p className="truncate">{photo.caption || 'No caption'}</p>
-                            <p className="text-white/70">{new Date(photo.createdAt).toLocaleDateString()}</p>
+                            <p className="text-white/70">{toLocaleDateStringMT(photo.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}</p>
                           </div>
                         </div>
                       ))}
@@ -130,7 +131,7 @@ export default function ProgressTab({
                       <p className="text-sm whitespace-pre-wrap">{note.content}</p>
                     </div>
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {new Date(note.createdAt).toLocaleDateString()}
+                      {toLocaleDateStringMT(note.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                     </span>
                   </div>
                 </div>

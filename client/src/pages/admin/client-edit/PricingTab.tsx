@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Save, Loader2, Ban, CheckCircle, Clock, XCircle, RefreshCcw, DollarSign, AlertCircle, CreditCard, Banknote, Wallet, Receipt, MapPin, AlertTriangle, History, Mail, Calendar, Send, Zap } from "lucide-react";
 import { FormData } from "./types";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -461,7 +462,7 @@ export default function PricingTab({
                   <div className="flex justify-between text-slate-300">
                     <span>Payment Received:</span>
                     <span className="font-medium text-white">
-                      {new Date(client.paymentReceivedAt).toLocaleDateString("en-US", {
+                      {toLocaleDateStringMT(client.paymentReceivedAt, {
                         year: "numeric",
                         month: "short",
                         day: "numeric",
@@ -475,7 +476,7 @@ export default function PricingTab({
                   <div className="flex justify-between text-slate-300">
                     <span>Protocol Approved:</span>
                     <span className="font-medium text-white">
-                      {new Date(client.approvedAt).toLocaleDateString("en-US", {
+                      {toLocaleDateStringMT(client.approvedAt, {
                         year: "numeric",
                         month: "short",
                         day: "numeric",
@@ -606,7 +607,7 @@ export default function PricingTab({
                   <><span>Amount:</span><span className="text-slate-200">${parseFloat(enrollment.coachingFeeAmount).toFixed(2)}</span></>
                 )}
                 {enrollment.coachingFeePaidAt && (
-                  <><span>Paid At:</span><span className="text-slate-200">{new Date(enrollment.coachingFeePaidAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>
+                  <><span>Paid At:</span><span className="text-slate-200">{toLocaleDateStringMT(enrollment.coachingFeePaidAt, { month: "short", day: "numeric", year: "numeric" })}</span></>
                 )}
                 {enrollment.coachingFeeStripePaymentId && (
                   <><span>Stripe ID:</span><span className="text-slate-200 font-mono truncate">{enrollment.coachingFeeStripePaymentId}</span></>

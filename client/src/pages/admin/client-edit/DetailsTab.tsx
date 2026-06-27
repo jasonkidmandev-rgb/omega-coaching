@@ -10,6 +10,7 @@ import { Save, Loader2, Layers, ChevronRight, Target, BellOff, Bell, Send, Clock
 import { Switch } from "@/components/ui/switch";
 import { FormData, Template, Program, Phase, ClientProgramInfo } from "./types";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -588,7 +589,7 @@ function PaymentReminderSection({ clientId, clientEmail }: { clientId: number; c
   });
   
   const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleString('en-US', {
+    return toLocaleDateStringMT(date, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
