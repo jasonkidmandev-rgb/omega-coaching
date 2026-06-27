@@ -1,4 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -1068,7 +1069,7 @@ export default function AdminClients() {
                           <TableCell>
                             {client.clientEmail && linkedUsers?.[client.clientEmail] ? (
                               <div className="flex items-center gap-2">
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium" title={`Linked to user account. Last sign-in: ${linkedUsers[client.clientEmail].lastSignIn ? new Date(linkedUsers[client.clientEmail].lastSignIn!).toLocaleDateString() : 'Never'}`}>
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium" title={`Linked to user account. Last sign-in: ${linkedUsers[client.clientEmail].lastSignIn ? toLocaleDateStringMT(linkedUsers[client.clientEmail].lastSignIn!, { year: 'numeric', month: 'numeric', day: 'numeric' }) : 'Never'}`}>
                                   <UserCheck className="h-3 w-3" />
                                   Linked
                                 </span>
@@ -1092,7 +1093,7 @@ export default function AdminClients() {
                               </div>
                             ) : client.clientEmail && client.inviteSentAt ? (
                               <div className="flex items-center gap-2">
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium" title={`Invite sent on ${new Date(client.inviteSentAt).toLocaleDateString()}`}>
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium" title={`Invite sent on ${toLocaleDateStringMT(client.inviteSentAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}`}>
                                   <Mail className="h-3 w-3" />
                                   Invited
                                 </span>
@@ -1200,12 +1201,12 @@ export default function AdminClients() {
                             {emailStats && emailStats[client.id] ? (
                               <div className="flex items-center gap-1">
                                 {emailStats[client.id].opened ? (
-                                  <span className="flex items-center gap-1 text-green-600" title={`Opened ${emailStats[client.id].openedAt ? new Date(emailStats[client.id].openedAt!).toLocaleString() : ''}`}>
+                                  <span className="flex items-center gap-1 text-green-600" title={`Opened ${emailStats[client.id].openedAt ? toLocaleDateStringMT(emailStats[client.id].openedAt!) : ''}`}>
                                     <MailOpen className="h-4 w-4" />
                                     <span className="text-xs">Opened</span>
                                   </span>
                                 ) : emailStats[client.id].sent ? (
-                                  <span className="flex items-center gap-1 text-amber-600" title={`Sent ${emailStats[client.id].sentAt ? new Date(emailStats[client.id].sentAt!).toLocaleString() : ''}`}>
+                                  <span className="flex items-center gap-1 text-amber-600" title={`Sent ${emailStats[client.id].sentAt ? toLocaleDateStringMT(emailStats[client.id].sentAt!) : ''}`}>
                                     <Mail className="h-4 w-4" />
                                     <span className="text-xs">Sent</span>
                                   </span>
@@ -1243,7 +1244,7 @@ export default function AdminClients() {
                           </TableCell>
                           <TableCell>
                             {checkinStatus?.[client.id]?.isEnabled ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium" title={`Next check-in: ${checkinStatus[client.id].nextScheduledAt ? new Date(checkinStatus[client.id].nextScheduledAt!).toLocaleDateString() : 'Not scheduled'}`}>
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium" title={`Next check-in: ${checkinStatus[client.id].nextScheduledAt ? toLocaleDateStringMT(checkinStatus[client.id].nextScheduledAt!, { year: 'numeric', month: 'numeric', day: 'numeric' }) : 'Not scheduled'}`}>
                                 <CalendarCheck className="h-3 w-3" />
                                 Active
                               </span>
@@ -1260,7 +1261,7 @@ export default function AdminClients() {
                                 {getDeletedDaysRemaining(client.deletedAt)} days
                               </span>
                             ) : (
-                              new Date(client.createdAt).toLocaleDateString()
+                              toLocaleDateStringMT(client.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })
                             )}
                           </TableCell>
                           <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>

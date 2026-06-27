@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT, toLocaleTimeStringMT } from "@/lib/timezone";
 import { ArrowLeft, Save, Copy, ExternalLink, Send, Loader2, Plus, Ban, Layers, ChevronRight, Target, MessageSquare, Video, User, AlertCircle, CopyPlus, Trash2, Users, UserPlus, History, StickyNote, Tag, X, Camera, Image, FileText, Smile, Frown, Meh, GitBranch, Clock, Mail, DollarSign, Link2, Eye, CheckCircle2, Pin, PinOff, Pencil, Calendar, BarChart3, ClipboardList, Download, RefreshCw, FolderOpen } from "lucide-react";
 import {
   Dialog,
@@ -1771,7 +1772,7 @@ export default function AdminClientEdit() {
                             <div key={clone.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                               <div>
                                 <p className="font-medium text-sm">{clone.versionName || `Version ${clone.id}`}</p>
-                                <p className="text-xs text-gray-500">{new Date(clone.createdAt).toLocaleDateString()}</p>
+                                <p className="text-xs text-gray-500">{toLocaleDateStringMT(clone.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}</p>
                                 {clone.notes && <p className="text-xs text-gray-600 mt-1">{clone.notes}</p>}
                               </div>
                               <Button
@@ -2066,7 +2067,7 @@ export default function AdminClientEdit() {
                         {version.versionName || `Version ${version.version}`}
                       </span>
                       <span className="text-muted-foreground text-xs">
-                        {version.status} • {new Date(version.createdAt).toLocaleDateString()}
+                        {version.status} • {toLocaleDateStringMT(version.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                       </span>
                     </div>
                   ))}
@@ -2391,7 +2392,7 @@ function IntakeFormsSubTab({ clientEmail, clientName }: { clientEmail: string; c
     doc.text(name, 105, y, { align: 'center' }); y += 5;
     if (intakeFormData.submittedAt) {
       doc.setFontSize(9);
-      doc.text(`Submitted: ${new Date(intakeFormData.submittedAt).toLocaleString()}`, 105, y, { align: 'center' });
+      doc.text(`Submitted: ${toLocaleDateStringMT(intakeFormData.submittedAt)}`, 105, y, { align: 'center' });
     }
     y += 10;
     const pdfSections = [
@@ -2485,7 +2486,7 @@ function IntakeFormsSubTab({ clientEmail, clientName }: { clientEmail: string; c
         </Button>
       </div>
       {intakeFormData.submittedAt && (
-        <p className="text-xs text-gray-500 mb-4">Submitted: {new Date(intakeFormData.submittedAt).toLocaleString()}</p>
+        <p className="text-xs text-gray-500 mb-4">Submitted: {toLocaleDateStringMT(intakeFormData.submittedAt)}</p>
       )}
       <div className="space-y-4 max-h-[600px] overflow-y-auto">
         {[
@@ -2740,7 +2741,7 @@ function InternalNotesTab({ clientId, initialNotes, initialTags }: { clientId: n
                     <span className="font-medium">Saved</span>
                     {lastSavedAt && (
                       <span className="text-muted-foreground font-normal">
-                        {lastSavedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                        {toLocaleTimeStringMT(lastSavedAt, { hour: 'numeric', minute: '2-digit', hour12: true })}
                       </span>
                     )}
                   </span>
@@ -2758,7 +2759,7 @@ function InternalNotesTab({ clientId, initialNotes, initialTags }: { clientId: n
                       <>
                         <span>Last saved</span>
                         <span className="font-medium">
-                          {lastSavedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                          {toLocaleTimeStringMT(lastSavedAt, { hour: 'numeric', minute: '2-digit', hour12: true })}
                         </span>
                       </>
                     ) : (
@@ -3145,7 +3146,7 @@ function CoachingSessionsTab({ clientEmail, clientName }: { clientEmail: string;
                     </Badge>
                     <span className="text-sm text-gray-600 flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {new Date(note.session_date).toLocaleDateString()}
+                      {toLocaleDateStringMT(note.session_date, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                     </span>
                     {note.is_pinned && <Pin className="h-3 w-3 text-amber-600" />}
                   </div>
@@ -3207,7 +3208,7 @@ function CoachingSessionsTab({ clientEmail, clientName }: { clientEmail: string;
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">{note.content}</p>
                 )}
                 <div className="mt-2 text-xs text-gray-400">
-                  by {note.coach_name || 'Admin'} &middot; {new Date(note.created_at).toLocaleString()}
+                  by {note.coach_name || 'Admin'} &middot; {toLocaleDateStringMT(note.created_at)}
 
                 </div>
               </div>
@@ -3282,7 +3283,7 @@ function EngagementHistorySection({ protocolId }: { protocolId?: number }) {
                 </span>
               </div>
               <p className="text-muted-foreground mt-0.5">
-                by {entry.changedByName || 'System'} &middot; {new Date(entry.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                by {entry.changedByName || 'System'} &middot; {toLocaleDateStringMT(entry.createdAt, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
               </p>
             </div>
           </div>
