@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,7 +94,7 @@ export default function CompareProtocols() {
                       {protocol.versionName || `Version ${protocol.version || 1}`}
                     </CardTitle>
                     <CardDescription className="text-slate-400">
-                      Created {new Date(protocol.createdAt).toLocaleDateString()}
+                      Created {toLocaleDateStringMT(protocol.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                     </CardDescription>
                   </div>
                   <Badge variant="outline" className="text-orange-400 border-orange-400/50">

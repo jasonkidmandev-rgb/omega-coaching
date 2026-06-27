@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { processMessageForDisplay } from "@/lib/htmlUtils";
 import { formatNotesHtml } from "@/lib/notesFormatter";
 import {
@@ -1584,7 +1585,7 @@ onPaymentSuccess={() => {
                       <div>
                         <p className="font-medium">Order #{order.id}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(order.createdAt).toLocaleDateString()}
+                          {toLocaleDateStringMT(order.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                         </p>
                       </div>
                       <Badge variant={order.status === 'completed' ? 'default' : order.status === 'pending' ? 'secondary' : 'destructive'}>
@@ -1817,7 +1818,7 @@ onPaymentSuccess={() => {
                 
                 {packingSlip.signedAt && (
                   <p className="text-xs text-muted-foreground">
-                    Verified on {new Date(packingSlip.signedAt).toLocaleDateString()}
+                    Verified on {toLocaleDateStringMT(packingSlip.signedAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                   </p>
                 )}
               </div>
@@ -1864,7 +1865,7 @@ onPaymentSuccess={() => {
                           {comment.authorName || (comment.authorType === "coach" ? "Coach" : "You")}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(comment.createdAt).toLocaleString()}
+                          {toLocaleDateStringMT(comment.createdAt)}
                         </p>
                       </div>
                     </div>

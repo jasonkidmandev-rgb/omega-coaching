@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -772,7 +773,7 @@ export default function ClientDashboard() {
                                 {protocol.versionName || protocol.clientName || 'Protocol Option'}
                               </p>
                               <p className="text-xs text-gray-500">
-                                Created {new Date(protocol.createdAt).toLocaleDateString()}
+                                Created {toLocaleDateStringMT(protocol.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                               </p>
                             </div>
                           </div>
@@ -815,7 +816,7 @@ export default function ClientDashboard() {
                                  protocol.status === 'active' ? 'Active' : 
                                  protocol.status === 'completed' ? 'Completed' : 'Draft'}
                                 {' · '}
-                                Started {new Date(protocol.createdAt).toLocaleDateString()}
+                                Started {toLocaleDateStringMT(protocol.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                               </p>
                             </div>
                           </div>
@@ -850,7 +851,7 @@ export default function ClientDashboard() {
                                 {protocol.versionName || protocol.clientName || 'Archived Protocol'}
                               </p>
                               <p className="text-xs text-gray-400">
-                                Archived {protocol.archivedAt ? new Date(protocol.archivedAt).toLocaleDateString() : ''}
+                                Archived {protocol.archivedAt ? toLocaleDateStringMT(protocol.archivedAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : ''}
                               </p>
                             </div>
                           </div>
@@ -974,7 +975,7 @@ export default function ClientDashboard() {
                             </Badge>
                             <div className="flex justify-between items-end">
                               <span className="text-xs text-white">
-                                {new Date(photo.createdAt).toLocaleDateString()}
+                                {toLocaleDateStringMT(photo.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                               </span>
                               <Button
                                 size="icon"
@@ -1030,7 +1031,7 @@ export default function ClientDashboard() {
                               </span>
                             )}
                             <span className="text-sm text-gray-500">
-                              {new Date(note.noteDate).toLocaleDateString()}
+                              {toLocaleDateStringMT(note.noteDate, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1446,7 +1447,7 @@ export default function ClientDashboard() {
                           {comment.authorName}
                         </span>
                         <span className="text-xs text-slate-500">
-                          {new Date(comment.createdAt).toLocaleDateString()}
+                          {toLocaleDateStringMT(comment.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                         </span>
                         {comment.authorType === 'coach' && !comment.isRead && (
                           <Badge variant="secondary" className="text-xs">New</Badge>
@@ -1669,7 +1670,7 @@ export default function ClientDashboard() {
                 <Badge className="bg-blue-500">Before</Badge>
                 {beforePhoto && (
                   <span className="text-xs text-slate-400">
-                    {new Date(beforePhoto.createdAt).toLocaleDateString()}
+                    {toLocaleDateStringMT(beforePhoto.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                   </span>
                 )}
               </div>
@@ -1711,7 +1712,7 @@ export default function ClientDashboard() {
                 <Badge className="bg-green-500">After / Progress</Badge>
                 {afterPhoto && (
                   <span className="text-xs text-slate-400">
-                    {new Date(afterPhoto.createdAt).toLocaleDateString()}
+                    {toLocaleDateStringMT(afterPhoto.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                   </span>
                 )}
               </div>
