@@ -1,0 +1,23 @@
+name: Type check (ratchet)
+
+# Step 1 of the tsc-cleanup plan: tsc is run via a ratchet that tolerates the
+# pre-existing error backlog but FAILS if a commit introduces NEW type errors.
+# Baseline lives in tsc-error-baseline.txt. See the progress/backlog doc.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # reads packageManager (pnpm@10.4.1) from package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run typecheck:ratchet

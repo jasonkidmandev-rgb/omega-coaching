@@ -92,6 +92,21 @@ sealed staging environment.
 ### Hardening
 - **R6 — PHI encryption** (not started): encrypt sensitive clinical/health fields
   at rest (real PII/PHI present). Invasive; needs careful key management.
+- **Type-safety / `tsc` cleanup** — the project carries ~757 pre-existing
+  `tsc --noEmit` errors and ships via esbuild (no type-checking), so TypeScript is
+  effectively off as a safety net. Phased plan:
+  - **Step 1 — DONE (2026-06-27):** error ratchet — `pnpm run typecheck:ratchet`
+    + `.github/workflows/typecheck.yml` run `tsc` and fail only when the count
+    rises above the committed baseline (`tsc-error-baseline.txt` = 757). Tolerates
+    the backlog, blocks new errors. Update the baseline with `typecheck:baseline`.
+  - **Step 2:** fix the cheap category — missing `Insert*` type exports from
+    `drizzle/schema` (likely a few lines; derive/regenerate). Ratchet the baseline down.
+  - **Step 3:** systemic drizzle mismatches — timestamp `mode: 'string'` vs `Date`,
+    and `tinyint` used as `boolean`. The bulk; likely a schema-type regeneration or
+    a shared helper, not 100s of hand edits. Ratchet down as you go.
+  - **Step 4:** once at 0, make `tsc` blocking (baseline 0 / fail on any error).
+  - Best slotted in around cutover, when correctness matters most and the schema
+    is being touched anyway.
 - Wrap remaining ~12 low-value crons (team digests, maintenance) — pattern set.
 - Optional: prune 3 orphaned `paymentEventsRouter` procedures.
 
