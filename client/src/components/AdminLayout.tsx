@@ -141,7 +141,6 @@ const menuCategories: MenuCategory[] = [
       { icon: Users, label: "Clients", path: "/admin/clients", roles: ['admin', 'manager', 'viewer'] },
       { icon: ClipboardCheck, label: "Client Protocols", path: "/admin/client-protocols", roles: ['admin', 'manager', 'viewer'] },
       { icon: FolderKanban, label: "Client Projects", path: "/admin/projects", roles: ['admin', 'manager', 'viewer'] },
-      { icon: HeartPulse, label: "Client Corner", path: "/admin/client-corner", roles: ['admin', 'manager', 'viewer'] },
       { icon: CalendarClock, label: "Upcoming Appointments", path: "/admin/upcoming-appointments", roles: ['admin', 'manager'] },
     ],
   },

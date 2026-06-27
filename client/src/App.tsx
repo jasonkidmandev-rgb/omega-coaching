@@ -55,7 +55,6 @@ const AdminNotificationReport = lazyWithRetry(() => import("./pages/admin/Notifi
 const AdminEmailTemplatePreview = lazyWithRetry(() => import("./pages/admin/EmailTemplatePreview"));
 const AdminNotificationSettings = lazyWithRetry(() => import("./pages/admin/NotificationSettings"));
 const AdminPaymentHistory = lazyWithRetry(() => import("./pages/admin/PaymentHistory"));
-const AdminClientCornerDashboard = lazyWithRetry(() => import("./pages/admin/ClientCornerDashboard"));
 const AdminCheckinManagement = lazyWithRetry(() => import("./pages/admin/CheckinManagement"));
 const AdminCheckinReview = lazyWithRetry(() => import("./pages/admin/CheckinReview"));
 const AdminNotificationTemplates = lazyWithRetry(() => import("./pages/admin/NotificationTemplates"));
@@ -216,8 +215,6 @@ function Router() {
         <Route path={"/admin/store-orders"} component={AdminStoreOrders} />
         <Route path={"/admin/custom-orders/:id"} component={AdminCustomOrders} />
         <Route path={"/admin/custom-orders"} component={AdminCustomOrders} />
-        {/* Client Corner */}
-        <Route path={"/admin/client-corner"} component={AdminClientCornerDashboard} />
         <Route path={"/admin/checkins"} component={AdminCheckinManagement} />
         <Route path={"/admin/checkin-management"}>{() => { window.location.replace('/admin/checkins'); return null; }}</Route>
         <Route path={"/admin/web-traffic"} component={AdminWebTrafficAnalytics} />
