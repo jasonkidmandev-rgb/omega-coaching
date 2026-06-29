@@ -1,5 +1,6 @@
 import * as React from "react";
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -747,11 +748,11 @@ export default function PackingSlips() {
                         </div>
                         <div className="text-right">
                           <p className="text-xs text-muted-foreground">
-                            {new Date(slip.createdAt).toLocaleDateString()}
+                            {toLocaleDateStringMT(slip.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                           </p>
                           {slip.signedAt && (
                             <p className="text-xs text-green-600">
-                              Signed {new Date(slip.signedAt).toLocaleDateString()}
+                              Signed {toLocaleDateStringMT(slip.signedAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                             </p>
                           )}
                         </div>

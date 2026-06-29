@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
+import { toLocaleDateStringMT } from "../../lib/timezone";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +50,7 @@ function formatRelativeDate(d: any) {
 
 function formatFullDate(d: any) {
   if (!d) return "";
-  return new Date(d).toLocaleDateString("en-US", {
+  return toLocaleDateStringMT(d, {
     month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
   });
 }

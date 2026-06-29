@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
+import { toLocaleDateStringMT } from "../../lib/timezone";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +36,7 @@ export default function MorningBriefing() {
 
   const formatFullDate = (d: any) => {
     if (!d) return "";
-    return new Date(d).toLocaleDateString("en-US", {
+    return toLocaleDateStringMT(d, {
       month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
     });
   };
@@ -251,7 +252,7 @@ export default function MorningBriefing() {
                         <p className="font-medium text-sm">{c.clientName}</p>
                         <p className="text-xs text-muted-foreground">{c.clientEmail}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Added {new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          Added {toLocaleDateStringMT(c.createdAt, { month: "short", day: "numeric" })}
                         </p>
                       </div>
                       <div className="text-right">

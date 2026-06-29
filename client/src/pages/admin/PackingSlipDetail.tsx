@@ -1,5 +1,6 @@
 import * as React from "react";
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -1062,7 +1063,7 @@ export default function PackingSlipDetail() {
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>Created: {new Date(packingSlip.createdAt).toLocaleDateString()}</span>
+                <span>Created: {toLocaleDateStringMT(packingSlip.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}</span>
               </div>
               
               {/* Shipping Address */}
@@ -1210,7 +1211,7 @@ export default function PackingSlipDetail() {
                 </Badge>
                 {(packingSlip as any).deliveredAt && (
                   <span className="text-sm text-muted-foreground">
-                    Delivered: {new Date((packingSlip as any).deliveredAt).toLocaleDateString()}
+                    Delivered: {toLocaleDateStringMT((packingSlip as any).deliveredAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                   </span>
                 )}
               </div>

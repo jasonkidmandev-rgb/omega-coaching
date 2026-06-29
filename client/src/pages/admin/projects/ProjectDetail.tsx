@@ -1,4 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -533,7 +534,7 @@ export default function ProjectDetail() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Created</p>
-                  <p className="font-medium">{new Date(linkedProtocol.createdAt).toLocaleDateString()}</p>
+                  <p className="font-medium">{toLocaleDateStringMT(linkedProtocol.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}</p>
                 </div>
               </div>
             </CardContent>
@@ -943,7 +944,7 @@ export default function ProjectDetail() {
                                 )}
                                 {tracking.estimatedDelivery && (
                                   <p className="text-xs text-muted-foreground">
-                                    Est. Delivery: {new Date(tracking.estimatedDelivery).toLocaleDateString()}
+                                    Est. Delivery: {toLocaleDateStringMT(tracking.estimatedDelivery, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                                   </p>
                                 )}
                               </div>
@@ -1010,7 +1011,7 @@ export default function ProjectDetail() {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-muted-foreground">
-                                {new Date(note.createdAt).toLocaleDateString()}
+                                {toLocaleDateStringMT(note.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                               </span>
                               <Button
                                 variant="ghost"
@@ -1179,7 +1180,7 @@ export default function ProjectDetail() {
                                   {attachment.fileSize && (
                                     <span>{(attachment.fileSize / 1024).toFixed(1)} KB</span>
                                   )}
-                                  <span>{new Date(attachment.createdAt).toLocaleDateString()}</span>
+                                  <span>{toLocaleDateStringMT(attachment.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}</span>
                                 </div>
                                 {attachment.description && (
                                   <p className="text-sm text-muted-foreground mt-1">{attachment.description}</p>
@@ -1253,7 +1254,7 @@ export default function ProjectDetail() {
                         </div>
                         <div>
                           <span className="text-muted-foreground">Created:</span>
-                          <span className="ml-2">{new Date(linkedProtocol.createdAt).toLocaleDateString()}</span>
+                          <span className="ml-2">{toLocaleDateStringMT(linkedProtocol.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}</span>
                         </div>
                       </div>
                     </div>
@@ -1452,7 +1453,7 @@ function formatDueDate(dueDate: string | Date | null | undefined): string {
   if (date.toDateString() === now.toDateString()) return "Today";
   if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
   
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return toLocaleDateStringMT(date, { month: "short", day: "numeric" });
 }
 
 // Task Item Component

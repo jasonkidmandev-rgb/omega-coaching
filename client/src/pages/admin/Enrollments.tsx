@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -667,7 +668,7 @@ export default function AdminEnrollments() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-gray-600">
-                        {enrollment.enrolledAt ? new Date(enrollment.enrolledAt).toLocaleDateString() : "N/A"}
+                        {enrollment.enrolledAt ? toLocaleDateStringMT(enrollment.enrolledAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : "N/A"}
                       </TableCell>
                       <TableCell>
                         {(() => {
@@ -761,7 +762,7 @@ export default function AdminEnrollments() {
                     <span className="text-gray-500">Enrolled:</span>{" "}
                     <span className="text-gray-900">
                       {enrollmentDetails.enrolledAt
-                        ? new Date(enrollmentDetails.enrolledAt).toLocaleDateString()
+                        ? toLocaleDateStringMT(enrollmentDetails.enrolledAt, { year: 'numeric', month: 'numeric', day: 'numeric' })
                         : "N/A"}
                     </span>
                   </div>

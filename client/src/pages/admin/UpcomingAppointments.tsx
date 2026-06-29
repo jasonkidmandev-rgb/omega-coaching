@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
+import { toLocaleDateStringMT, toLocaleTimeStringMT } from "../../lib/timezone";
 import AdminLayout from "@/components/AdminLayout";
 import { Calendar, Clock, User, Mail, Video, Filter, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Globe } from "lucide-react";
 
@@ -30,13 +31,11 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  return toLocaleDateStringMT(dateStr, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 }
 
 function formatTime(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return toLocaleTimeStringMT(dateStr, { hour: "numeric", minute: "2-digit" });
 }
 
 function formatTimeRange(start: string, end: string) {
@@ -285,13 +284,13 @@ export default function UpcomingAppointments() {
                   {/* Date badge */}
                   <div className="flex-shrink-0 w-16 text-center">
                     <div className="text-xs text-gray-400 uppercase">
-                      {new Date(appt.startTime).toLocaleDateString("en-US", { weekday: "short" })}
+                      {toLocaleDateStringMT(appt.startTime, { weekday: "short" })}
                     </div>
                     <div className="text-xl font-bold text-gray-900">
                       {new Date(appt.startTime).getDate()}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {new Date(appt.startTime).toLocaleDateString("en-US", { month: "short" })}
+                      {toLocaleDateStringMT(appt.startTime, { month: "short" })}
                     </div>
                   </div>
 
@@ -471,7 +470,7 @@ export default function UpcomingAppointments() {
         <div className="text-xs text-gray-400 text-center">
           Showing {filtered.length} of {allAppointments.length} appointments
           {calendlyData?.cachedAt && (
-            <span> • Last synced {new Date(calendlyData.cachedAt).toLocaleTimeString()}</span>
+            <span> • Last synced {toLocaleTimeStringMT(calendlyData.cachedAt)}</span>
           )}
         </div>
       )}
