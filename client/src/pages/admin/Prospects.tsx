@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import KanbanBoard from "./KanbanBoard";
 import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -983,10 +984,10 @@ export default function Prospects() {
                         <TableCell className="text-sm text-muted-foreground">{prospect.source || "—"}</TableCell>
                         <TableCell className="text-sm">{prospect.totalSmsSent}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {prospect.lastContactedAt ? new Date(prospect.lastContactedAt).toLocaleDateString() : "—"}
+                          {prospect.lastContactedAt ? toLocaleDateStringMT(prospect.lastContactedAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : "—"}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {prospect.lastClickedAt ? new Date(prospect.lastClickedAt).toLocaleDateString() : "—"}
+                          {prospect.lastClickedAt ? toLocaleDateStringMT(prospect.lastClickedAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : "—"}
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>
@@ -1151,7 +1152,7 @@ export default function Prospects() {
                 {selectedProspect?.name}
               </DialogTitle>
               <DialogDescription>
-                Added {selectedProspect?.createdAt ? new Date(selectedProspect.createdAt).toLocaleDateString() : ""}
+                Added {selectedProspect?.createdAt ? toLocaleDateStringMT(selectedProspect.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : ""}
                 {selectedProspect?.source && ` • Source: ${selectedProspect.source}`}
               </DialogDescription>
             </DialogHeader>

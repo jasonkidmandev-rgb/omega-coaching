@@ -1,4 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -1430,11 +1431,11 @@ function WaiverList() {
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">
-                  Signed: {new Date(waiver.agreedAt).toLocaleDateString()}
+                  Signed: {toLocaleDateStringMT(waiver.agreedAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                 </p>
                 {waiver.expiresAt && (
                   <p className={`text-xs mt-1 ${isExpired ? 'text-red-400' : isExpiringSoon ? 'text-amber-400' : 'text-gray-500'}`}>
-                    {isExpired ? 'Expired' : 'Expires'}: {new Date(waiver.expiresAt).toLocaleDateString()}
+                    {isExpired ? 'Expired' : 'Expires'}: {toLocaleDateStringMT(waiver.expiresAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                   </p>
                 )}
                 {waiver.parentGuardianName && (
@@ -1514,7 +1515,7 @@ function AdminUsersList() {
                 <p className="text-gray-900 font-medium">{user.name}</p>
                 <p className="text-sm text-gray-600">{user.email}</p>
                 <p className="text-xs text-gray-500">
-                  Created: {new Date(user.createdAt).toLocaleDateString()}
+                  Created: {toLocaleDateStringMT(user.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                 </p>
               </div>
               <Select

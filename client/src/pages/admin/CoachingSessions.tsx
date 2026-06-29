@@ -1,4 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -425,7 +426,7 @@ export default function CoachingSessions() {
                               </Badge>
                               <span className="text-xs text-gray-500 flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date(note.session_date).toLocaleDateString()}
+                                {toLocaleDateStringMT(note.session_date, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                               </span>
                               {note.is_pinned && <Pin className="h-3 w-3 text-amber-600" />}
                             </div>

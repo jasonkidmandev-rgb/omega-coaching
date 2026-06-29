@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -950,7 +951,7 @@ function OrderDetailDialog({ orderId, open, onOpenChange, onUpdated }: {
             )}
           </div>
           <DialogDescription>
-            Created {new Date(o.createdAt).toLocaleDateString()} by {o.createdByName || "Admin"}
+            Created {toLocaleDateStringMT(o.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })} by {o.createdByName || "Admin"}
             {isEditable && !isEditing && (
               <span className="ml-2 text-blue-600 text-xs">(Editable)</span>
             )}
@@ -1600,7 +1601,7 @@ export default function CustomOrders() {
                       <StatusBadge status={order.status} />
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {toLocaleDateStringMT(order.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

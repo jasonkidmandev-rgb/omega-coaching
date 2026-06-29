@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -530,7 +531,7 @@ export default function EmailTemplatePreview() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <p className="text-xs text-muted-foreground">
-                  Last updated: {new Date(customization.updatedAt).toLocaleDateString()}
+                  Last updated: {toLocaleDateStringMT(customization.updatedAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                 </p>
                 <div className="flex gap-2">
                   <Button 

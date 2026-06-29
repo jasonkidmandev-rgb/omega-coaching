@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "../../lib/trpc";
+import { toLocaleDateStringMT } from "../../lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -335,7 +336,7 @@ export default function TransformationPayments() {
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
                         <Calendar className="h-4 w-4 shrink-0" />
-                        <span>{new Date(payment.createdAt).toLocaleDateString()}</span>
+                        <span>{toLocaleDateStringMT(payment.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}</span>
                       </div>
                     </div>
 
