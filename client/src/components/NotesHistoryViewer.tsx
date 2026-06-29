@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { History, Clock, User, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
+import { toLocaleDateStringMT } from '@/lib/timezone';
 
 interface NotesHistoryViewerProps {
   clientProtocolId: number;
@@ -21,8 +22,7 @@ interface NotesHistoryViewerProps {
 }
 
 function formatDate(date: Date | string) {
-  const d = new Date(date);
-  return d.toLocaleString('en-US', {
+  return toLocaleDateStringMT(date, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

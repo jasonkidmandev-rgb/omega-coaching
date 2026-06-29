@@ -1,5 +1,6 @@
 import { CheckCircle2, Loader2, AlertCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toLocaleTimeStringMT } from "@/lib/timezone";
 
 interface SaveStatusIndicatorProps {
   isSaving: boolean;
@@ -20,7 +21,7 @@ function formatRelativeTime(date: Date): string {
   if (diffSecs < 60) return `${diffSecs}s ago`;
   if (diffMins < 60) return `${diffMins}m ago`;
 
-  return date.toLocaleTimeString("en-US", {
+  return toLocaleTimeStringMT(date, {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,

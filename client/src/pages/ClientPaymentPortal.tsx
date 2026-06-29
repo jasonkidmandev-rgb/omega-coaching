@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { trpc } from "../lib/trpc";
+import { toLocaleDateStringMT } from "../lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
@@ -99,7 +100,7 @@ export default function ClientPaymentPortal() {
 
   const formatDate = (date: string | Date | null) => {
     if (!date) return "-";
-    return new Date(date).toLocaleDateString("en-US", {
+    return toLocaleDateStringMT(date, {
       year: "numeric",
       month: "short",
       day: "numeric",

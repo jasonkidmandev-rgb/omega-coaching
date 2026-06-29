@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Plus, Minus, RefreshCw, FileText, ArrowRight, Download, RotateCcw } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 
 interface VersionComparisonDialogProps {
   open: boolean;
@@ -96,9 +97,9 @@ export function VersionComparisonDialog({
       </head>
       <body>
         <h1>Protocol Version Comparison Report</h1>
-        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
-        <p><strong>From:</strong> ${version1?.versionName || `Version ${version1?.version}`} (${new Date(version1?.createdAt || '').toLocaleDateString()})</p>
-        <p><strong>To:</strong> ${version2?.versionName || `Version ${version2?.version}`} (${new Date(version2?.createdAt || '').toLocaleDateString()})</p>
+        <p><strong>Generated:</strong> ${toLocaleDateStringMT(new Date())}</p>
+        <p><strong>From:</strong> ${version1?.versionName || `Version ${version1?.version}`} (${toLocaleDateStringMT(version1?.createdAt || '', { year: 'numeric', month: 'numeric', day: 'numeric' })})</p>
+        <p><strong>To:</strong> ${version2?.versionName || `Version ${version2?.version}`} (${toLocaleDateStringMT(version2?.createdAt || '', { year: 'numeric', month: 'numeric', day: 'numeric' })})</p>
         
         <h2>Summary</h2>
         <div class="summary">
@@ -201,7 +202,7 @@ export function VersionComparisonDialog({
                       {version.versionName || `v${version.version}`}
                       {version.isActiveVersion && " (Current)"}
                       <span className="text-muted-foreground ml-2 text-xs">
-                        {new Date(version.createdAt).toLocaleDateString()}
+                        {toLocaleDateStringMT(version.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                       </span>
                     </SelectItem>
                   ))}
@@ -226,7 +227,7 @@ export function VersionComparisonDialog({
                       {version.versionName || `v${version.version}`}
                       {version.isActiveVersion && " (Current)"}
                       <span className="text-muted-foreground ml-2 text-xs">
-                        {new Date(version.createdAt).toLocaleDateString()}
+                        {toLocaleDateStringMT(version.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                       </span>
                     </SelectItem>
                   ))}

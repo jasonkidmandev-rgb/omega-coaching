@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { FileText, Pen, Check, AlertTriangle, RefreshCw, Loader2, CheckCircle } from "lucide-react";
 
 export default function WaiverRenewal() {
@@ -194,7 +195,7 @@ export default function WaiverRenewal() {
               Renew Your Store Waiver
             </CardTitle>
             <CardDescription className="text-slate-400 text-base">
-              Hi {waiverInfo.firstName}, your waiver {waiverInfo.expiresAt ? `expired on ${new Date(waiverInfo.expiresAt).toLocaleDateString()}` : 'needs renewal'}. Please review and sign below to continue accessing the Omega Store.
+              Hi {waiverInfo.firstName}, your waiver {waiverInfo.expiresAt ? `expired on ${toLocaleDateStringMT(waiverInfo.expiresAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}` : 'needs renewal'}. Please review and sign below to continue accessing the Omega Store.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6 space-y-6">

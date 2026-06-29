@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { CheckCircle, Clock, AlertCircle, RefreshCw, CreditCard, Calendar, Truck } from "lucide-react";
 
 interface PaymentStatusWidgetProps {
@@ -168,7 +169,7 @@ export function PaymentStatusWidget({
               Payment Date
             </span>
             <span className="font-medium">
-              {new Date(paymentDate).toLocaleDateString("en-US", {
+              {toLocaleDateStringMT(paymentDate, {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
@@ -185,7 +186,7 @@ export function PaymentStatusWidget({
               Estimated Delivery
             </span>
             <span className="font-semibold text-green-800">
-              {estimatedDelivery.toLocaleDateString("en-US", {
+              {toLocaleDateStringMT(estimatedDelivery, {
                 month: "short",
                 day: "numeric",
                 year: "numeric",

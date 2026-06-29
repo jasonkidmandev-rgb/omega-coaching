@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { toLocaleTimeStringMT } from '@/lib/timezone';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -438,7 +439,7 @@ export const IntakeFormWizard: React.FC<IntakeFormWizardProps> = ({
                 <Save className="h-4 w-4 animate-pulse" /> Saving...
               </span>
             ) : lastSaved ? (
-              <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+              <span>Last saved: {toLocaleTimeStringMT(lastSaved)}</span>
             ) : null}
           </div>
         </div>
