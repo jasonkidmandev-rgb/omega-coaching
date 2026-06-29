@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -748,9 +749,9 @@ export default function PaymentHistory() {
                       </TableCell>
                       <TableCell className="text-sm">
                         {payment.paymentDate
-                          ? new Date(payment.paymentDate).toLocaleDateString()
+                          ? toLocaleDateStringMT(payment.paymentDate, { year: 'numeric', month: 'numeric', day: 'numeric' })
                           : payment.createdAt
-                          ? new Date(payment.createdAt).toLocaleDateString()
+                          ? toLocaleDateStringMT(payment.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })
                           : "N/A"}
                       </TableCell>
                       <TableCell>

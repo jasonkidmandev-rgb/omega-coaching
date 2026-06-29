@@ -1,4 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -1497,7 +1498,7 @@ ${inventoryData.map(cat => {
                     {transactions.map((tx) => (
                       <TableRow key={tx.id}>
                         <TableCell className="text-xs">
-                          {new Date(tx.createdAt).toLocaleDateString()}
+                          {toLocaleDateStringMT(tx.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                         </TableCell>
                         <TableCell>
                           <Badge variant={tx.type === "sale" ? "destructive" : tx.type === "restock" ? "default" : "secondary"}>

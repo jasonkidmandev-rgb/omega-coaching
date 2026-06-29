@@ -5,6 +5,7 @@
  */
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -120,7 +121,7 @@ function daysSince(dateStr: string | null | undefined): number | null {
 // Enhanced Prospect card with follow-up indicators
 function ProspectCard({ prospect, onClick, isDragging }: { prospect: any; onClick: () => void; isDragging?: boolean }) {
   const lastContact = prospect.lastContactedAt
-    ? new Date(prospect.lastContactedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    ? toLocaleDateStringMT(prospect.lastContactedAt, { month: "short", day: "numeric" })
     : null;
   const daysSinceContact = daysSince(prospect.lastContactedAt);
   const daysSinceCreated = daysSince(prospect.createdAt);
@@ -471,7 +472,7 @@ function ProspectQuickView({
                   <div className="flex items-center justify-between">
                     <Badge variant="outline" className="text-[10px]">{e.eventType?.replace(/_/g, " ")}</Badge>
                     <span className="text-muted-foreground">
-                      {new Date(e.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {toLocaleDateStringMT(e.createdAt, { month: "short", day: "numeric" })}
                     </span>
                   </div>
                   {e.notes && <p className="mt-1 text-muted-foreground">{e.notes}</p>}

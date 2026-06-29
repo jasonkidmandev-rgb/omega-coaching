@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Badge } from "@/components/ui/badge";
 import {
   Phone,
@@ -38,7 +39,7 @@ import { CSS } from "@dnd-kit/utilities";
 // Prospect card component
 function ProspectCard({ prospect, onClick, isDragging }: { prospect: any; onClick: () => void; isDragging?: boolean }) {
   const lastContact = prospect.lastContactDate
-    ? new Date(prospect.lastContactDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    ? toLocaleDateStringMT(prospect.lastContactDate, { month: "short", day: "numeric" })
     : null;
 
   return (

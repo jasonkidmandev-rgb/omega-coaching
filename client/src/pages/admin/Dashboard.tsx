@@ -3,6 +3,7 @@ import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT, toLocaleTimeStringMT } from "@/lib/timezone";
 import { Users, FileText, Package, CheckCircle, Clock, AlertCircle, Link2, AlertTriangle, MessageSquare, Calendar, ArrowRight, Mail, MailOpen, TrendingUp, MousePointer, ExternalLink, ListTodo, Send, DollarSign, User, Sparkles, Info, Settings, Eye, EyeOff, RotateCcw, GripVertical, X, Gift, Trophy, Medal, ClipboardList, UserCheck, UserX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
@@ -500,10 +501,10 @@ export default function AdminDashboard() {
                         </div>
                         <div className="text-right">
                           <p className="text-xs text-muted-foreground">
-                            {new Date(client.openedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            {toLocaleDateStringMT(client.openedAt, { month: 'short', day: 'numeric' })}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(client.openedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                            {toLocaleTimeStringMT(client.openedAt, { hour: 'numeric', minute: '2-digit' })}
                           </p>
                         </div>
                       </div>
@@ -599,7 +600,7 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {click.clickedAt ? new Date(click.clickedAt).toLocaleDateString() : ''}
+                          {click.clickedAt ? toLocaleDateStringMT(click.clickedAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : ''}
                         </span>
                       </div>
                     ))}
@@ -650,7 +651,7 @@ export default function AdminDashboard() {
                       <div>
                         <p className="text-sm font-medium">{protocol.clientName}</p>
                         <p className="text-xs text-muted-foreground">
-                          Sent {protocol.sentAt ? new Date(protocol.sentAt).toLocaleDateString() : 'N/A'}
+                          Sent {protocol.sentAt ? toLocaleDateStringMT(protocol.sentAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : 'N/A'}
                           {protocol.followUpCount > 0 && ` • ${protocol.followUpCount} follow-up(s) sent`}
                         </p>
                       </div>

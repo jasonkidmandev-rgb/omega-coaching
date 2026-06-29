@@ -1,4 +1,5 @@
 import { trpc } from "../../lib/trpc";
+import { toLocaleDateStringMT } from "../../lib/timezone";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -280,7 +281,7 @@ export default function ConversionTracking() {
                         </Badge>
                       </td>
                       <td className="py-2 text-muted-foreground text-xs">
-                        {r.enrolledAt ? new Date(r.enrolledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
+                        {r.enrolledAt ? toLocaleDateStringMT(r.enrolledAt, { month: 'short', day: 'numeric' }) : '-'}
                       </td>
                     </tr>
                   ))}

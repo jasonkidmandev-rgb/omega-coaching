@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -196,7 +197,7 @@ export default function RefundManagement() {
                       <TableCell className="text-sm max-w-xs truncate">{request.reason}</TableCell>
                       <TableCell className="text-sm">
                         {request.requestedAt
-                          ? new Date(request.requestedAt).toLocaleDateString()
+                          ? toLocaleDateStringMT(request.requestedAt, { year: 'numeric', month: 'numeric', day: 'numeric' })
                           : "N/A"}
                       </TableCell>
                       <TableCell>
@@ -274,7 +275,7 @@ export default function RefundManagement() {
                       </TableCell>
                       <TableCell className="text-sm">
                         {request.requestedAt
-                          ? new Date(request.requestedAt).toLocaleDateString()
+                          ? toLocaleDateStringMT(request.requestedAt, { year: 'numeric', month: 'numeric', day: 'numeric' })
                           : "N/A"}
                       </TableCell>
                       <TableCell>
