@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -98,7 +99,7 @@ export default function DataIntegrityAudit() {
                 <Database className="w-6 h-6" /> Data Integrity Audit
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                Scanned at {new Date(data.auditTimestamp).toLocaleString()}
+                Scanned at {toLocaleDateStringMT(data.auditTimestamp)}
               </p>
             </div>
           </div>

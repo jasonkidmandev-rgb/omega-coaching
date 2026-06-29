@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -591,7 +592,7 @@ function WebTrafficAnalyticsContent() {
                           </Badge>
                         )}
                         <span className="text-xs text-slate-500 whitespace-nowrap">
-                          {view.createdAt ? new Date(view.createdAt).toLocaleString() : ""}
+                          {view.createdAt ? toLocaleDateStringMT(view.createdAt) : ""}
                         </span>
                       </div>
                     </div>

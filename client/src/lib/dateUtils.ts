@@ -1,6 +1,8 @@
+import { toLocaleDateStringMT } from "./timezone";
+
 export function formatDate(d: Date | string | null | undefined): string {
   if (!d) return "";
-  return new Date(d).toLocaleDateString("en-US", {
+  return toLocaleDateStringMT(d, {
     month: "short", day: "numeric", year: "numeric",
   });
 }

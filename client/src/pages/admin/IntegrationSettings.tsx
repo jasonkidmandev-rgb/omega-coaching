@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -327,7 +328,7 @@ export default function IntegrationSettings() {
                   {(events.data || []).map((e: any) => (
                     <TableRow key={e.id}>
                       <TableCell className="text-sm whitespace-nowrap">
-                        {new Date(e.receivedAt).toLocaleString()}
+                        {toLocaleDateStringMT(e.receivedAt)}
                       </TableCell>
                       <TableCell className="font-mono text-xs max-w-[160px] truncate" title={e.eventId}>
                         {e.eventId}

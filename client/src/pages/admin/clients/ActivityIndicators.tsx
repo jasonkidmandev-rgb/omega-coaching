@@ -1,4 +1,5 @@
 import { CheckCircle, Eye, Send } from "lucide-react";
+import { toLocaleDateStringMT } from "@/lib/timezone";
 
 type ActivityIndicatorsProps = {
   sentAt: Date | string | null;
@@ -21,7 +22,7 @@ export default function ActivityIndicators({
       <span 
         key="sent" 
         className="inline-flex items-center gap-1 text-xs text-blue-600" 
-        title={`Sent: ${new Date(sentAt).toLocaleString()}`}
+        title={`Sent: ${toLocaleDateStringMT(sentAt)}`}
       >
         <Send className="h-3 w-3" />
         Sent
@@ -35,7 +36,7 @@ export default function ActivityIndicators({
       <span 
         key="opened" 
         className="inline-flex items-center gap-1 text-xs text-green-600" 
-        title={`Opened: ${new Date(firstViewedAt).toLocaleString()}`}
+        title={`Opened: ${toLocaleDateStringMT(firstViewedAt)}`}
       >
         <Eye className="h-3 w-3" />
         Opened
@@ -49,7 +50,7 @@ export default function ActivityIndicators({
       <span 
         key="completed" 
         className="inline-flex items-center gap-1 text-xs text-purple-600" 
-        title={approvedAt ? `Approved: ${new Date(approvedAt).toLocaleString()}` : 'Approved'}
+        title={approvedAt ? `Approved: ${toLocaleDateStringMT(approvedAt)}` : 'Approved'}
       >
         <CheckCircle className="h-3 w-3" />
         {status === 'completed' ? 'Completed' : 'Approved'}
