@@ -20,7 +20,6 @@ import { refundRouter } from "./refund/router";
 import { bookingRouter } from "./booking/router";
 import { calendlyRouter } from "./calendly/router";
 import { outlookRouter } from "./integrations/outlookRouter";
-import { revenueGoalsRouter } from "./settings/revenueGoalsRouter";
 import { adminSettingsRouter } from "./settings/adminSettingsRouter";
 import { protocolPresetsRouter } from "./settings/protocolPresetsRouter";
 import { emailTemplatesRouter } from "./settings/emailTemplatesRouter";
@@ -1048,7 +1047,17 @@ const clientProtocolRouter = router({
     )
     .mutation(async ({ input }) => {
       let { templateId, ...rest } = input;
-      
+
+      // B4 — verified email is the unique client identity, so a protocol can't be
+      // created without one. Surface this as a clean validation error here (the
+      // chokepoint in createClientProtocol is the backstop for other call paths).
+      if (!input.clientEmail || input.clientEmail.trim() === '') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: "A client email is required to create a protocol. Add the client's email — phone/name-only entrants remain leads until an email is on file.",
+        });
+      }
+
       // Filter out empty strings and undefined values
       const cleanData: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(rest)) {
@@ -1056,7 +1065,7 @@ const clientProtocolRouter = router({
           cleanData[key] = value;
         }
       }
-      
+
       // Check for duplicate protocols by email or name
       if (input.clientEmail) {
         const existingProtocols = await db.getClientProtocolsByEmail(input.clientEmail);
@@ -3280,14 +3289,6 @@ const affiliateRouter = router({
       await db.trackAffiliateClick(input);
       return { success: true };
     }),
-  stats: adminProcedure.query(async () => {
-    return db.getAffiliateClickStatsWithItems();
-  }),
-  byItem: adminProcedure
-    .input(z.object({ protocolItemId: z.number() }))
-    .query(async ({ input }) => {
-      return db.getAffiliateClicksByItem(input.protocolItemId);
-    }),
 });
 
 // ============ PROTOCOL COMMENTS ROUTER ============
@@ -3985,16 +3986,6 @@ const inventoryRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       return db.deleteProtocolInventoryMapping(input.id);
-    }),
-  // Sales Report
-  getSalesReport: adminProcedure
-    .input(z.object({
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-      period: z.enum(['7d', '30d', '90d', '365d', 'all', 'custom']).optional(),
-    }))
-    .query(async ({ input }) => {
-      return db.getSalesReport(input);
     }),
   // Backfill inventory sale transactions for paid protocols missing inventory deduction
   // One-time fix: Set approvedAt on client_protocols linked to transformation enrollments
@@ -7147,7 +7138,6 @@ export const appRouter = router({
   waiver: waiverRouter,
   ageDisclaimer: ageDisclaimerRouter,
   settings: settingsRouter,
-  revenueGoals: revenueGoalsRouter,
   adminSettings: adminSettingsRouter,
   protocolPresets: protocolPresetsRouter,
   emailTemplates: emailTemplatesRouter,
@@ -9539,117 +9529,6 @@ export const appRouter = router({
     }),
   }),
 
-  // ============ CONSULTATION NOTES ============
-  consultationNotes: router({
-    // List consultation notes (for admin/Shannon)
-    list: adminProcedure
-      .input(z.object({
-        prospectId: z.number().optional(),
-        enrollmentId: z.number().optional(),
-        limit: z.number().default(50),
-      }))
-      .query(async ({ input }) => {
-        const database = await db.getDb();
-        if (!database) return [];
-        const { consultationNotes } = await import('../drizzle/schema');
-        const { desc, eq, and } = await import('drizzle-orm');
-        let query = database.select().from(consultationNotes).orderBy(desc(consultationNotes.consultDate)).limit(input.limit);
-        const conditions: any[] = [];
-        if (input.prospectId) conditions.push(eq(consultationNotes.prospectId, input.prospectId));
-        if (input.enrollmentId) conditions.push(eq(consultationNotes.enrollmentId, input.enrollmentId));
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions)) as any;
-        }
-        return query;
-      }),
-
-    // Create consultation notes (Jason enters after consult)
-    create: adminProcedure
-      .input(z.object({
-        prospectId: z.number().optional(),
-        enrollmentId: z.number().optional(),
-        clientId: z.number().optional(),
-        consultType: z.enum(['quick_hit_20min', 'strategy_session', 'discovery_call', 'follow_up', 'other']),
-        notes: z.string().min(1),
-        recommendations: z.string().optional(),
-        nextSteps: z.string().optional(),
-        suggestedTier: z.string().optional(),
-        suggestedProgram: z.string().optional(),
-        consultDate: z.string().or(z.date()),
-      }))
-      .mutation(async ({ input, ctx }) => {
-        const database = await db.getDb();
-        if (!database) throw new Error('Database not available');
-        const { consultationNotes } = await import('../drizzle/schema');
-        const result = await database.insert(consultationNotes).values({
-          prospectId: input.prospectId || null,
-          enrollmentId: input.enrollmentId || null,
-          clientId: input.clientId || null,
-          authorId: ctx.user.id,
-          consultType: input.consultType,
-          notes: input.notes,
-          recommendations: input.recommendations || null,
-          nextSteps: input.nextSteps || null,
-          suggestedTier: input.suggestedTier || null,
-          suggestedProgram: input.suggestedProgram || null,
-          consultDate: new Date(input.consultDate),
-          noteEnteredAt: new Date(),
-        });
-        // Notify Shannon that consultation notes are available
-        try {
-          let clientLabel = 'Unknown';
-          if (input.prospectId) {
-            const { prospects } = await import('../drizzle/schema');
-            const { eq } = await import('drizzle-orm');
-            const [prospect] = await database.select().from(prospects).where(eq(prospects.id, input.prospectId));
-            clientLabel = prospect?.name || `Prospect #${input.prospectId}`;
-          } else if (input.enrollmentId) {
-            clientLabel = `Enrollment #${input.enrollmentId}`;
-          }
-
-          await db.createNotificationsForEnabledUsers(
-            'consultation_notes_added',
-            `Consultation notes added for ${clientLabel}`,
-            `Jason has entered ${input.consultType.replace(/_/g, ' ')} notes for ${clientLabel}.${input.nextSteps ? ` Next steps: ${input.nextSteps}` : ''}${input.suggestedTier ? ` Suggested tier: ${input.suggestedTier}` : ''}`,
-          );
-
-          // Also add as a prospect engagement note so Shannon sees it in the lead pipeline
-          if (input.prospectId) {
-            const { prospectEngagement } = await import('../drizzle/schema');
-            await database.insert(prospectEngagement).values({
-              prospectId: input.prospectId,
-              eventType: 'note' as any,
-              notes: `[Consultation Notes - ${input.consultType.replace(/_/g, ' ')}] ${input.notes}${input.recommendations ? `\nRecommendations: ${input.recommendations}` : ''}${input.nextSteps ? `\nNext Steps: ${input.nextSteps}` : ''}`,
-              loggedBy: ctx.user.name || ctx.user.email || 'Jason',
-            });
-          }
-        } catch (notifErr) {
-          console.error('[ConsultationNotes] Failed to send notification:', notifErr);
-        }
-
-        return { id: result[0].insertId };
-      }),
-
-    // Update consultation notes
-    update: adminProcedure
-      .input(z.object({
-        id: z.number(),
-        notes: z.string().optional(),
-        recommendations: z.string().optional(),
-        nextSteps: z.string().optional(),
-        suggestedTier: z.string().optional(),
-        suggestedProgram: z.string().optional(),
-      }))
-      .mutation(async ({ input }) => {
-        const database = await db.getDb();
-        if (!database) throw new Error('Database not available');
-        const { consultationNotes } = await import('../drizzle/schema');
-        const { eq } = await import('drizzle-orm');
-        const { id, ...data } = input;
-        await database.update(consultationNotes).set(data).where(eq(consultationNotes.id, id));
-        return { success: true };
-      }),
-  }),
 
   // ==========================================
   // Phase 56: My Action Items & Fulfillment Queue

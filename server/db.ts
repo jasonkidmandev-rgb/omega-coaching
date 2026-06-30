@@ -1469,7 +1469,22 @@ export async function getClientProtocolsByEmail(email: string) {
 export async function createClientProtocol(data: InsertClientProtocol) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  
+
+  // B4 — verified-email-required guard. Creating a protocol promotes a contact to
+  // CLIENT, and the canonical client identity is keyed on verified email. So a
+  // brand-new client protocol must carry an email. Records already resolved to a
+  // contact (version carry-forward, clones that pass contactId) are exempt — the
+  // identity already exists. Phone/name-only entrants stay pre-client leads until
+  // an email is on file. This is the app-layer guard ahead of the cutover
+  // UNIQUE(contacts.email) constraint (cutover/identity-constraints.sql).
+  if (!data.contactId && !data.clientEmail) {
+    throw new Error(
+      "A client email is required to create a protocol — verified email is the " +
+      "unique client identity. Capture the client's email first (phone/name-only " +
+      "entrants remain leads until an email is on file)."
+    );
+  }
+
   // Create or find unified contact if not already linked
   if (!data.contactId && (data.clientEmail || data.clientPhone || data.clientName)) {
     try {

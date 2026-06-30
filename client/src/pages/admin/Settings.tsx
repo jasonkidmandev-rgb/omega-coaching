@@ -1598,13 +1598,6 @@ function ToolsSection() {
       path: "/admin/email-report-settings",
       color: "cyan",
     },
-    {
-      title: "QA Testing Dashboard",
-      description: "Comprehensive testing checklist for all platform features",
-      icon: FileCheck,
-      path: "/admin/qa-testing",
-      color: "purple",
-    },
   ];
 
   const colorClasses: Record<string, { bg: string; border: string; icon: string; hover: string }> = {
@@ -1695,10 +1688,8 @@ function ToolsSection() {
               { label: "Clients", path: "/admin/clients" },
               { label: "Packing Slips", path: "/admin/packing-slips" },
               { label: "Store Orders", path: "/admin/store-orders" },
-              { label: "Revenue Goals", path: "/admin/revenue-goals" },
               { label: "Categories", path: "/admin/categories" },
               { label: "Affiliate Partners", path: "/admin/affiliate-partners" },
-              { label: "Coupons", path: "/admin/coupons" },
               { label: "Dashboard", path: "/admin" },
             ].map((link) => (
               <button

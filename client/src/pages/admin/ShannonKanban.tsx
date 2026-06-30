@@ -492,14 +492,6 @@ function ProspectQuickView({
         >
           Full Profile <ExternalLink className="h-3 w-3 ml-1" />
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={() => { onClose(); setLocation("/admin/consultation-notes"); }}
-        >
-          Consultation Notes <ChevronRight className="h-3 w-3 ml-1" />
-        </Button>
       </div>
     </div>
   );
