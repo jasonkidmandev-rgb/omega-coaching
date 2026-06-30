@@ -66,8 +66,13 @@ function splitFullName(fullName: string): { firstName: string; lastName: string 
 
 /**
  * Find an existing contact or create a new one.
- * Matches by: email (strongest) → phone → full name (2+ words only)
- * 
+ *
+ * DETERMINISTIC resolution (identity-consolidation design, 2026-06-30):
+ * auto-links ONLY on an exact normalized email match. Phone and name are
+ * unreliable identity signals — a single typo or a shared line can fuse two
+ * different people — so they are logged as review suggestions but NEVER
+ * auto-merged. Verified email is the canonical key.
+ *
  * If found, updates any missing fields and upgrades lifecycle stage if appropriate.
  * If not found, creates a new contact record.
  */
@@ -89,37 +94,32 @@ export async function findOrCreateContact(input: FindOrCreateContactInput): Prom
 
   const d = await db();
 
-  // Try to find existing contact
+  // Try to find existing contact — DETERMINISTIC: auto-link ONLY on exact email.
   let existing: any = null;
 
-  // 1. Match by email (strongest)
+  // Match by email — the single auto-link signal (canonical, verifiable, stable).
   if (normEmail) {
     const [found] = await d.select().from(contacts).where(eq(contacts.email, normEmail)).limit(1);
     if (found) existing = found;
   }
 
-  // 2. Match by phone
-  if (!existing && normPhone) {
-    // We need to match normalized phones — strip non-digits from DB phone too
-    const allWithPhone = await d.select().from(contacts).where(isNotNull(contacts.phone));
-    for (const c of allWithPhone) {
-      const cPhone = normalizePhone(c.phone);
-      if (cPhone && cPhone === normPhone) {
-        existing = c;
-        break;
+  // No email match → do NOT fuse on phone/name. Surface a possible duplicate for
+  // human review (merge tool), then fall through to creating a distinct contact.
+  if (!existing && (normPhone || (fullNameNorm && fullNameNorm.includes(' ')))) {
+    try {
+      const candidates = await d.select().from(contacts);
+      const suspect = candidates.find((c: any) => {
+        const cPhone = normalizePhone(c.phone);
+        const cName = normalizeName(`${c.firstName || ''} ${c.lastName || ''}`);
+        return (normPhone && cPhone && cPhone === normPhone)
+          || (fullNameNorm && fullNameNorm.includes(' ') && cName && cName === fullNameNorm);
+      });
+      if (suspect) {
+        const by = normPhone && normalizePhone(suspect.phone) === normPhone ? 'phone' : 'name';
+        console.warn(`[contactService] Possible duplicate (NOT auto-merged): new "${(firstName || '').trim()} ${(lastName || '').trim()}" / ${normEmail || 'no-email'} resembles contact #${suspect.id} by ${by}. Review via merge tool.`);
       }
-    }
-  }
-
-  // 3. Match by full name (only 2+ word names to avoid false positives)
-  if (!existing && fullNameNorm && fullNameNorm.includes(' ')) {
-    const allContacts = await d.select().from(contacts);
-    for (const c of allContacts) {
-      const cName = normalizeName(`${c.firstName || ''} ${c.lastName || ''}`);
-      if (cName && cName === fullNameNorm) {
-        existing = c;
-        break;
-      }
+    } catch (_e) {
+      /* suggestion-only — never block contact creation */
     }
   }
 

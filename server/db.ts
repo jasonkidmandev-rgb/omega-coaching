@@ -1281,9 +1281,12 @@ export async function createNewProtocolVersion(clientId: number, data: Partial<I
     }
   }
   
-  // Create new protocol version
+  // Create new protocol version. Carry contactId forward from the version being
+  // superseded so the canonical identity link stays complete by design
+  // (identity-consolidation 2026-06-30), not via the nightly reconciliation cron.
   const newProtocolData: InsertClientProtocol = {
     clientId: clientId,
+    contactId: currentProtocols.length > 0 ? (currentProtocols[0].contactId ?? undefined) : undefined,
     clientName: clientInfo.name,
     clientEmail: clientInfo.email || undefined,
     clientPhone: clientInfo.phone || undefined,
@@ -1340,9 +1343,12 @@ export async function createNewProtocolVersionFromProtocol(currentProtocol: any,
       ));
   }
   
-  // Build new protocol data from the current protocol's fields
+  // Build new protocol data from the current protocol's fields. Carry contactId
+  // forward so the canonical identity link stays complete (identity-consolidation
+  // 2026-06-30).
   const newProtocolData: InsertClientProtocol = {
     clientId: currentProtocol.clientId || undefined,
+    contactId: currentProtocol.contactId || undefined,
     clientName: currentProtocol.clientName,
     clientEmail: currentProtocol.clientEmail || undefined,
     clientPhone: currentProtocol.clientPhone || undefined,
