@@ -24,6 +24,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  MinusCircle,
   Link2,
 } from "lucide-react";
 import { useLocation } from "wouter";
@@ -54,7 +55,7 @@ export default function IntegrationSettings() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<MappingForm>(emptyForm);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [eventStatusFilter, setEventStatusFilter] = useState<"all" | "processed" | "failed" | "received">("all");
+  const [eventStatusFilter, setEventStatusFilter] = useState<"all" | "received" | "processed" | "skipped" | "failed">("all");
 
   // Queries
   const mappings = trpc.externalIntegrations.listMappings.useQuery();
@@ -152,15 +153,26 @@ export default function IntegrationSettings() {
         return <Badge className="bg-red-100 text-red-700 border border-red-200"><XCircle className="h-3 w-3 mr-1" /> Failed</Badge>;
       case "received":
         return <Badge className="bg-yellow-100 text-yellow-700 border border-yellow-200"><Clock className="h-3 w-3 mr-1" /> Received</Badge>;
+      case "skipped":
+        return <Badge className="bg-slate-100 text-slate-600 border border-slate-200"><MinusCircle className="h-3 w-3 mr-1" /> Skipped</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
+  const sourceBadge = (source: string) => {
+    if (source === "ghl")
+      return <Badge className="bg-purple-100 text-purple-700 border border-purple-200">GHL</Badge>;
+    if (source === "omega")
+      return <Badge className="bg-blue-100 text-blue-700 border border-blue-200">Omega</Badge>;
+    return <Badge variant="secondary">{source}</Badge>;
+  };
+
   const payloadEmail = (payload: any) => {
     try {
       const p = typeof payload === "string" ? JSON.parse(payload) : payload;
-      return p?.customer?.email || "—";
+      // omega nests under customer.email; GHL sends email at the top level.
+      return p?.customer?.email || p?.email || "—";
     } catch {
       return "—";
     }
@@ -180,7 +192,7 @@ export default function IntegrationSettings() {
               External Integrations
             </h1>
             <p className="text-muted-foreground mt-1">
-              omegalongevity.com purchase webhook — product mappings and inbound event log
+              omegalongevity.com purchases + GoHighLevel coaching webhooks — product mappings and inbound event log
             </p>
           </div>
         </div>
@@ -190,12 +202,13 @@ export default function IntegrationSettings() {
           <div className="flex items-start gap-3">
             <Link2 className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
             <div>
-              <p className="font-medium text-blue-900">Webhook endpoint</p>
-              <code className="text-blue-700">POST /api/external/omegalongevity/v1/purchase</code>
+              <p className="font-medium text-blue-900">Webhook endpoints</p>
+              <code className="text-blue-700 block">POST /api/external/omegalongevity/v1/purchase</code>
+              <code className="text-blue-700 block">POST /api/webhooks/*  — GoHighLevel coaching lifecycle (6 events)</code>
               <p className="text-blue-700 mt-1">
-                Spec for the sender: <code>docs/integrations/omegalongevity-webhook-spec.md</code>.
-                Purchases for products without an active mapping are logged as Failed and can be
-                replayed below after adding the mapping.
+                Omega purchases without an active product mapping are logged as Failed and can be
+                replayed after adding the mapping. GoHighLevel events are logged and parked
+                (Skipped) until mappings + processing are enabled.
               </p>
             </div>
           </div>
@@ -288,7 +301,7 @@ export default function IntegrationSettings() {
                 </CardDescription>
               </div>
               <div className="flex gap-2">
-                {(["all", "processed", "failed", "received"] as const).map((s) => (
+                {(["all", "received", "processed", "skipped", "failed"] as const).map((s) => (
                   <Button
                     key={s}
                     variant={eventStatusFilter === s ? "default" : "outline"}
@@ -316,6 +329,7 @@ export default function IntegrationSettings() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Source</TableHead>
                     <TableHead>Received</TableHead>
                     <TableHead>Event ID</TableHead>
                     <TableHead>Customer</TableHead>
@@ -327,6 +341,7 @@ export default function IntegrationSettings() {
                 <TableBody>
                   {(events.data || []).map((e: any) => (
                     <TableRow key={e.id}>
+                      <TableCell>{sourceBadge(e.source)}</TableCell>
                       <TableCell className="text-sm whitespace-nowrap">
                         {toLocaleDateStringMT(e.receivedAt)}
                       </TableCell>
@@ -346,7 +361,9 @@ export default function IntegrationSettings() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {e.status !== "processed" && (
+                        {/* Replay uses the omega processor, so only offer it for omega
+                            events. GHL processing is park-only until its processor is wired. */}
+                        {e.status !== "processed" && e.source === "omega" && (
                           <Button
                             variant="outline"
                             size="sm"
