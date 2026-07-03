@@ -776,7 +776,7 @@ export const clientProtocols = mysqlTable("client_protocols", {
 	startDate: timestamp({ mode: 'string' }),
 	endDate: timestamp({ mode: 'string' }),
 	inventoryDeductedAt: timestamp({ mode: 'string' }),
-	contactId: int(),
+	contactId: int().notNull(),
 },
 (table) => [
 	index("client_protocols_accessToken_unique").on(table.accessToken),
@@ -1030,7 +1030,7 @@ export const customOrders = mysqlTable("custom_orders", {
 	shippedAt: timestamp({ mode: 'string' }),
 	deliveredAt: timestamp({ mode: 'string' }),
 	cancelledAt: timestamp({ mode: 'string' }),
-	contactId: int(),
+	contactId: int().notNull(),
 },
 (table) => [
 	index("custom_order_contact_idx").on(table.contactId),
@@ -2446,7 +2446,7 @@ export const protocolOrders = mysqlTable("protocol_orders", {
 	itemsSummary: text(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	completedAt: timestamp({ mode: 'string' }),
-	contactId: int(),
+	contactId: int().notNull(),
 },
 (table) => [
 	index("protocol_orders_contact_idx").on(table.contactId),

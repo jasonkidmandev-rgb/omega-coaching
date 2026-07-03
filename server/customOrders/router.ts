@@ -76,6 +76,15 @@ export const customOrdersRouter = router({
           contactId = contact.id;
         } catch (e) { console.error('[CustomOrder] Contact link error:', e); }
 
+        // custom_orders.contactId is NOT NULL (identity-consolidation). If the
+        // contact link above failed, fail fast with a clear message instead of
+        // letting the insert die on a cryptic constraint error.
+        if (contactId === null) {
+          throw new Error(
+            "Could not link this order to a contact record. Please verify the client's email and try again."
+          );
+        }
+
         // Create the order
         const orderId = await customOrderDb.createCustomOrder({
           orderNumber,

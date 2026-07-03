@@ -1183,7 +1183,11 @@ export async function createNewProtocolVersionFromProtocol(currentProtocol: any,
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   if (!currentProtocol) throw new Error("Current protocol is required");
-  
+  // contactId is NOT NULL on client_protocols and carried onto every version. A
+  // source protocol without one means upstream data is broken — fail fast rather
+  // than emit a new version that would die on the NOT NULL constraint.
+  if (!currentProtocol.contactId) throw new Error("Cannot create a new protocol version: the source protocol has no contact link.");
+
   const currentVersion = currentProtocol.version || 1;
   const previousVersionId = currentProtocol.id;
   
@@ -1219,7 +1223,7 @@ export async function createNewProtocolVersionFromProtocol(currentProtocol: any,
   const newProtocolData: InsertClientProtocol = {
     // clientId intentionally not carried forward — identity is keyed on contactId
     // (identity-consolidation). The legacy clientId column is being retired.
-    contactId: currentProtocol.contactId || undefined,
+    contactId: currentProtocol.contactId,
     clientName: currentProtocol.clientName,
     clientEmail: currentProtocol.clientEmail || undefined,
     clientPhone: currentProtocol.clientPhone || undefined,
@@ -1337,7 +1341,7 @@ export async function getClientProtocolsByEmail(email: string) {
   return result;
 }
 
-export async function createClientProtocol(data: InsertClientProtocol) {
+export async function createClientProtocol(data: Omit<InsertClientProtocol, "contactId"> & { contactId?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
@@ -1372,7 +1376,20 @@ export async function createClientProtocol(data: InsertClientProtocol) {
     }
   }
   
-  const result = await db.insert(clientProtocols).values(data);
+  // contactId is NOT NULL on client_protocols (identity-consolidation). If contact
+  // resolution above failed (e.g. the findOrCreateContact catch), fail fast with a
+  // clear message instead of letting the insert die on a cryptic constraint error.
+  if (!data.contactId) {
+    throw new Error(
+      "Could not link this protocol to a contact record — a verified client email " +
+      "is required. Capture the client's email and try again."
+    );
+  }
+
+  // data.contactId is guaranteed non-null by the guard above; cast to satisfy the
+  // NOT NULL insert type. (The input type keeps contactId optional so callers that
+  // rely on internal contact resolution don't have to pass it.)
+  const result = await db.insert(clientProtocols).values(data as InsertClientProtocol);
   return result[0].insertId;
 }
 
@@ -3984,6 +4001,7 @@ export async function getEmailAnalytics(days: number = 30): Promise<{
 // Create a protocol order
 export async function createProtocolOrder(data: {
   clientProtocolId: number;
+  contactId: number;
   clientName: string;
   clientEmail: string;
   stripeSessionId: string;
@@ -3992,9 +4010,10 @@ export async function createProtocolOrder(data: {
 }): Promise<number> {
   const database = await getDb();
   if (!database) throw new Error("Database not available");
-  
+
   const result = await database.insert(protocolOrders).values({
     clientProtocolId: data.clientProtocolId,
+    contactId: data.contactId,
     clientName: data.clientName,
     clientEmail: data.clientEmail,
     stripeSessionId: data.stripeSessionId,
