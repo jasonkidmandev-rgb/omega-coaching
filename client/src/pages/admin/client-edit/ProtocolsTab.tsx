@@ -1104,7 +1104,7 @@ export default function ProtocolsTab({
                                   Optional
                                 </span>
                               )}
-{(protocolItem as any).isDiscountable === false && (
+{(protocolItem as any)?.isDiscountable === false && (
                                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
                                                   <Ban className="h-3 w-3" />
                                                   ND
