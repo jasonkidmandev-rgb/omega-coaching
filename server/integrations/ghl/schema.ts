@@ -32,7 +32,10 @@ const baseFields = {
   contact_id: z.string().max(255).optional(),
   first_name: z.string().max(255).optional(),
   last_name: z.string().max(255).optional(),
-  email: z.string().email().max(320),
+  // Optional: subscription lifecycle events (cancelled/completed) may not carry an
+  // email. We resolve the client by email when present; absent → the event still
+  // logs and parks rather than 400-ing and vanishing.
+  email: z.string().email().max(320).optional(),
   phone: z.string().max(50).optional(),
   /** GHL product, e.g. "Advanced Physique - Payment Plan" — mapped via external_product_mappings */
   product_name: z.string().max(255).optional(),

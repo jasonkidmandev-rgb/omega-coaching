@@ -45,13 +45,21 @@ function makeHandler(routePath: GhlRoutePath) {
       return res.status(401).json({ error: auth.reason });
     }
 
-    // 2. Validate payload.
+    // 2. Validate payload. Log-first: even when validation fails, persist the raw
+    //    body (unique diagnostic eventId + the validation issues) so we can see the
+    //    real shape and fix the schema. Critical during partner discovery — a bare
+    //    400 would otherwise leave no record of what was actually sent.
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({
-        error: "Payload validation failed",
-        issues: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
-      });
+      const issues = parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
+      try {
+        const diagId = `invalid:${routePath}:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const loggedId = await insertEvent({ eventId: diagId, eventType, payload: req.body });
+        await markEventFailed(loggedId, `Validation failed: ${JSON.stringify(issues)}`);
+      } catch (logErr: any) {
+        console.error(`[GHL Webhook] Could not log invalid ${routePath}: ${logErr?.message}`);
+      }
+      return res.status(400).json({ error: "Payload validation failed", issues });
     }
     const payload = parsed.data as any;
     const eventId = deriveEventId(routePath, payload);
@@ -73,7 +81,19 @@ function makeHandler(routePath: GhlRoutePath) {
         }
         eventDbId = existing.id; // received/failed → retry on the same row
       } else {
-        eventDbId = await insertEvent({ eventId, eventType, payload: req.body });
+        try {
+          eventDbId = await insertEvent({ eventId, eventType, payload: req.body });
+        } catch (insErr: any) {
+          // Concurrent duplicate: another request inserted the same (source, eventId)
+          // between our findEventByEventId check and this insert. Treat as a duplicate
+          // (200), not a transient 500 — the event is already captured.
+          if (insErr?.code === "ER_DUP_ENTRY" || insErr?.errno === 1062) {
+            const dup = await findEventByEventId(eventId);
+            console.log(`[GHL Webhook] Concurrent duplicate ${eventId} — already logged`);
+            return res.json({ received: true, duplicate: true, processed: dup?.status === "processed" });
+          }
+          throw insErr;
+        }
       }
 
       // 4. Process (scaffold: validate + enrich + park; no fulfillment yet).
