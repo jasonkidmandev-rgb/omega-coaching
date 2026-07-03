@@ -103,12 +103,21 @@ all of it is manual, once, at the window, on the freshly-synced DB.
   system and **still has every legacy table/column** — we only removed the app *code*, never
   touched Manus's schema. So all of this legacy schema **returns** after the sync and must be
   dropped *after* it. That is the core reason these live in SQL files, not in the codebase.
-- **Drizzle defs are kept on purpose until this runs.** The table/column definitions in
-  `drizzle/schema.ts` + `drizzle/relations.ts` for everything being dropped are left in place
-  so the ORM schema **matches the live DB** (which still has them until this runs). Removing a
-  def while its table still exists risks `drizzle-kit generate/push` emitting a **surprise
-  `DROP`** outside this window. Rule: **delete each def in the same deploy that runs its drop**
-  (step 8). This is the same approach used for the legacy `clients` table.
+- **⚠️ Drizzle defs must track the DB the code runs against — subtle, get it right.**
+  A drizzle `select().from(t)` emits `SELECT <every column in the def>`. If a column is
+  **dropped in the DB but still in the def**, *every* select on that table throws
+  `Unknown column` — a full outage for that table (and the def-vs-DB gap is invisible to
+  the tsc ratchet and the DoD grep, because `select()` names no column textually). Rules:
+  - **Remove a def in the SAME deploy that its DROP reaches the DB the code runs against.**
+  - **Identity is ALREADY applied on the Railway DB** (`clients` + `client_protocols.clientId`
+    dropped during the staging apply), so those defs must be **removed now, not deferred**.
+    `clientId` + its two indexes are removed (hotfix `ea5a7e1`) — keeping them took prod down
+    once (every `client_protocols` read failed). The unused `clients` table def is harmless
+    only because nothing does `.from(clients)`; still remove it for hygiene.
+  - **T9 (this file) is NOT yet applied**, so the `sms_*`/`push_*` defs are correctly **kept**
+    until `drop-sms-push.sql` runs — then removed in that same deploy.
+  Keeping defs in sync with the live DB also stops `drizzle-kit generate/push` emitting a
+  surprise `DROP`.
 
 ### A. Identity consolidation — files: `identity-backfill.sql` → `identity-constraints.sql`
 
@@ -119,8 +128,8 @@ all of it is manual, once, at the window, on the freshly-synced DB.
 | **ADD FK** | 10 tables `contactId → contacts(id)` ON DELETE RESTRICT (`appointments, client_packages, client_projects, client_protocols, custom_orders, packing_slips, prospects, protocol_orders, transformation_enrollments, users`) | make contact the enforced canonical identity; never silently orphaned | — |
 | **NOT NULL** | `client_protocols.contactId`, `protocol_orders.contactId`, `custom_orders.contactId` | client-stage rows must have a contact | — |
 | **DROP INDEX** | `client_protocols_client_id_idx`, `client_protocols_client_active_idx` | depend on `clientId`, which is being dropped | — |
-| **DROP COLUMN** | `client_protocols.clientId` | retire the legacy overloaded (40%-null, colliding) identity key | remove `clientId` field from `clientProtocols` |
-| **DROP TABLE** | `clients` | legacy identity fully collapsed into `contacts`; app no longer reads it | remove `clients` table + its relations |
+| **DROP COLUMN** | `client_protocols.clientId` | retire the legacy overloaded (40%-null, colliding) identity key | ✅ **already removed** (hotfix `ea5a7e1`) — DB drop is applied |
+| **DROP TABLE** | `clients` | legacy identity fully collapsed into `contacts`; app no longer reads it | DB table already dropped; **still remove the `clients` table def** from schema for hygiene (nothing selects it, so no outage) |
 
 ### B. Continuous chat / CR-1 — file: `phase3-chat-rekey.sql`
 
