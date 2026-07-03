@@ -28,19 +28,19 @@ export default function ContactAdmin() {
 
   const utils = trpc.useUtils();
 
-  // Reuse the client360 list query to get contacts
-  const { data, isLoading } = trpc.client360.list.useQuery({
+  // Reuse the contacts list query to get contacts
+  const { data, isLoading } = trpc.contacts.list.useQuery({
     search: search || undefined,
     stage: "all",
     limit: 100,
     offset: 0,
   });
 
-  const updateMutation = trpc.client360.updateContact.useMutation({
+  const updateMutation = trpc.contacts.updateContact.useMutation({
     onSuccess: () => {
       toast.success("Contact updated — changes propagated to all linked records");
       setEditingContact(null);
-      utils.client360.list.invalidate();
+      utils.contacts.list.invalidate();
     },
     onError: (err) => {
       toast.error(`Update failed: ${err.message}`);

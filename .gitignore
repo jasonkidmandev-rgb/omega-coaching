@@ -113,3 +113,9 @@ test-results/
 
 # Local scripts output
 data/
+
+
+docs/
+
+# Local-only production data snapshots from Manus (PII — never commit)
+cutover/local-data/

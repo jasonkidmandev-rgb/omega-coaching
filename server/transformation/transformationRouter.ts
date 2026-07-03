@@ -785,11 +785,11 @@ export const transformationRouter = router({
       if (status) {
       const enrollments = await database.execute(sql`
         SELECT e.*,
-               COALESCE(u.name, e.clientName, c.name) as userName,
+               COALESCE(u.name, e.clientName, ct.full_name) as userName,
                COALESCE(u.email, e.email) as userEmail
         FROM transformation_enrollments e
         LEFT JOIN users u ON e.userId = u.id
-        LEFT JOIN clients c ON e.clientId = c.id
+        LEFT JOIN contacts ct ON e.contactId = ct.id
         WHERE e.status = ${status}
         ORDER BY e.createdAt DESC
         LIMIT ${limit} OFFSET ${offset}
@@ -799,11 +799,11 @@ export const transformationRouter = router({
       
       const enrollments = await database.execute(sql`
         SELECT e.*,
-               COALESCE(u.name, e.clientName, c.name) as userName,
+               COALESCE(u.name, e.clientName, ct.full_name) as userName,
                COALESCE(u.email, e.email) as userEmail
         FROM transformation_enrollments e
         LEFT JOIN users u ON e.userId = u.id
-        LEFT JOIN clients c ON e.clientId = c.id
+        LEFT JOIN contacts ct ON e.contactId = ct.id
         ORDER BY e.createdAt DESC
         LIMIT ${limit} OFFSET ${offset}
       `);
@@ -2206,21 +2206,22 @@ export const transformationRouter = router({
         `);
         console.log('[saveIntakeForm] Synced phone to enrollment:', { enrollmentId, phone: fd.phone });
         
-        // Also sync phone to linked client record
+        // Also sync phone to the linked contact (identity-consolidation: the
+        // canonical record, not the retired clients table). updated_at auto-bumps.
         try {
           const enrollLookup = await database.execute(sql`
-            SELECT clientId FROM transformation_enrollments WHERE id = ${enrollmentId} LIMIT 1
+            SELECT contactId FROM transformation_enrollments WHERE id = ${enrollmentId} LIMIT 1
           `);
           const enrollRows = (enrollLookup[0] as unknown) as any[];
-          const linkedClientId = enrollRows?.[0]?.clientId;
-          if (linkedClientId && linkedClientId > 0) {
+          const linkedContactId = enrollRows?.[0]?.contactId;
+          if (linkedContactId && linkedContactId > 0) {
             await database.execute(sql`
-              UPDATE clients SET phone = COALESCE(NULLIF(phone, ''), ${fd.phone}), updatedAt = NOW()
-              WHERE id = ${linkedClientId}
+              UPDATE contacts SET phone = COALESCE(NULLIF(phone, ''), ${fd.phone})
+              WHERE id = ${linkedContactId}
             `);
           }
         } catch (syncErr) {
-          console.error('[saveIntakeForm] Failed to sync phone to client:', syncErr);
+          console.error('[saveIntakeForm] Failed to sync phone to contact:', syncErr);
         }
       }
       
@@ -2292,22 +2293,9 @@ export const transformationRouter = router({
         const enrollRows = (enrollLookup[0] as unknown) as any[];
         const linkedClientId = enrollRows?.[0]?.clientId;
         if (linkedClientId && linkedClientId > 0) {
-          await database.execute(sql`
-            UPDATE clients 
-            SET name = COALESCE(NULLIF(name, ''), NULLIF(name, 'New Enrollment'), ${fd.fullName || null}),
-                phone = COALESCE(NULLIF(phone, ''), ${fd.phone || null}),
-                shippingName = COALESCE(NULLIF(shippingName, ''), ${fd.fullName || null}),
-                shippingStreet = COALESCE(NULLIF(shippingStreet, ''), ${fd.streetAddress || null}),
-                shippingCity = COALESCE(NULLIF(shippingCity, ''), ${fd.city || null}),
-                shippingState = COALESCE(NULLIF(shippingState, ''), ${fd.stateProvince || null}),
-                shippingZip = COALESCE(NULLIF(shippingZip, ''), ${fd.zipCode || null}),
-                shippingPhone = COALESCE(NULLIF(shippingPhone, ''), ${fd.phone || null}),
-                updatedAt = NOW()
-            WHERE id = ${linkedClientId}
-          `);
-          console.log('[submitIntakeForm] Synced profile data to client record:', { enrollmentId, clientId: linkedClientId });
-          
-          // Also update the client_protocol name/email if linked
+          // Legacy enrollment (has a clientId). Identity-consolidation: sync the
+          // profile onto the protocol (fulfillment record) instead of the retired
+          // clients table; name/email already live on the contact.
           const cpLookup = await database.execute(sql`
             SELECT clientProtocolId FROM transformation_enrollments WHERE id = ${enrollmentId} LIMIT 1
           `);
@@ -2315,24 +2303,32 @@ export const transformationRouter = router({
           const cpId = cpRows?.[0]?.clientProtocolId;
           if (cpId && cpId > 0) {
             await database.execute(sql`
-              UPDATE client_protocols 
+              UPDATE client_protocols
               SET clientName = COALESCE(NULLIF(clientName, ''), NULLIF(clientName, 'New Enrollment'), ${fd.fullName || null}),
                   clientEmail = COALESCE(NULLIF(clientEmail, ''), ${fd.email || null}),
+                  clientPhone = COALESCE(NULLIF(clientPhone, ''), ${fd.phone || null}),
+                  shippingName = COALESCE(NULLIF(shippingName, ''), ${fd.fullName || null}),
+                  shippingStreet = COALESCE(NULLIF(shippingStreet, ''), ${fd.streetAddress || null}),
+                  shippingCity = COALESCE(NULLIF(shippingCity, ''), ${fd.city || null}),
+                  shippingState = COALESCE(NULLIF(shippingState, ''), ${fd.stateProvince || null}),
+                  shippingZip = COALESCE(NULLIF(shippingZip, ''), ${fd.zipCode || null}),
+                  shippingPhone = COALESCE(NULLIF(shippingPhone, ''), ${fd.phone || null}),
                   updatedAt = NOW()
               WHERE id = ${cpId}
             `);
+            console.log('[submitIntakeForm] Synced profile data to protocol:', { enrollmentId, clientProtocolId: cpId });
           }
         } else {
           // No client record linked yet - create one now (catches cases where duplicate prevention skipped client creation)
           const enrollEmail = fd.email || null;
           const enrollNameForClient = fd.fullName || null;
           if (enrollEmail) {
-            const { clientId: newClientId } = await autoCreateOrLinkClient(
+            const { contactId: newContactId } = await autoCreateOrLinkClient(
               database, enrollmentId, enrollEmail, enrollNameForClient,
               { phone: fd.phone, shippingStreet: fd.streetAddress, shippingCity: fd.city, shippingState: fd.stateProvince, shippingZip: fd.zipCode }
             );
-            if (newClientId > 0) {
-              console.log('[submitIntakeForm] Created missing client record on intake completion:', { enrollmentId, clientId: newClientId });
+            if (newContactId > 0) {
+              console.log('[submitIntakeForm] Ensured contact + protocol on intake completion:', { enrollmentId, contactId: newContactId });
             }
           }
         }
@@ -3838,20 +3834,22 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
         `);
       }
 
-      // Sync profile data to linked client record (phone, address, name)
+      // Sync profile data to the linked protocol (fulfillment record). Identity-
+      // consolidation: the retired clients table is no longer written — name/email
+      // live on the contact (set at creation) and shipping on the protocol.
       try {
         const clientLookup = await database.execute(sql`
-          SELECT clientId, clientProtocolId FROM transformation_enrollments WHERE id = ${enrollmentId} LIMIT 1
+          SELECT clientProtocolId FROM transformation_enrollments WHERE id = ${enrollmentId} LIMIT 1
         `);
         const clRows = (clientLookup[0] as unknown) as any[];
-        const linkedClientId = clRows?.[0]?.clientId;
         const linkedCpId = clRows?.[0]?.clientProtocolId;
-        
-        if (linkedClientId && linkedClientId > 0) {
+
+        if (linkedCpId && linkedCpId > 0) {
           await database.execute(sql`
-            UPDATE clients 
-            SET name = COALESCE(NULLIF(${fullName}, ''), name),
-                phone = COALESCE(NULLIF(${phone}, ''), phone),
+            UPDATE client_protocols
+            SET clientName = COALESCE(NULLIF(${fullName}, ''), clientName),
+                clientEmail = COALESCE(NULLIF(${email}, ''), clientEmail),
+                clientPhone = COALESCE(NULLIF(${phone}, ''), clientPhone),
                 shippingName = COALESCE(NULLIF(${fullName}, ''), shippingName),
                 shippingStreet = COALESCE(NULLIF(${address || null}, ''), shippingStreet),
                 shippingCity = COALESCE(NULLIF(${city || null}, ''), shippingCity),
@@ -3859,22 +3857,12 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
                 shippingZip = COALESCE(NULLIF(${zipCode || null}, ''), shippingZip),
                 shippingPhone = COALESCE(NULLIF(${phone}, ''), shippingPhone),
                 updatedAt = NOW()
-            WHERE id = ${linkedClientId}
-          `);
-          console.log('[saveProspectProfile] Synced profile to client record:', { enrollmentId, clientId: linkedClientId });
-        }
-        
-        if (linkedCpId && linkedCpId > 0) {
-          await database.execute(sql`
-            UPDATE client_protocols 
-            SET clientName = COALESCE(NULLIF(${fullName}, ''), clientName),
-                clientEmail = COALESCE(NULLIF(${email}, ''), clientEmail),
-                updatedAt = NOW()
             WHERE id = ${linkedCpId}
           `);
+          console.log('[saveProspectProfile] Synced profile to protocol:', { enrollmentId, clientProtocolId: linkedCpId });
         }
       } catch (syncErr) {
-        console.error('[saveProspectProfile] Failed to sync to client record:', syncErr);
+        console.error('[saveProspectProfile] Failed to sync profile to protocol:', syncErr);
       }
 
       // Log activity
@@ -4003,113 +3991,103 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       if (!enrollment) throw new Error('Enrollment not found');
       if (!enrollment.email) throw new Error('Enrollment has no email address');
       
-      // Use the shared helper which creates both client + client_protocol
-      const { clientId, clientProtocolId, action } = await autoCreateOrLinkClient(
+      // Use the shared helper which ensures the contact + client_protocol
+      const { contactId, clientProtocolId, action } = await autoCreateOrLinkClient(
         database,
         input.enrollmentId,
         enrollment.email,
         enrollment.clientName
       );
-      
-      // Also update shipping info on the client record if available
-      if (clientId > 0) {
+
+      // Persist shipping/phone on the protocol (the fulfillment record) if available
+      if (clientProtocolId > 0) {
         await database.execute(sql`
-          UPDATE clients
-          SET phone = COALESCE(NULLIF(phone, ''), ${enrollment.phone}),
+          UPDATE client_protocols
+          SET clientPhone = COALESCE(NULLIF(clientPhone, ''), ${enrollment.phone}),
               shippingName = COALESCE(NULLIF(shippingName, ''), ${enrollment.clientName}),
               shippingStreet = COALESCE(NULLIF(shippingStreet, ''), ${enrollment.shippingStreet}),
               shippingCity = COALESCE(NULLIF(shippingCity, ''), ${enrollment.shippingCity}),
               shippingState = COALESCE(NULLIF(shippingState, ''), ${enrollment.shippingState}),
               shippingZip = COALESCE(NULLIF(shippingZip, ''), ${enrollment.shippingZip}),
               updatedAt = NOW()
-          WHERE id = ${clientId}
+          WHERE id = ${clientProtocolId}
         `);
       }
-      
+
       return {
         success: true,
-        clientId,
+        contactId,
         clientProtocolId,
         action,
-        message: action === 'created' ? 'New client record and protocol created' : action === 'linked' ? 'Linked to existing client record and protocol' : 'Already linked',
+        message: action === 'created' ? 'New contact and protocol created' : action === 'linked' ? 'Linked to existing contact and protocol' : 'Already linked',
       };
     }),
 
-  // Backfill client records for existing enrollments that have completed profiles
+  // Backfill contacts + protocols for existing enrollments that have completed
+  // profiles but aren't linked to a contact yet. Identity-consolidation: routes
+  // through the shared autoCreateOrLinkClient helper (contactId) — the same path as
+  // syncSingleEnrollmentClient — instead of the retired clients table.
   syncEnrollmentClients: adminProcedure
     .mutation(async ({ ctx }) => {
       const database = await db();
-      
-      // Find enrollments with completed profiles but no client record
+
+      // Find enrollments with completed profiles but no contact link yet.
       const result = await database.execute(sql`
-        SELECT id, clientName, email, phone, shippingStreet, shippingCity, shippingState, shippingZip, clientId
+        SELECT id, clientName, email, phone, shippingStreet, shippingCity, shippingState, shippingZip
         FROM transformation_enrollments
         WHERE profileCompleted = 1
-          AND (clientId IS NULL OR clientId = 0)
+          AND (contactId IS NULL OR contactId = 0)
           AND email IS NOT NULL AND email != ''
         ORDER BY createdAt DESC
       `);
       const enrollments = (result[0] as unknown) as any[];
-      
+
       if (!enrollments || enrollments.length === 0) {
-        return { success: true, created: 0, linked: 0, message: 'All enrollments already have client records' };
+        return { success: true, created: 0, linked: 0, message: 'All enrollments already linked to a contact' };
       }
-      
+
       let created = 0;
       let linked = 0;
       let errors = 0;
-      
+
       for (const enrollment of enrollments) {
         try {
-          // Check if client with this email already exists
-          const existingResult = await database.execute(sql`
-            SELECT id FROM clients WHERE email = ${enrollment.email} AND deletedAt IS NULL LIMIT 1
-          `);
-          const existing = (existingResult[0] as unknown) as any[];
-          
-          let clientId: number;
-          if (existing.length > 0) {
-            clientId = existing[0].id;
-            // Update existing client with latest info
+          // Ensure the contact + client_protocol and link the enrollment (contactId).
+          const { contactId, clientProtocolId, action } = await autoCreateOrLinkClient(
+            database,
+            enrollment.id,
+            enrollment.email,
+            enrollment.clientName
+          );
+          if (action === 'created') created++;
+          else if (action === 'linked') linked++;
+
+          // Persist shipping/phone on the protocol (the fulfillment record) if available.
+          if (clientProtocolId > 0) {
             await database.execute(sql`
-              UPDATE clients
-              SET name = COALESCE(NULLIF(name, ''), ${enrollment.clientName}),
-                  phone = COALESCE(NULLIF(phone, ''), ${enrollment.phone}),
+              UPDATE client_protocols
+              SET clientPhone = COALESCE(NULLIF(clientPhone, ''), ${enrollment.phone}),
                   shippingName = COALESCE(NULLIF(shippingName, ''), ${enrollment.clientName}),
                   shippingStreet = COALESCE(NULLIF(shippingStreet, ''), ${enrollment.shippingStreet}),
                   shippingCity = COALESCE(NULLIF(shippingCity, ''), ${enrollment.shippingCity}),
                   shippingState = COALESCE(NULLIF(shippingState, ''), ${enrollment.shippingState}),
                   shippingZip = COALESCE(NULLIF(shippingZip, ''), ${enrollment.shippingZip}),
                   updatedAt = NOW()
-              WHERE id = ${clientId}
+              WHERE id = ${clientProtocolId}
             `);
-            linked++;
-          } else {
-            // Create new client record
-            const insertResult = await database.execute(sql`
-              INSERT INTO clients (name, email, phone, shippingName, shippingStreet, shippingCity, shippingState, shippingZip, shippingPhone, shippingCountry, referralSource, createdAt, updatedAt)
-              VALUES (${enrollment.clientName}, ${enrollment.email}, ${enrollment.phone}, ${enrollment.clientName}, ${enrollment.shippingStreet}, ${enrollment.shippingCity}, ${enrollment.shippingState}, ${enrollment.shippingZip}, ${enrollment.phone}, 'USA', 'coaching_onboarding', NOW(), NOW())
-            `);
-            clientId = (insertResult[0] as any).insertId;
-            created++;
           }
-          
-          // Link enrollment to client
-          await database.execute(sql`
-            UPDATE transformation_enrollments SET clientId = ${clientId}, updatedAt = NOW() WHERE id = ${enrollment.id}
-          `);
         } catch (err) {
           console.error(`[syncEnrollmentClients] Failed for enrollment ${enrollment.id}:`, err);
           errors++;
         }
       }
-      
+
       return {
         success: true,
         created,
         linked,
         errors,
-        message: `Synced ${created + linked} enrollment(s) to client records (${created} new, ${linked} linked to existing)${errors > 0 ? `, ${errors} errors` : ''}`,
+        message: `Synced ${created + linked} enrollment(s) to contacts (${created} new, ${linked} linked to existing)${errors > 0 ? `, ${errors} errors` : ''}`,
       };
     }),
 

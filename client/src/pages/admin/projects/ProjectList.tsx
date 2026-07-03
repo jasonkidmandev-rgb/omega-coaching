@@ -304,16 +304,6 @@ export default function ProjectList() {
     },
   });
 
-  const syncClientsMutation = trpc.clientProject.syncClientsToProjects.useMutation({
-    onSuccess: (data) => {
-      toast.success(`Synced ${data.synced} clients to projects. ${data.skipped} already linked.`);
-      refetch();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
   const backfillTemplatesMutation = trpc.clientProject.backfillTemplates.useMutation({
     onSuccess: (data) => {
       toast.success(`Applied workflow templates to ${data.applied} projects. ${data.skipped} skipped.`);
@@ -536,16 +526,8 @@ export default function ProjectList() {
                 Table
               </Button>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => syncClientsMutation.mutate()}
-              disabled={syncClientsMutation.isPending}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              {syncClientsMutation.isPending ? "Syncing..." : "Sync Clients"}
-            </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => backfillTemplatesMutation.mutate()}
               disabled={backfillTemplatesMutation.isPending}
             >

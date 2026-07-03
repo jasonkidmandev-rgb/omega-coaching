@@ -58,31 +58,26 @@ export const prospectRouter = router({
         let enrollmentData = null;
         let projectData = null;
         
-        // Get linked client
-        if (r.clientId) {
-          const [client] = await d.execute(sql`SELECT id, name, email, phone FROM clients WHERE id = ${r.clientId}`);
-          if (client) clientData = client;
+        // Get linked contact (canonical identity — identity-consolidation retired
+        // the clients table).
+        if (r.contactId) {
+          const [contact] = await d.execute(sql`SELECT id, full_name AS name, email, phone FROM contacts WHERE id = ${r.contactId}`);
+          if (contact) clientData = contact;
         }
-        
+
         // Get linked enrollment
         if (r.enrollmentId) {
           const [enrollment] = await d.execute(sql`SELECT id, tier, status, coachingFeePaid, coachingFeeAmount, enrolledAt FROM transformation_enrollments WHERE id = ${r.enrollmentId}`);
           if (enrollment) enrollmentData = enrollment;
-        } else if (r.clientId) {
-          // Try to find enrollment by clientId
-          const enrollments = await d.execute(sql`SELECT id, tier, status, coachingFeePaid, coachingFeeAmount, enrolledAt FROM transformation_enrollments WHERE clientId = ${r.clientId} ORDER BY createdAt DESC LIMIT 1`);
+        } else if (r.contactId) {
+          // Fall back to the contact's most recent enrollment
+          const enrollments = await d.execute(sql`SELECT id, tier, status, coachingFeePaid, coachingFeeAmount, enrolledAt FROM transformation_enrollments WHERE contactId = ${r.contactId} ORDER BY createdAt DESC LIMIT 1`);
           if (enrollments.length > 0) enrollmentData = enrollments[0];
         }
-        
-        // Get linked project (active only)
-        if (r.clientId) {
-          const projects = await d.execute(sql`SELECT id, clientName, status, currentLifecycleStageId, assignedTeamMemberId FROM client_projects WHERE clientName = ${r.name} AND status != 'cancelled' ORDER BY createdAt DESC LIMIT 1`);
-          if (projects.length > 0) projectData = projects[0];
-        } else {
-          // Try by name match
-          const projects = await d.execute(sql`SELECT id, clientName, status, currentLifecycleStageId, assignedTeamMemberId FROM client_projects WHERE clientName = ${r.name} AND status != 'cancelled' ORDER BY createdAt DESC LIMIT 1`);
-          if (projects.length > 0) projectData = projects[0];
-        }
+
+        // Get linked project (active only), matched by name
+        const projects = await d.execute(sql`SELECT id, clientName, status, currentLifecycleStageId, assignedTeamMemberId FROM client_projects WHERE clientName = ${r.name} AND status != 'cancelled' ORDER BY createdAt DESC LIMIT 1`);
+        if (projects.length > 0) projectData = projects[0];
         
         // Get assigned team member name if project has one
         let assignedCoachName = null;
@@ -733,6 +728,9 @@ export const prospectRouter = router({
       if (!keep.source && remove.source) updates.source = remove.source;
       if (!keep.enrollmentId && remove.enrollmentId) updates.enrollmentId = remove.enrollmentId;
       if (!keep.userId && remove.userId) updates.userId = remove.userId;
+      // Carry the canonical contact forward (identity-consolidation); the legacy
+      // clientId is kept too until the clients table is dropped at cutover.
+      if (!keep.contactId && remove.contactId) updates.contactId = remove.contactId;
       if (!keep.clientId && (remove as any).clientId) updates.clientId = (remove as any).clientId;
       if (remove.notes) {
         updates.notes = keep.notes ? `${keep.notes}\n\n[Merged from #${remove.id}] ${remove.notes}` : remove.notes;

@@ -1,0 +1,20 @@
+# Throwaway MySQL 8 for integration tests. Not for production.
+# Prod is TiDB v8.5 (MySQL-8 compatible); MySQL 8 is a faithful-enough stand-in
+# for the identity DDL. Start:  pnpm testdb:up   Stop+wipe:  pnpm testdb:down
+services:
+  test-db:
+    image: mysql:8.0
+    container_name: peptidecoach-test-db
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: peptidecoach_test
+    ports:
+      - "3307:3306"          # host 3307 -> container 3306 (avoids a local 3306)
+    volumes:
+      # every *.sql here runs once, in name order, on a FRESH volume
+      - ./schema:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ptest"]
+      interval: 3s
+      timeout: 3s
+      retries: 30

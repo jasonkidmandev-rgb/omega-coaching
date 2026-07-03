@@ -35,7 +35,7 @@ import { externalIntegrationsRouter } from "./integrations/omegalongevity/adminR
 import { promoCodeRouter } from "./promoCode/promoCodeRouter";
 import { storePromoRouter } from "./storePromo/storePromoRouter";
 import { prospectRouter } from "./prospect/prospectRouter";
-import { client360Router } from "./client360/router";
+import { contactsRouter } from "./contacts/router";
 import { webTrafficRouter } from "./analytics/webTrafficRouter";
 import { 
   createPasswordResetToken, 
@@ -475,53 +475,35 @@ const clientProtocolRouter = router({
         version: p.version,
       }));
     }),
-  // Get all protocol versions for a client
+  // Get all protocol versions for a contact (canonical identity). The live UI
+  // uses getVersionHistoryByProtocolId; this contactId-keyed variant is kept for
+  // admin/API use. Identity-consolidation: versions group by contactId, not the
+  // retired clientId.
   getVersionHistory: adminProcedure
-    .input(z.object({ clientId: z.number() }))
+    .input(z.object({ contactId: z.number() }))
     .query(async ({ input }) => {
-      return db.getClientProtocolsByClientId(input.clientId);
+      return db.getClientProtocolsByContactId(input.contactId);
     }),
-  // Create a new protocol version for an existing client
+  // Create a new protocol version from an existing protocol. Identity-consolidation:
+  // resolution is keyed on the protocol being viewed (protocolId) rather than the
+  // retired clientId — the caller always has the protocol id.
   createNewVersion: adminProcedure
     .input(z.object({
-      clientId: z.number().optional(),
-      protocolId: z.number().optional(),
+      protocolId: z.number(),
       versionName: z.string().optional(),
       versionNotes: z.string().optional(),
       templateId: z.number().optional(),
       copyItemsFromPrevious: z.boolean().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      const { clientId, protocolId, versionName, versionNotes, templateId, copyItemsFromPrevious } = input;
-      
-      // Support two paths: via clientId (clients table) or via protocolId (current protocol)
-      let currentProtocol: any = null;
-      let resolvedClientId = clientId;
-      
-      if (protocolId) {
-        // Path B: Create from current protocol (works even when clientId is null)
-        currentProtocol = await db.getClientProtocolById(protocolId);
-        if (!currentProtocol) {
-          throw new Error("Protocol not found");
-        }
-        resolvedClientId = currentProtocol.clientId || undefined;
-      } else if (clientId) {
-        // Path A: Create from client record
-        const client = await db.getClientById(clientId);
-        if (client) {
-          currentProtocol = await db.getActiveProtocolForClient(clientId);
-        } else {
-          // clientId might be a userId - try finding the active protocol directly
-          currentProtocol = await db.getActiveProtocolForClient(clientId);
-          if (!currentProtocol) {
-            throw new Error("Client not found");
-          }
-          console.log(`[createNewVersion] Client ${clientId} not in clients table, but found protocol via clientId`);
-        }
-      } else {
-        throw new Error("Either clientId or protocolId is required");
+      const { protocolId, versionName, versionNotes, templateId, copyItemsFromPrevious } = input;
+
+      // Create from the current protocol (works regardless of clientId).
+      const currentProtocol = await db.getClientProtocolById(protocolId);
+      if (!currentProtocol) {
+        throw new Error("Protocol not found");
       }
-      
+
       // Create new protocol version from current protocol data
       const newProtocolId = await db.createNewProtocolVersionFromProtocol(
         currentProtocol,
@@ -738,21 +720,24 @@ const clientProtocolRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
       const protocol = await db.getClientProtocolById(input.protocolId);
-      if (!protocol || !protocol.clientId) {
-        throw new Error("Protocol not found or not linked to a client");
+      if (!protocol) {
+        throw new Error("Protocol not found");
       }
-      
-      // Deactivate all other versions for this client
-      const allVersions = await db.getClientProtocolsByClientId(protocol.clientId);
-      for (const version of allVersions) {
-        if (version.id !== input.protocolId) {
-          await db.updateClientProtocol(version.id, { isActiveVersion: false });
+
+      // Deactivate all other versions for this contact. Identity-consolidation:
+      // versions group by the canonical contactId, not the retired clientId.
+      if (protocol.contactId) {
+        const allVersions = await db.getClientProtocolsByContactId(protocol.contactId);
+        for (const version of allVersions) {
+          if (version.id !== input.protocolId) {
+            await db.updateClientProtocol(version.id, { isActiveVersion: false });
+          }
         }
       }
-      
+
       // Activate the selected version
       await db.updateClientProtocol(input.protocolId, { isActiveVersion: true });
-      
+
       return { success: true };
     }),
   // Get version history by protocol ID (for protocols without clientId)
@@ -768,10 +753,12 @@ const clientProtocolRouter = router({
       const allProtocols = await db.getAllClientProtocols();
       const relatedVersionIds = new Set<number>();
       
-      // Method 1: If protocol has clientId, find all protocols with same clientId
-      if (protocol.clientId) {
+      // Method 1: If protocol has a contactId, find all protocols with the same
+      // contactId. Identity-consolidation: group by the canonical contactId, not
+      // the retired clientId (which is now null on new protocols).
+      if (protocol.contactId) {
         allProtocols.forEach(p => {
-          if (p.clientId === protocol.clientId) {
+          if (p.contactId === protocol.contactId) {
             relatedVersionIds.add(p.id);
           }
         });
@@ -831,9 +818,11 @@ const clientProtocolRouter = router({
         throw new Error("Protocol version not found");
       }
       
-      // Create a new version based on the target (older) version
-      const newProtocolId = await db.createNewProtocolVersion(
-        sourceProtocol.clientId || 0,
+      // Create a new version based on the current (source) protocol. Identity-
+      // consolidation: use the protocol-keyed creation path so it works without a
+      // clientId and carries contactId forward.
+      const newProtocolId = await db.createNewProtocolVersionFromProtocol(
+        sourceProtocol,
         {
           versionName: `Rollback to ${targetProtocol.versionName || 'Previous Version'}`,
           versionNotes: `Rolled back from version ${sourceProtocol.versionName || sourceProtocol.id}`,
@@ -862,7 +851,8 @@ const clientProtocolRouter = router({
         });
       }
       
-      // Copy other protocol details
+      // Copy other protocol details. clientId intentionally omitted — identity is
+      // keyed on contactId, already carried forward by the creation path above.
       await db.updateClientProtocol(newProtocolId, {
         clientName: sourceProtocol.clientName,
         clientEmail: sourceProtocol.clientEmail,
@@ -870,7 +860,6 @@ const clientProtocolRouter = router({
         durationMonths: targetProtocol.durationMonths,
         discountPercent: targetProtocol.discountPercent,
         customRequirements: targetProtocol.customRequirements,
-        clientId: sourceProtocol.clientId,
       });
       
       // Log the rollback action
@@ -1095,11 +1084,16 @@ const clientProtocolRouter = router({
           }
           
           console.log(`[ClientProtocol.create] Client ${input.clientEmail} already has ${activeProtocols.length} active protocol(s). Creating as new version.`);
-          // Auto-set as a new version linked to the existing client
+          // Auto-set as a new version grouped with the existing client's protocols.
+          // Identity-consolidation: carry the canonical contactId forward (clientId
+          // is retired). createClientProtocol also resolves contactId from the email
+          // as a backstop, so this keeps versions grouped even for pre-contact rows.
           const latestProtocol = activeProtocols[activeProtocols.length - 1];
           const maxVersion = Math.max(...existingProtocols.map((p: any) => p.version || 1));
           cleanData.version = maxVersion + 1;
-          cleanData.clientId = latestProtocol.clientId;
+          if (latestProtocol.contactId) {
+            cleanData.contactId = latestProtocol.contactId;
+          }
           // Mark previous active versions as inactive
           for (const p of activeProtocols) {
             await db.updateClientProtocol(p.id, { isActiveVersion: false });
@@ -1177,50 +1171,14 @@ const clientProtocolRouter = router({
           }
         }
         
-        // ALWAYS create a client project for new protocols
-        // Status is 'on_hold' (inactive) by default, or 'active' if activateInProjects is true
-        try {
-          const createdProtocol = await db.getClientProtocolById(id);
-          if (createdProtocol?.clientId) {
-            // Check if client already has a project
-            const existingClient = await db.getClientById(createdProtocol.clientId);
-            if (!existingClient?.clientProjectId) {
-              // Get the Intake lifecycle stage (first stage)
-              const lifecycleStages = await db.getAllLifecycleStages();
-              const intakeStage = lifecycleStages.find(s => s.name === 'Intake');
-              
-              // Create a client project - inactive by default, active if requested
-              const projectStatus = input.activateInProjects ? 'active' : 'on_hold';
-              const projectId = await db.createClientProject({
-                clientName: input.clientName,
-                clientEmail: input.clientEmail || undefined,
-                clientProtocolId: id,
-                status: projectStatus,
-                currentLifecycleStageId: intakeStage?.id || undefined,
-              });
-              // Update the client record with the project link
-              await db.updateClient(createdProtocol.clientId, {
-                isActiveInProjects: input.activateInProjects || false,
-                clientProjectId: projectId,
-              });
-              console.log(`[ClientProtocol.create] Created client project ${projectId} (status: ${projectStatus}) for client ${createdProtocol.clientId}`);
-              
-              // Auto-apply workflow template based on protocol duration
-              try {
-                const { autoApplyWorkflowTemplate } = await import('./autoApplyWorkflowTemplate');
-                const templateResult = await autoApplyWorkflowTemplate(projectId, id);
-                console.log(`[ClientProtocol.create] Workflow template: ${templateResult.reason}`);
-              } catch (templateError) {
-                console.error('[ClientProtocol.create] Failed to auto-apply workflow template:', templateError);
-              }
-            } else {
-              console.log(`[ClientProtocol.create] Client ${createdProtocol.clientId} already has project ${existingClient.clientProjectId}`);
-            }
-          }
-        } catch (projectError) {
-          console.error('[ClientProtocol.create] Failed to create client project:', projectError);
-        }
-        
+        // NOTE (2026-07-02): auto-creation of a Client Project on admin
+        // protocol-create was removed here — it was dead code, gated on the legacy
+        // `clientId` which is never set on this path (protocols use `contactId`).
+        // Enrolled clients still get a project via the onboarding flow. Whether
+        // admin-built protocols SHOULD auto-create a project is a pending decision
+        // for Jason (docs/change-requests/note-to-jason-remaining-removals.md); if
+        // yes, re-add it deliberately keyed on contactId with proper dedup.
+
         return { id, accessToken: protocol?.accessToken };
       } else {
         // Fallback: create empty protocol if no default template exists
@@ -1268,42 +1226,10 @@ const clientProtocolRouter = router({
           }
         }
         
-        // ALWAYS create a client project for new protocols (fallback path)
-        try {
-          const createdProtocol = await db.getClientProtocolById(id);
-          if (createdProtocol?.clientId) {
-            const existingClient = await db.getClientById(createdProtocol.clientId);
-            if (!existingClient?.clientProjectId) {
-              const lifecycleStages = await db.getAllLifecycleStages();
-              const intakeStage = lifecycleStages.find(s => s.name === 'Intake');
-              const projectStatus = input.activateInProjects ? 'active' : 'on_hold';
-              const projectId = await db.createClientProject({
-                clientName: input.clientName,
-                clientEmail: input.clientEmail || undefined,
-                clientProtocolId: id,
-                status: projectStatus,
-                currentLifecycleStageId: intakeStage?.id || undefined,
-              });
-              await db.updateClient(createdProtocol.clientId, {
-                isActiveInProjects: input.activateInProjects || false,
-                clientProjectId: projectId,
-              });
-              console.log(`[ClientProtocol.create] Created client project ${projectId} (status: ${projectStatus}) for client ${createdProtocol.clientId}`);
-              
-              // Auto-apply workflow template based on protocol duration
-              try {
-                const { autoApplyWorkflowTemplate } = await import('./autoApplyWorkflowTemplate');
-                const templateResult = await autoApplyWorkflowTemplate(projectId, id);
-                console.log(`[ClientProtocol.create] Workflow template: ${templateResult.reason}`);
-              } catch (templateError) {
-                console.error('[ClientProtocol.create] Failed to auto-apply workflow template:', templateError);
-              }
-            }
-          }
-        } catch (projectError) {
-          console.error('[ClientProtocol.create] Failed to create client project:', projectError);
-        }
-        
+        // NOTE (2026-07-02): auto-creation of a Client Project on admin
+        // protocol-create was removed here too (fallback path) — same dead,
+        // clientId-gated block as above. See the note by the template path.
+
         return { id, accessToken };
       }
     }),
@@ -6384,9 +6310,9 @@ const packingSlipRouter = router({
         // Find the client project linked to this packing slip's protocol
         if (packingSlip.clientProtocolId) {
           const protocol = await db.getClientProtocolById(packingSlip.clientProtocolId);
-          if (protocol?.clientId) {
-            // Find the client's active project
-            const projects = await db.getClientProjects(protocol.clientId);
+          if (protocol?.contactId) {
+            // Find the client's active project (keyed on the canonical contactId)
+            const projects = await db.getClientProjectsByContactId(protocol.contactId);
             const activeProject = projects.find((p: any) => p.status === 'active') || projects[0];
             if (activeProject) {
               await db.createProjectTask({
@@ -7167,7 +7093,7 @@ export const appRouter = router({
   promoCode: promoCodeRouter,
   storePromo: storePromoRouter,
   prospect: prospectRouter,
-  client360: client360Router,
+  contacts: contactsRouter,
   webTraffic: webTrafficRouter,
   protocolSections: router({
     // Get all sections for a protocol (public - needed for client protocol view)
@@ -7700,67 +7626,11 @@ export const appRouter = router({
         await db.deleteClientProject(input.id);
         return { success: true };
       }),
-    // Sync all existing clients to client projects as inactive
-    syncClientsToProjects: adminProcedure
-      .mutation(async () => {
-        // Get all clients that don't have a clientProjectId yet
-        const allClients = await db.getAllClients();
-        const clientsWithoutProject = allClients.filter(c => !c.clientProjectId && !c.deletedAt);
-        
-        let synced = 0;
-        let skipped = 0;
-        
-        for (const client of clientsWithoutProject) {
-          try {
-            // Check if there's already a client project with matching email
-            const existingProjects = await db.getAllClientProjectsWithProgress();
-            const existingProject = existingProjects.find(
-              p => p.clientEmail?.toLowerCase() === client.email?.toLowerCase() ||
-                   p.clientName.toLowerCase() === client.name.toLowerCase()
-            );
-            
-            if (existingProject) {
-              // Link existing project to client
-              await db.updateClient(client.id, {
-                clientProjectId: existingProject.id,
-                isActiveInProjects: existingProject.status === 'active',
-              });
-              skipped++;
-            } else {
-              // Get the Intake lifecycle stage (first stage)
-              const lifecycleStages = await db.getAllLifecycleStages();
-              const intakeStage = lifecycleStages.find(s => s.name === 'Intake');
-              
-              // Create new project with on_hold status (inactive) and Intake stage
-              const projectId = await db.createClientProject({
-                clientName: client.name,
-                clientEmail: client.email || undefined,
-                status: 'on_hold', // Inactive by default
-                currentLifecycleStageId: intakeStage?.id || undefined,
-              });
-              
-              // Auto-apply workflow template if client has a protocol
-              try {
-                const { autoApplyWorkflowTemplate } = await import('./autoApplyWorkflowTemplate');
-                await autoApplyWorkflowTemplate(projectId);
-              } catch (templateError) {
-                console.error(`[syncClientsToProjects] Failed to auto-apply template for project ${projectId}:`, templateError);
-              }
-              
-              // Link client to the new project
-              await db.updateClient(client.id, {
-                clientProjectId: projectId,
-                isActiveInProjects: false,
-              });
-              synced++;
-            }
-          } catch (err) {
-            console.error(`[syncClientsToProjects] Failed to sync client ${client.id}:`, err);
-          }
-        }
-        
-        return { synced, skipped, total: clientsWithoutProject.length };
-      }),
+    // (removed syncClientsToProjects — a legacy one-time backfill that iterated the
+    // retired `clients` table to create/link client projects. Superseded by
+    // per-protocol project creation at onboarding (keyed on contactId). If a
+    // "backfill missing projects" ops tool is wanted, rebuild it keyed on protocols
+    // that lack a project — see Jason's removals note.)
     applyTemplate: adminProcedure
       .input(z.object({
         clientProjectId: z.number(),
@@ -9125,14 +8995,6 @@ export const appRouter = router({
       .mutation(async () => {
         const { sendShannonDailyPipeline } = await import('./cron/shannonDailyPipelineCron');
         const result = await sendShannonDailyPipeline();
-        return result;
-      }),
-
-    // Run nightly reconciliation on demand
-    runNightlyReconciliation: adminProcedure
-      .mutation(async () => {
-        const { runNightlyReconciliation } = await import('./cron/nightlyReconciliationCron');
-        const result = await runNightlyReconciliation();
         return result;
       }),
 

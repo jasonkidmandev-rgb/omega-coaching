@@ -1141,174 +1141,43 @@ export async function clearAllTemplateItems(templateId: number) {
 }
 
 // ============ CLIENT MASTER RECORD QUERIES ============
-export async function getAllClients(filter: 'active' | 'archived' | 'all' = 'active') {
-  const db = await getDb();
-  if (!db) return [];
-  
-  if (filter === 'active') {
-    return db.select().from(clients)
-      .where(and(
-        isNull(clients.archivedAt),
-        isNull(clients.deletedAt)
-      ))
-      .orderBy(desc(clients.createdAt));
-  } else if (filter === 'archived') {
-    return db.select().from(clients)
-      .where(and(
-        isNotNull(clients.archivedAt),
-        isNull(clients.deletedAt)
-      ))
-      .orderBy(desc(clients.createdAt));
-  } else {
-    return db.select().from(clients)
-      .where(isNull(clients.deletedAt))
-      .orderBy(desc(clients.createdAt));
-  }
-}
+// (removed the clients-table CRUD helpers — getAllClients, getClientById,
+// getClientByEmail, createClient, updateClient. Identity-consolidation (S6): the
+// canonical identity is `contacts`; the legacy `clients` table is retired and its
+// column/table are dropped at cutover. Nothing in the app reads or writes `clients`
+// anymore — see the definition-of-done grep gate in cutover/app-contactid-only-plan.md.)
 
-export async function getClientById(id: number) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
-  return result.length > 0 ? result[0] : null;
-}
-
-export async function getClientByEmail(email: string) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.select().from(clients)
-    .where(and(
-      eq(clients.email, email),
-      isNull(clients.deletedAt)
-    ))
-    .limit(1);
-  return result.length > 0 ? result[0] : null;
-}
-
-export async function createClient(data: InsertClient) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(clients).values(data);
-  return result[0].insertId;
-}
-
-export async function updateClient(id: number, data: Partial<InsertClient>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(clients).set(data).where(eq(clients.id, id));
-}
-
-export async function getClientProtocolsByClientId(clientId: number) {
+// Protocol versions are grouped by the canonical contactId (identity-consolidation:
+// the legacy clientId is no longer written; contactId is carried forward on every
+// version). These replaced the removed getClientProtocolsByClientId /
+// getActiveProtocolForClient, which read the retired client_protocols.clientId.
+export async function getClientProtocolsByContactId(contactId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(clientProtocols)
     .where(and(
-      eq(clientProtocols.clientId, clientId),
+      eq(clientProtocols.contactId, contactId),
       isNull(clientProtocols.deletedAt)
     ))
     .orderBy(desc(clientProtocols.version));
 }
 
-export async function getActiveProtocolForClient(clientId: number) {
+export async function getActiveProtocolForContact(contactId: number) {
   const db = await getDb();
   if (!db) return null;
   const result = await db.select().from(clientProtocols)
     .where(and(
-      eq(clientProtocols.clientId, clientId),
-      eq(clientProtocols.isActiveVersion, true),
+      eq(clientProtocols.contactId, contactId),
+      eq(clientProtocols.isActiveVersion, 1),
       isNull(clientProtocols.deletedAt)
     ))
     .limit(1);
   return result.length > 0 ? result[0] : null;
 }
 
-export async function createNewProtocolVersion(clientId: number, data: Partial<InsertClientProtocol>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  // Get the current active protocol to determine next version number
-  const currentProtocols = await db.select()
-    .from(clientProtocols)
-    .where(eq(clientProtocols.clientId, clientId))
-    .orderBy(desc(clientProtocols.version))
-    .limit(1);
-  
-  const currentVersion = currentProtocols.length > 0 ? currentProtocols[0].version : 0;
-  const previousVersionId = currentProtocols.length > 0 ? currentProtocols[0].id : null;
-  
-  // Deactivate current active protocol
-  await db.update(clientProtocols)
-    .set({ 
-      isActiveVersion: false,
-      completedAt: new Date()
-    })
-    .where(and(
-      eq(clientProtocols.clientId, clientId),
-      eq(clientProtocols.isActiveVersion, true)
-    ));
-  
-  // Get client info - try clients table first, then users table, then fall back to existing protocol
-  const client = await getClientById(clientId);
-  let clientInfo: { name: string; email?: string | null; phone?: string | null; shippingName?: string | null; shippingStreet?: string | null; shippingCity?: string | null; shippingState?: string | null; shippingZip?: string | null; shippingCountry?: string | null; shippingPhone?: string | null };
-  
-  if (client) {
-    clientInfo = client;
-  } else {
-    // clientId might be a userId - check users table
-    const userResult = await db.select().from(users).where(eq(users.id, clientId)).limit(1);
-    if (userResult.length > 0) {
-      const user = userResult[0];
-      clientInfo = { name: user.name, email: user.email, phone: (user as any).phone || null };
-      console.log(`[createNewProtocolVersion] Client ${clientId} found in users table, not clients table`);
-    } else if (currentProtocols.length > 0) {
-      // Last resort: use info from the existing protocol
-      const prev = currentProtocols[0];
-      clientInfo = {
-        name: prev.clientName || 'Unknown',
-        email: prev.clientEmail,
-        phone: prev.clientPhone,
-        shippingName: prev.shippingName,
-        shippingStreet: prev.shippingStreet,
-        shippingCity: prev.shippingCity,
-        shippingState: prev.shippingState,
-        shippingZip: prev.shippingZip,
-        shippingCountry: prev.shippingCountry,
-        shippingPhone: prev.shippingPhone,
-      };
-      console.log(`[createNewProtocolVersion] Client ${clientId} not found in clients or users, using previous protocol data`);
-    } else {
-      throw new Error("Client not found");
-    }
-  }
-  
-  // Create new protocol version. Carry contactId forward from the version being
-  // superseded so the canonical identity link stays complete by design
-  // (identity-consolidation 2026-06-30), not via the nightly reconciliation cron.
-  const newProtocolData: InsertClientProtocol = {
-    clientId: clientId,
-    contactId: currentProtocols.length > 0 ? (currentProtocols[0].contactId ?? undefined) : undefined,
-    clientName: clientInfo.name,
-    clientEmail: clientInfo.email || undefined,
-    clientPhone: clientInfo.phone || undefined,
-    shippingName: clientInfo.shippingName || undefined,
-    shippingStreet: clientInfo.shippingStreet || undefined,
-    shippingCity: clientInfo.shippingCity || undefined,
-    shippingState: clientInfo.shippingState || undefined,
-    shippingZip: clientInfo.shippingZip || undefined,
-    shippingCountry: clientInfo.shippingCountry || 'USA',
-    shippingPhone: clientInfo.shippingPhone || undefined,
-    version: currentVersion + 1,
-    versionName: data.versionName || `Protocol v${currentVersion + 1}`,
-    isActiveVersion: true,
-    previousVersionId: previousVersionId,
-    accessToken: crypto.randomUUID().replace(/-/g, '').substring(0, 32),
-    status: 'draft',
-    ...data
-  };
-  
-  const result = await db.insert(clientProtocols).values(newProtocolData);
-  return result[0].insertId;
-}
+// (removed createNewProtocolVersion — the legacy clientId-keyed creation path.
+// It resolved client info from the clients/users tables and wrote client_protocols.clientId.
+// Callers now use createNewProtocolVersionFromProtocol, keyed on the protocol/contactId.)
 
 // Create a new protocol version from an existing protocol (works even when clientId is null)
 export async function createNewProtocolVersionFromProtocol(currentProtocol: any, data: Partial<InsertClientProtocol>) {
@@ -1333,12 +1202,14 @@ export async function createNewProtocolVersionFromProtocol(currentProtocol: any,
     .set({ isEnabled: false })
     .where(eq(checkinSchedules.clientProtocolId, currentProtocol.id));
   
-  // Also deactivate and auto-archive any other active versions for the same client (by clientId or clientEmail)
-  if (currentProtocol.clientId) {
+  // Also deactivate and auto-archive any other active versions for the same
+  // contact. Identity-consolidation: versions are grouped by the canonical
+  // contactId, not the legacy clientId which is no longer written.
+  if (currentProtocol.contactId) {
     await db.update(clientProtocols)
       .set({ isActiveVersion: false, archivedAt: new Date() })
       .where(and(
-        eq(clientProtocols.clientId, currentProtocol.clientId),
+        eq(clientProtocols.contactId, currentProtocol.contactId),
         eq(clientProtocols.isActiveVersion, true)
       ));
   }
@@ -1347,7 +1218,8 @@ export async function createNewProtocolVersionFromProtocol(currentProtocol: any,
   // forward so the canonical identity link stays complete (identity-consolidation
   // 2026-06-30).
   const newProtocolData: InsertClientProtocol = {
-    clientId: currentProtocol.clientId || undefined,
+    // clientId intentionally not carried forward — identity is keyed on contactId
+    // (identity-consolidation). The legacy clientId column is being retired.
     contactId: currentProtocol.contactId || undefined,
     clientName: currentProtocol.clientName,
     clientEmail: currentProtocol.clientEmail || undefined,
@@ -2318,19 +2190,40 @@ export async function trackAffiliateClick(data: InsertAffiliateClick) {
 
 
 // ============ PROTOCOL COMMENTS ============
+// Identity-consolidation Phase 3 (continuous chat / CR-1): a comment thread follows
+// the CONTACT across all their protocol versions, not a single version. Reads,
+// read-state, and unread counts resolve the protocol's contactId and operate on the
+// whole thread; they fall back to per-protocol when the protocol has no contact
+// (legacy / the 19 orphaned comments whose parent protocol was deleted).
+async function contactIdForProtocol(db: any, clientProtocolId: number): Promise<number | null> {
+  const rows = await db.select({ contactId: clientProtocols.contactId })
+    .from(clientProtocols).where(eq(clientProtocols.id, clientProtocolId)).limit(1);
+  return rows[0]?.contactId ?? null;
+}
+
 export async function getProtocolComments(clientProtocolId: number) {
   const db = await getDb();
   if (!db) return [];
+  const contactId = await contactIdForProtocol(db, clientProtocolId);
+  const scope = contactId
+    ? eq(protocolComments.contactId, contactId)
+    : eq(protocolComments.clientProtocolId, clientProtocolId);
   return db.select().from(protocolComments)
-    .where(eq(protocolComments.clientProtocolId, clientProtocolId))
-    .orderBy(asc(protocolComments.createdAt));
+    .where(scope)
+    .orderBy(asc(protocolComments.createdAt), asc(protocolComments.id));
 }
 
 export async function createProtocolComment(data: InsertProtocolComment) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(protocolComments).values(data);
-  return { id: result[0].insertId, ...data, createdAt: new Date() };
+  // Stamp the canonical contactId so the comment joins the continuous thread.
+  let contactId = (data as any).contactId ?? null;
+  if (!contactId && data.clientProtocolId) {
+    contactId = await contactIdForProtocol(db, data.clientProtocolId);
+  }
+  const values = { ...data, contactId };
+  const result = await db.insert(protocolComments).values(values);
+  return { id: result[0].insertId, ...values, createdAt: new Date() };
 }
 
 export async function isEmailUidProcessed(emailUid: string): Promise<boolean> {
@@ -2346,26 +2239,31 @@ export async function isEmailUidProcessed(emailUid: string): Promise<boolean> {
 export async function markCommentsAsRead(clientProtocolId: number, authorType: 'coach' | 'client') {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  // Mark comments from the OTHER party as read
+  // Mark comments from the OTHER party as read — across the whole contact thread.
   const otherType = authorType === 'coach' ? 'client' : 'coach';
+  const contactId = await contactIdForProtocol(db, clientProtocolId);
+  const scope = contactId
+    ? eq(protocolComments.contactId, contactId)
+    : eq(protocolComments.clientProtocolId, clientProtocolId);
   await db.update(protocolComments)
     .set({ isRead: true })
-    .where(and(
-      eq(protocolComments.clientProtocolId, clientProtocolId),
-      eq(protocolComments.authorType, otherType)
-    ));
+    .where(and(scope, eq(protocolComments.authorType, otherType)));
 }
 
 export async function getUnreadCommentCount(clientProtocolId: number, forAuthorType: 'coach' | 'client') {
   const db = await getDb();
   if (!db) return 0;
-  // Count unread comments from the OTHER party
+  // Count unread comments from the OTHER party — across the whole contact thread.
   const otherType = forAuthorType === 'coach' ? 'client' : 'coach';
+  const contactId = await contactIdForProtocol(db, clientProtocolId);
+  const scope = contactId
+    ? eq(protocolComments.contactId, contactId)
+    : eq(protocolComments.clientProtocolId, clientProtocolId);
   const result = await db.select({
     count: sql<number>`COUNT(*)`.as('count'),
   }).from(protocolComments)
     .where(and(
-      eq(protocolComments.clientProtocolId, clientProtocolId),
+      scope,
       eq(protocolComments.authorType, otherType),
       eq(protocolComments.isRead, false)
     ));
@@ -5628,12 +5526,14 @@ export async function getClientProjectsByTeamMember(teamMemberId: number) {
     .orderBy(desc(clientProjects.createdAt));
 }
 
-export async function getClientProjects(clientId: number) {
+// Projects for a person, keyed on the canonical contactId (identity-consolidation:
+// find the contact's protocols, then the projects linked to those protocols). This
+// replaced getClientProjects, which grouped by the retired client_protocols.clientId.
+export async function getClientProjectsByContactId(contactId: number) {
   const db = await getDb();
   if (!db) return [];
-  // Get all protocols for this client, then find projects linked to those protocols
   const protocols = await db.select({ id: clientProtocols.id }).from(clientProtocols)
-    .where(eq(clientProtocols.clientId, clientId));
+    .where(eq(clientProtocols.contactId, contactId));
   if (protocols.length === 0) return [];
   const protocolIds = protocols.map(p => p.id);
   return db.select().from(clientProjects)
@@ -8527,49 +8427,55 @@ export async function cleanupExpiredSessions(): Promise<number> {
 // ============ CENTRALIZED INBOX ============
 
 /**
- * Get all conversations with their latest message and unread count for the coach inbox.
- * Groups by clientProtocolId and returns the latest message, unread count, and client info.
+ * Get all conversations for the coach inbox — ONE row per contact (identity-
+ * consolidation Phase 3 / continuous chat). The latest message + unread count span
+ * the contact's whole thread across every protocol version; the row links to the
+ * protocol carrying the latest message. Comments on deleted protocols are excluded
+ * (as before); a comment with no contactId (edge/orphan) falls back to keying the
+ * conversation on its own protocol.
  */
 export async function getInboxConversations() {
   const db = await getDb();
   if (!db) return [];
 
-  // Get all client protocols that have at least one comment
+  // convKey = contactId when present, else -clientProtocolId (keeps orphan protocols
+  // in their own bucket without colliding with real contactIds).
   const conversations = await db.execute(sql`
-    SELECT 
+    SELECT
       cp.id as clientProtocolId,
       cp.clientName,
       cp.clientEmail,
-      cp.clientId,
       cp.status as protocolStatus,
       cp.clientVisibility,
-      latest_msg.id as lastMessageId,
-      latest_msg.message as lastMessage,
-      latest_msg.authorType as lastAuthorType,
-      latest_msg.authorName as lastAuthorName,
-      latest_msg.createdAt as lastMessageAt,
-      latest_msg.loomUrl as lastLoomUrl,
-      COALESCE(unread.unreadCount, 0) as unreadCount,
+      lm.id as lastMessageId,
+      lm.message as lastMessage,
+      lm.authorType as lastAuthorType,
+      lm.authorName as lastAuthorName,
+      lm.createdAt as lastMessageAt,
+      lm.loomUrl as lastLoomUrl,
+      COALESCE(ur.unreadCount, 0) as unreadCount,
       u.lastSeenAt as clientLastSeenAt
-    FROM client_protocols cp
-    LEFT JOIN users u ON LOWER(cp.clientEmail) = LOWER(u.email)
-    INNER JOIN (
-      SELECT pc1.clientProtocolId, pc1.id, pc1.message, pc1.authorType, pc1.authorName, pc1.createdAt, pc1.loomUrl
-      FROM protocol_comments pc1
+    FROM (
+      SELECT c.id, c.clientProtocolId, c.contactId, c.message, c.authorType, c.authorName, c.createdAt, c.loomUrl
+      FROM protocol_comments c
       INNER JOIN (
-        SELECT clientProtocolId, MAX(id) as maxId
-        FROM protocol_comments
-        GROUP BY clientProtocolId
-      ) pc2 ON pc1.id = pc2.maxId
-    ) latest_msg ON cp.id = latest_msg.clientProtocolId
+        SELECT COALESCE(c2.contactId, -c2.clientProtocolId) AS convKey, MAX(c2.id) AS maxId
+        FROM protocol_comments c2
+        JOIN client_protocols cp2 ON cp2.id = c2.clientProtocolId AND cp2.deletedAt IS NULL
+        GROUP BY COALESCE(c2.contactId, -c2.clientProtocolId)
+      ) k ON c.id = k.maxId
+    ) lm
+    JOIN client_protocols cp ON cp.id = lm.clientProtocolId
+    LEFT JOIN users u ON LOWER(cp.clientEmail) = LOWER(u.email)
     LEFT JOIN (
-      SELECT clientProtocolId, COUNT(*) as unreadCount
-      FROM protocol_comments
-      WHERE authorType = 'client' AND isRead = 0
-      GROUP BY clientProtocolId
-    ) unread ON cp.id = unread.clientProtocolId
+      SELECT COALESCE(c3.contactId, -c3.clientProtocolId) AS convKey, COUNT(*) AS unreadCount
+      FROM protocol_comments c3
+      JOIN client_protocols cp3 ON cp3.id = c3.clientProtocolId AND cp3.deletedAt IS NULL
+      WHERE c3.authorType = 'client' AND c3.isRead = 0
+      GROUP BY COALESCE(c3.contactId, -c3.clientProtocolId)
+    ) ur ON ur.convKey = COALESCE(lm.contactId, -lm.clientProtocolId)
     WHERE cp.deletedAt IS NULL
-    ORDER BY latest_msg.createdAt DESC
+    ORDER BY lm.createdAt DESC
   `);
 
   return (conversations as any)[0] || [];

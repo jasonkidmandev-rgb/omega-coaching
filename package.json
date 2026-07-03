@@ -12,6 +12,11 @@
     "typecheck:baseline": "node scripts/typecheck-ratchet.mjs --update",
     "format": "prettier --write .",
     "test": "vitest run",
+    "test:integration": "vitest run --config test-harness/vitest.integration.config.ts",
+    "test:integration:watch": "vitest --config test-harness/vitest.integration.config.ts",
+    "testdb:up": "docker compose -f test-harness/docker-compose.yml up -d --wait",
+    "testdb:down": "docker compose -f test-harness/docker-compose.yml down -v",
+    "testdb:logs": "docker compose -f test-harness/docker-compose.yml logs -f",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "db:push": "drizzle-kit generate && drizzle-kit migrate"

@@ -6,6 +6,7 @@ import {
   generateAccessToken,
   createClientProtocol,
 } from "../db";
+import { findOrCreateContact } from "../contacts/contactService";
 
 /**
  * Shared client-provisioning helpers.
@@ -32,16 +33,20 @@ export async function logEnrollmentActivity(
   }
 }
 
-// Helper to auto-create or link a client record AND client_protocol for an enrollment
+// Ensure the canonical CONTACT exists for an enrollment, ensure a client_protocol
+// exists, and link the enrollment to both. Identity is keyed on verified email via
+// `contacts` (the legacy `clients` table and `client_protocols.clientId` are no
+// longer written — contactId is canonical). Shipping is persisted on the protocol
+// (the fulfillment record), replacing the old clients.shipping write.
 export async function autoCreateOrLinkClient(
   database: any,
   enrollmentId: number,
   email: string,
   name: string | null | undefined,
   extra?: { phone?: string | null; shippingStreet?: string | null; shippingCity?: string | null; shippingState?: string | null; shippingZip?: string | null }
-): Promise<{ clientId: number; clientProtocolId: number; action: 'created' | 'linked' | 'skipped' }> {
+): Promise<{ contactId: number; clientProtocolId: number; action: 'created' | 'linked' | 'skipped' }> {
   try {
-    if (!email) return { clientId: 0, clientProtocolId: 0, action: 'skipped' };
+    if (!email) return { contactId: 0, clientProtocolId: 0, action: 'skipped' };
 
     // Helper to treat 'NULL' strings as actual null
     const clean = (v: string | null | undefined) => (v && v !== 'NULL' && v !== '') ? v : null;
@@ -51,56 +56,31 @@ export async function autoCreateOrLinkClient(
     const state = clean(extra?.shippingState);
     const zip = clean(extra?.shippingZip);
 
-    // Check if a client already exists with this email (case-insensitive)
-    const existingResult = await database.execute(sql`
-      SELECT id, name, phone FROM clients WHERE LOWER(email) = LOWER(${email}) LIMIT 1
-    `);
-    const existingClients = (existingResult[0] as unknown) as any[];
+    // 1. Canonical contact (verified email). Creating a protocol promotes to
+    //    active_client. findOrCreateContact auto-links ONLY on exact email.
+    const contact = await findOrCreateContact({
+      fullName: name || undefined,
+      email,
+      phone,
+      source: 'coaching_onboarding',
+      lifecycleStage: 'active_client',
+    });
+    const contactId = contact.id;
+    const action: 'created' | 'linked' = contact.isNew ? 'created' : 'linked';
 
-    let clientId: number;
-    let action: 'created' | 'linked' | 'skipped';
-
-    if (existingClients.length > 0) {
-      clientId = existingClients[0].id;
-      // Update name, phone, and shipping if client has missing data but enrollment has it
-      await database.execute(sql`
-        UPDATE clients
-        SET name = COALESCE(NULLIF(name, ''), NULLIF(name, 'Unknown'), ${name}),
-            phone = COALESCE(NULLIF(phone, ''), ${phone}),
-            shippingName = COALESCE(NULLIF(shippingName, ''), ${name}),
-            shippingStreet = COALESCE(NULLIF(shippingStreet, ''), ${street}),
-            shippingCity = COALESCE(NULLIF(shippingCity, ''), ${city}),
-            shippingState = COALESCE(NULLIF(shippingState, ''), ${state}),
-            shippingZip = COALESCE(NULLIF(shippingZip, ''), ${zip}),
-            shippingPhone = COALESCE(NULLIF(shippingPhone, ''), ${phone}),
-            updatedAt = NOW()
-        WHERE id = ${clientId}
-      `);
-      action = 'linked';
-    } else {
-      // Create new client record with all available data
-      const insertResult = await database.execute(sql`
-        INSERT INTO clients (name, email, phone, shippingName, shippingStreet, shippingCity, shippingState, shippingZip, shippingPhone, shippingCountry, referralSource, createdAt, updatedAt)
-        VALUES (${name || 'New Enrollment'}, ${email}, ${phone}, ${name}, ${street}, ${city}, ${state}, ${zip}, ${phone}, 'USA', 'coaching_onboarding', NOW(), NOW())
-      `);
-      clientId = (insertResult[0] as any).insertId;
-      action = 'created';
-    }
-
-    // Also ensure a client_protocol record exists (the Clients & Protocols UI depends on this)
+    // 2. Ensure a client_protocol exists (contactId is set at creation).
     let clientProtocolId = 0;
     try {
       const existingProtocol = await getClientProtocolByEmail(email);
       if (existingProtocol) {
         clientProtocolId = existingProtocol.id;
-        // Link protocol to client record if not already linked
-        if (!existingProtocol.clientId) {
+        // Point the protocol at the canonical contact if not already.
+        if (!existingProtocol.contactId) {
           await database.execute(sql`
-            UPDATE client_protocols SET clientId = ${clientId} WHERE id = ${clientProtocolId}
+            UPDATE client_protocols SET contactId = ${contactId} WHERE id = ${clientProtocolId}
           `);
         }
       } else {
-        // Create a new client_protocol using the default template
         const defaultTemplate = await getDefaultTemplate();
         if (defaultTemplate) {
           clientProtocolId = await cloneTemplateToClientProtocol(
@@ -109,7 +89,6 @@ export async function autoCreateOrLinkClient(
             email
           );
         } else {
-          // Fallback: create empty protocol
           const accessToken = generateAccessToken();
           clientProtocolId = await createClientProtocol({
             clientName: name || 'New Enrollment',
@@ -118,34 +97,47 @@ export async function autoCreateOrLinkClient(
             status: 'draft',
           });
         }
-        // Link the new protocol to the client record
-        await database.execute(sql`
-          UPDATE client_protocols SET clientId = ${clientId} WHERE id = ${clientProtocolId}
-        `);
+        // contactId is set by createClientProtocol -> findOrCreateContact.
       }
     } catch (protocolErr) {
       console.error('[autoCreateOrLinkClient] Failed to create/link client_protocol:', protocolErr);
     }
 
-    // Link enrollment to client and client_protocol
+    // 3. Persist shipping/phone on the protocol (fulfillment record). COALESCE so
+    //    we never clobber values already captured at checkout.
+    if (clientProtocolId > 0 && (phone || street || city || state || zip)) {
+      await database.execute(sql`
+        UPDATE client_protocols
+        SET clientPhone    = COALESCE(NULLIF(clientPhone, ''), ${phone}),
+            shippingName   = COALESCE(NULLIF(shippingName, ''), ${name || null}),
+            shippingStreet = COALESCE(NULLIF(shippingStreet, ''), ${street}),
+            shippingCity   = COALESCE(NULLIF(shippingCity, ''), ${city}),
+            shippingState  = COALESCE(NULLIF(shippingState, ''), ${state}),
+            shippingZip    = COALESCE(NULLIF(shippingZip, ''), ${zip}),
+            shippingPhone  = COALESCE(NULLIF(shippingPhone, ''), ${phone})
+        WHERE id = ${clientProtocolId}
+      `);
+    }
+
+    // 4. Link the enrollment to the contact + protocol.
     if (clientProtocolId > 0) {
       await database.execute(sql`
         UPDATE transformation_enrollments
-        SET clientId = ${clientId}, clientProtocolId = ${clientProtocolId}, updatedAt = NOW()
+        SET contactId = ${contactId}, clientProtocolId = ${clientProtocolId}, updatedAt = NOW()
         WHERE id = ${enrollmentId}
       `);
     } else {
       await database.execute(sql`
         UPDATE transformation_enrollments
-        SET clientId = ${clientId}, updatedAt = NOW()
+        SET contactId = ${contactId}, updatedAt = NOW()
         WHERE id = ${enrollmentId}
       `);
     }
 
-    console.log(`[autoCreateOrLinkClient] ${action} client ${clientId}, protocol ${clientProtocolId} for enrollment ${enrollmentId} (${email})`);
-    return { clientId, clientProtocolId, action };
+    console.log(`[autoCreateOrLinkClient] ${action} contact ${contactId}, protocol ${clientProtocolId} for enrollment ${enrollmentId} (${email})`);
+    return { contactId, clientProtocolId, action };
   } catch (err) {
     console.error('[autoCreateOrLinkClient] Failed:', err);
-    return { clientId: 0, clientProtocolId: 0, action: 'skipped' };
+    return { contactId: 0, clientProtocolId: 0, action: 'skipped' };
   }
 }

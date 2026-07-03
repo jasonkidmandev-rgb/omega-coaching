@@ -9,10 +9,19 @@
 -- will never pick it up. It is applied MANUALLY, ONCE, at cutover — after the
 -- one-time data dedup — on the fresh production database.
 --
--- Why it can't run today: the current staging snapshot has duplicate normalized
--- emails (a 21-row phone-collision cluster, plus case/whitespace variants) and
--- NULL contactId gaps. UNIQUE(email) and the FKs below would fail immediately on
--- that dirty data. They are safe only after Phase 2 dedup + backfill.
+-- STATE (verified against the 2026-07-01 production snapshot — see
+-- cutover/local-data/phase2_analysis_report.txt):
+--   * contacts.email is ALREADY a real UNIQUE KEY (`contacts_email_unique`).
+--     0 duplicate normalized emails, 0 blank ('') emails, 11 NULL (phone-only
+--     leads — allowed). STEP 1 is therefore a NO-OP / verification only.
+--   * 0 orphaned contactId values on any of the 10 tables — STEP 2 FKs apply
+--     cleanly today.
+--   * Only the STEP-3 NOT NULL targets need a small backfill first:
+--     client_protocols has 3 NULL contactId, protocol_orders has 5 NULL,
+--     custom_orders has 0. Backfill those 8 (from clientProtocolId/clientId)
+--     before STEP 3.
+--   * clientId is fully redundant: split null=30 / clients=85 / users=3 /
+--     neither=0 — safe to drop after the 3 protocol backfills.
 --
 -- Background / decisions: docs/design/2026-06-30-identity-consolidation.md
 --
@@ -39,16 +48,22 @@
 
 
 -- =============================================================================
--- STEP 1 — Make verified email the unique identity key
+-- STEP 1 — Verified email is the unique identity key  (ALREADY ENFORCED)
 -- -----------------------------------------------------------------------------
--- `contacts_email_unique` exists today but is a PLAIN index (misnamed). Replace
--- it with a real UNIQUE index. Email stays nullable on purpose: phone-only
--- records remain pre-client "leads" (multiple NULLs are allowed by MySQL UNIQUE)
--- until an email is captured at client conversion.
--- =============================================================================
-
-ALTER TABLE contacts DROP INDEX contacts_email_unique;
-ALTER TABLE contacts ADD UNIQUE INDEX contacts_email_unique (email);
+-- CORRECTION (2026-07-01): `contacts_email_unique` is ALREADY a real UNIQUE KEY
+-- in production, not a plain index. Email is nullable on purpose so phone-only
+-- "leads" (multiple NULLs, allowed by the UNIQUE index) stay pre-client until an
+-- email is captured. So there is NOTHING to change here — verify and move on.
+--
+-- Verify (must return the UNIQUE index, NON_UNIQUE = 0):
+--   SHOW INDEX FROM contacts WHERE Key_name = 'contacts_email_unique';
+-- And confirm no duplicates snuck in since the snapshot (must be ZERO rows):
+--   SELECT LOWER(TRIM(email)) e, COUNT(*) c FROM contacts
+--   WHERE email IS NOT NULL AND TRIM(email) <> '' GROUP BY e HAVING c > 1;
+--
+-- Only if a target DB somehow LACKS the constraint, add it:
+--   ALTER TABLE contacts ADD UNIQUE INDEX contacts_email_unique (email);
+-- (No DROP/re-add — dropping a live UNIQUE key opens a window with no enforcement.)
 
 
 -- =============================================================================

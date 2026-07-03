@@ -11,6 +11,7 @@
  */
 
 import * as db from "../db";
+import { findOrCreateContact } from "../contacts/contactService";
 import { automationEvents, clients, clientProjects, projectTasks, projectSubtasks, teamMembers } from "../../drizzle/schema";
 import { eq, and, isNull } from "drizzle-orm";
 
@@ -149,7 +150,7 @@ export interface OnboardingTriggerParams {
 
 export interface OnboardingResult {
   success: boolean;
-  clientId: number | null;
+  contactId: number | null;
   clientProtocolId: number | null;
   clientProjectId: number | null;
   errors: string[];
@@ -171,7 +172,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
   const config = TIER_CONFIG[tier] || TIER_CONFIG.flagship;
   const result: OnboardingResult = {
     success: false,
-    clientId: null,
+    contactId: null,
     clientProtocolId: null,
     clientProjectId: null,
     errors: [],
@@ -190,27 +191,22 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
   // STEP 1: Create or link client record
   // ============================================================
   try {
-    let existingClient = clientEmail ? await db.getClientByEmail(clientEmail) : null;
-
-    if (existingClient) {
-      result.clientId = existingClient.id;
-      console.log(`[Onboarding] Found existing client #${existingClient.id} for ${clientEmail}`);
-    } else {
-      result.clientId = await db.createClient({
-        name: clientName,
-        email: clientEmail || null,
-        phone: clientPhone || null,
-        isActiveInProjects: true,
-      });
-      console.log(`[Onboarding] Created new client #${result.clientId} for ${clientName}`);
-    }
+    const contact = await findOrCreateContact({
+      fullName: clientName,
+      email: clientEmail || undefined,
+      phone: clientPhone || undefined,
+      source: 'coaching_onboarding',
+      lifecycleStage: 'active_client',
+    });
+    result.contactId = contact.id;
+    console.log(`[Onboarding] ${contact.isNew ? 'Created' : 'Linked'} contact #${contact.id} for ${clientEmail}`);
 
     await logAutomationEvent(database, {
       eventType: "client_created_or_linked",
       enrollmentId,
-      clientId: result.clientId,
+      clientId: result.contactId,
       details: JSON.stringify({
-        isNew: !existingClient,
+        isNew: contact.isNew,
         clientName,
         clientEmail,
         tier,
@@ -236,10 +232,9 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
       );
       console.log(`[Onboarding] Created protocol #${result.clientProtocolId} from template #${config.protocolTemplateId}`);
 
-      // Link protocol to client
-      if (result.clientId) {
+      // Protocol contactId is set at clone time (findOrCreateContact); just set programId.
+      if (result.clientProtocolId) {
         await db.updateClientProtocol(result.clientProtocolId, {
-          clientId: result.clientId,
           programId: config.programId,
         } as any);
       }
@@ -255,7 +250,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
     await logAutomationEvent(database, {
       eventType: "protocol_created",
       enrollmentId,
-      clientId: result.clientId,
+      clientId: result.contactId,
       clientProtocolId: result.clientProtocolId,
       details: JSON.stringify({
         templateId: config.protocolTemplateId,
@@ -280,6 +275,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
 
     result.clientProjectId = await db.createClientProject({
       clientProtocolId: result.clientProtocolId,
+      contactId: result.contactId,
       clientName,
       clientEmail: clientEmail || null,
       workflowTemplateId: config.workflowTemplateId,
@@ -295,13 +291,8 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
     await db.applyWorkflowTemplateToProject(result.clientProjectId, config.workflowTemplateId);
     console.log(`[Onboarding] Created project #${result.clientProjectId} with workflow template #${config.workflowTemplateId}`);
 
-    // Link client to project
-    if (result.clientId) {
-      await db.updateClient(result.clientId, {
-        isActiveInProjects: true,
-        clientProjectId: result.clientProjectId,
-      });
-    }
+    // (contactId-only) The project links to the person via clientProtocolId +
+    // contactId; the legacy clients.clientProjectId back-link is no longer written.
 
     // Auto-assign tasks to team members based on lifecycle stage
     await autoAssignProjectTasks(database, result.clientProjectId, startDate);
@@ -316,7 +307,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
     await logAutomationEvent(database, {
       eventType: "project_created",
       enrollmentId,
-      clientId: result.clientId,
+      clientId: result.contactId,
       clientProtocolId: result.clientProtocolId,
       clientProjectId: result.clientProjectId,
       details: JSON.stringify({
@@ -357,7 +348,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
       await logAutomationEvent(database, {
         eventType: "protocol_build_task_created",
         enrollmentId,
-        clientId: result.clientId,
+        clientId: result.contactId,
         clientProjectId: result.clientProjectId,
         details: JSON.stringify({
           deadline: protocolBuildDeadline.toISOString(),
@@ -420,7 +411,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
       await logAutomationEvent(database, {
         eventType: "community_tasks_created",
         enrollmentId,
-        clientId: result.clientId,
+        clientId: result.contactId,
         clientProjectId: result.clientProjectId,
         teamMemberId: TEAM.LISA,
         details: JSON.stringify({
@@ -475,7 +466,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
       await logAutomationEvent(database, {
         eventType: "end_of_protocol_tasks_created",
         enrollmentId,
-        clientId: result.clientId,
+        clientId: result.contactId,
         clientProjectId: result.clientProjectId,
         details: JSON.stringify({
           wrapUpDate: twoWeeksBeforeEnd.toISOString(),
@@ -498,7 +489,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
       "enrollment_onboarding",
       `Onboarding started for ${clientName}`,
       `${clientName} has been auto-enrolled in ${config.programName} (${tier} tier) after ${paymentMethod} payment of $${coachingFeeAmount}.\n\n` +
-      `Client: ${result.clientId ? `#${result.clientId}` : 'Not linked'}\n` +
+      `Client: ${result.contactId ? `#${result.contactId}` : 'Not linked'}\n` +
       `Protocol: ${result.clientProtocolId ? `#${result.clientProtocolId} (draft)` : 'Pending manual build'}\n` +
       `Project: ${result.clientProjectId ? `#${result.clientProjectId}` : 'Not created'}\n\n` +
       `Lisa has been assigned onboarding tasks. Jason has a 4-day deadline to build the protocol.`,
@@ -582,7 +573,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
     await logAutomationEvent(database, {
       eventType: 'prospect_auto_created',
       enrollmentId,
-      clientId: result.clientId,
+      clientId: result.contactId,
       details: JSON.stringify({
         clientName,
         clientEmail,
@@ -625,7 +616,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
     await logAutomationEvent(database, {
       eventType: "welcome_email_sent",
       enrollmentId,
-      clientId: result.clientId,
+      clientId: result.contactId,
       details: JSON.stringify({
         email: clientEmail,
         communityCode: config.communityCode,

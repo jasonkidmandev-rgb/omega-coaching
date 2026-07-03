@@ -21,7 +21,6 @@ interface Conversation {
   clientProtocolId: number;
   clientName: string;
   clientEmail: string | null;
-  clientId: number | null;
   protocolStatus: string;
   clientVisibility: string;
   lastMessageId: number;

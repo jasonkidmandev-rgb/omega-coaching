@@ -31,7 +31,6 @@ import { initSessionReminderCron } from "../cron/sessionReminderCron";
 import { initStalledClientCron } from "../cron/stalledClientCron";
 import { initWeeklyTeamDigestCron } from "../cron/weeklyTeamDigestCron";
 import { initShannonDailyPipelineCron } from "../cron/shannonDailyPipelineCron";
-import { startNightlyReconciliationCron } from "../cron/nightlyReconciliationCron";
 import { initEnrollmentFollowUpCron } from "../cron/enrollmentFollowUpCron";
 import { initIntakeFormReminderCron } from "../cron/intakeFormReminderCron";
 import { startProtocolExpirationCron } from "../cron/protocolExpirationCron";
@@ -614,9 +613,6 @@ async function startServer() {
     
     // Task escalation - every 12 hours, escalates tasks overdue by 48+ hours to the next person up
     initTaskEscalationCron();
-    
-    // Nightly reconciliation - runs at 2 AM to fix stages, link prospects, scan duplicates
-    startNightlyReconciliationCron();
     
     // Email Reply Bridge - polls Gmail IMAP for client replies to chat notification emails
     startEmailReplyPolling();

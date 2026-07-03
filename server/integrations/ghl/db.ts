@@ -1,9 +1,8 @@
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import { getDb } from "../../db";
 import {
   externalWebhookEvents,
   externalProductMappings,
-  clients,
 } from "../../../drizzle/schema";
 import { GHL_SOURCE } from "./schema";
 
@@ -89,20 +88,26 @@ export async function markEventFailed(id: number, errorMessage: string) {
 
 // ── Client resolution ──────────────────────────────────────────────────────
 
-/** Match an incoming GHL contact to a local client by GHL contact id, then email. */
+/**
+ * Match an incoming GHL contact to a local CONTACT by email.
+ *
+ * Identity-consolidation retired the `clients` table; `contacts` (the canonical
+ * identity) has no `ghlContactId` column yet, so matching is email-only. If GHL
+ * contact-id matching is needed when this (currently parked) integration goes live,
+ * add `ghlContactId` to `contacts`, backfill it, and match on it here first.
+ */
 export async function resolveClient(opts: { ghlContactId?: string; email?: string }) {
   const database = await db();
-  const conds = [] as any[];
-  if (opts.ghlContactId) conds.push(eq(clients.ghlContactId, opts.ghlContactId));
-  if (opts.email) conds.push(eq(clients.email, opts.email));
-  if (conds.length === 0) return null;
+  if (!opts.email) return null;
 
-  const rows = await database
-    .select({ id: clients.id, name: clients.name, email: clients.email, ghlContactId: clients.ghlContactId })
-    .from(clients)
-    .where(conds.length === 1 ? conds[0] : or(...conds))
-    .limit(1);
-  return rows[0] ?? null;
+  const result = await database.execute(
+    sql`SELECT id, full_name AS name, email FROM contacts WHERE email = ${opts.email} LIMIT 1`
+  );
+  const rows = (result[0] as unknown) as any[];
+  const contact = rows?.[0];
+  return contact
+    ? { id: contact.id as number, name: contact.name as string, email: contact.email as string | null, ghlContactId: null as string | null }
+    : null;
 }
 
 // ── Product mapping ────────────────────────────────────────────────────────

@@ -1187,6 +1187,25 @@ export default function AdminClientEdit() {
     }),
   })).filter((group) => group.items.length > 0);
 
+  // Surface orphaned items (their master catalog entry was removed, so they match no
+  // category) in an "Other Items" group instead of silently dropping them from the
+  // editor. Mirrors the client protocol view; ProtocolsTab already renders each item
+  // with a snapshotName / "Unknown Item #id" fallback.
+  const orphanedItems = protocolItems.filter(
+    (item) => !allItems?.find((i) => i.id === item.protocolItemId)
+  );
+  if (itemsByCategory && orphanedItems.length > 0) {
+    itemsByCategory.push({
+      category: {
+        id: -1,
+        name: 'Other Items',
+        displayName: 'Other Items',
+        description: 'Catalog entry removed — shown so the item is not lost',
+      } as any,
+      items: orphanedItems,
+    });
+  }
+
   if (clientLoading && !isNew) {
     return (
       <AdminLayout>
@@ -2086,7 +2105,9 @@ export default function AdminClientEdit() {
                   return;
                 }
                 createNewVersionMutation.mutate({
-                  ...(client?.clientId ? { clientId: client.clientId } : { protocolId: clientId }),
+                  // Version off the protocol currently being viewed. Identity-
+                  // consolidation: keyed on the protocol id, not the retired clientId.
+                  protocolId: clientId,
                   versionName: newVersionName || undefined,
                   versionNotes: newVersionNotes || undefined,
                   templateId: newVersionTemplateId || undefined,

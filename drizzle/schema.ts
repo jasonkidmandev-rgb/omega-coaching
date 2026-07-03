@@ -2411,6 +2411,10 @@ export const prospects = mysqlTable("prospects", {
 export const protocolComments = mysqlTable("protocol_comments", {
 	id: int().autoincrement().notNull(),
 	clientProtocolId: int().notNull(),
+	// Canonical identity (identity-consolidation Phase 3): a comment thread follows
+	// the contact across all their protocol versions, not just one version. Nullable
+	// for the few comments whose parent protocol was deleted.
+	contactId: int(),
 	authorType: mysqlEnum(['coach','client']).notNull(),
 	authorName: varchar({ length: 255 }),
 	message: text().notNull(),
@@ -2421,6 +2425,7 @@ export const protocolComments = mysqlTable("protocol_comments", {
 },
 (table) => [
 	index("protocol_comments_protocol_idx").on(table.clientProtocolId),
+	index("protocol_comments_contact_idx").on(table.contactId),
 	index("protocol_comments_email_uid_idx").on(table.emailUid),
 ]);
 

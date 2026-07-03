@@ -26,10 +26,10 @@ import { toast } from "sonner";
 export default function DataIntegrityAudit() {
   const [, navigate] = useLocation();
 
-  const { data, isLoading, refetch, isFetching } = trpc.client360.dataIntegrityAudit.useQuery(undefined, {
+  const { data, isLoading, refetch, isFetching } = trpc.contacts.dataIntegrityAudit.useQuery(undefined, {
     staleTime: 0,
   });
-  const fixMismatch = trpc.client360.fixMismatch.useMutation({
+  const fixMismatch = trpc.contacts.fixMismatch.useMutation({
     onSuccess: () => {
       toast.success("Contact data synced to all linked records.");
       refetch();
@@ -38,7 +38,7 @@ export default function DataIntegrityAudit() {
       toast.error(err.message);
     },
   });
-  const fixAll = trpc.client360.fixAllMismatches.useMutation({
+  const fixAll = trpc.contacts.fixAllMismatches.useMutation({
     onSuccess: (result) => {
       toast.success(`Synced ${result.totalFixed} contacts to all linked records.`);
       refetch();
