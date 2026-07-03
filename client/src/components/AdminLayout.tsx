@@ -579,7 +579,7 @@ function AdminLayoutContent({
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0 bg-[#1e3a5f] overflow-y-auto">
+          <SidebarContent className="gap-0 bg-[#1e3a5f] overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb:hover]:bg-white/30">
             {/* Sidebar Search */}
             {!isCollapsed && (
               <div className="px-3 py-2">
@@ -666,7 +666,9 @@ function AdminLayoutContent({
                 .map((category) => {
                   const isOpen = openCategories.has(category.label);
                   const isCatActive = isCategoryActive(category, location);
-                  const accessibleItems = category.items.filter(item => hasMenuAccess(item, user?.role || 'user'));
+                  const accessibleItems = category.items
+                    .filter(item => hasMenuAccess(item, user?.role || 'user'))
+                    .sort((a, b) => a.label.localeCompare(b.label));
                   
                   if (accessibleItems.length === 0) return null;
 
