@@ -163,6 +163,55 @@ Sequence these into the same window when their owning change lands; each is dest
 
 ---
 
+## 2·6 Pitfalls & incident log — read before every cutover
+
+Concrete failures we've actually hit. Each is a *class* of bug, not a one-off — check for it.
+
+### P1 — Dropped column still in the drizzle def → whole-table outage  (2026-07-03, prod down)
+
+**What happened.** The identity cutover dropped `client_protocols.clientId` on the live
+Railway DB, but the drizzle `clientProtocols` def still listed `clientId`. drizzle's
+`select().from(clientProtocols)` emits `SELECT <every column in the def>`, so it asked for
+`clientId` — a column the DB no longer had → `Unknown column 'clientId'` → **every**
+`client_protocols` read threw. `/admin/clients` was empty and client chat/detail failed.
+Fixed by removing `clientId` + its indexes from the def (hotfix `ea5a7e1`), then the orphan
+`clients` table def (`0672709`).
+
+**Why every safety net missed it — this is the important part:**
+- **The tsc ratchet is type-only.** A def and the DB disagreeing is a *runtime* fact; the
+  types were internally consistent, so tsc stayed green.
+- **The DoD grep is textual.** `select()` names no column in source, so searching for
+  `clientProtocols.clientId` finds nothing — the reference is *implicit* via the def.
+- **The integration harness still had the old schema** (`clientId` present), so its tests
+  passed against a shape that no longer matched production.
+
+**The rule.** A drizzle column/table def must match the DB the code runs against. When a
+DROP is applied to that DB, **remove the def in the same deploy** (manifest §2·5). "Defer the
+def to cutover" is valid ONLY while the drop hasn't reached that DB yet (e.g. T9 today).
+
+**Detection — run before AND after any schema DDL.** For each table you're changing, list
+what the DB actually has and eyeball it against the fields in that table's `schema.ts` def.
+Any field in the def that's missing below is the trap (and vice-versa for adds).
+```sql
+-- column names are camelCase in this DB, EXCEPT `contacts` (snake_case)
+SELECT column_name FROM information_schema.columns
+WHERE table_schema = DATABASE() AND table_name = 'client_protocols'
+ORDER BY ordinal_position;
+```
+Cheapest catch of all: the §4 smoke test does one read per changed table — a def↔DB
+mismatch throws on the first such read, in seconds.
+
+### P2 — TiDB → MySQL FK name collision on import
+See §1 — `Duplicate foreign key constraint name 'fk_1'`; fix with the awk rename.
+
+### P3 — camelCase def vs snake_case DB (contacts)
+Prod `contacts` is snake_case (`first_name`, `lifecycle_stage`, …). This works ONLY because
+the drizzle `contacts` def maps every field explicitly (`firstName: varchar("first_name")`).
+If you add a `contacts` column, **map it to its snake_case name** or `select().from(contacts)`
+will throw the same `Unknown column` as P1. (Other tables are camelCase end-to-end.)
+
+---
+
 ## 3. Rollback
 
 - **Before STEP 3 (steps 4–5 STEP 2):** trivial — `DROP` the 10 FK constraints; the
@@ -175,6 +224,9 @@ Sequence these into the same window when their owning change lands; each is dest
 
 ## 4. Smoke test after deploy
 
+- **Read one row from every table the DDL touched** (especially after any DROP): load
+  `/admin/clients`, open a client, open the coach inbox. A def↔DB column mismatch (P1)
+  throws on the first read of the affected table — fastest way to catch that class of bug.
 - Admin: create a protocol for a new email → contact + protocol created, no error.
 - Onboarding: run a coaching enrollment through → contact linked, project created.
 - **Chat continuity (Phase 3):** open a client who has ≥2 protocol versions → the
