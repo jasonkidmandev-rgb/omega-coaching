@@ -787,34 +787,6 @@ export const clientProtocols = mysqlTable("client_protocols", {
 	index("client_protocols_program_idx").on(table.programId),
 ]);
 
-export const clients = mysqlTable("clients", {
-	id: int().autoincrement().notNull(),
-	name: varchar({ length: 255 }).notNull(),
-	email: varchar({ length: 320 }),
-	phone: varchar({ length: 50 }),
-	shippingName: varchar({ length: 255 }),
-	shippingStreet: varchar({ length: 500 }),
-	shippingCity: varchar({ length: 255 }),
-	shippingState: varchar({ length: 100 }),
-	shippingZip: varchar({ length: 20 }),
-	shippingCountry: varchar({ length: 100 }).default('USA'),
-	shippingPhone: varchar({ length: 50 }),
-	ghlContactId: varchar({ length: 100 }),
-	referralSource: varchar({ length: 255 }),
-	notes: text(),
-	tags: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	archivedAt: timestamp({ mode: 'string' }),
-	deletedAt: timestamp({ mode: 'string' }),
-	isActiveInProjects: tinyint().default(0).notNull(),
-	clientProjectId: int(),
-},
-(table) => [
-	index("clients_email_idx").on(table.email),
-	index("clients_name_idx").on(table.name),
-]);
-
 export const cloneHistory = mysqlTable("clone_history", {
 	id: int().autoincrement().notNull(),
 	sourceProtocolId: int(),

@@ -3,7 +3,6 @@ import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
   users,
-  clients,
   InsertClient,
   categories,
   protocolItems,

@@ -12,7 +12,7 @@
 
 import * as db from "../db";
 import { findOrCreateContact } from "../contacts/contactService";
-import { automationEvents, clients, clientProjects, projectTasks, projectSubtasks, teamMembers } from "../../drizzle/schema";
+import { automationEvents, clientProjects, projectTasks, projectSubtasks, teamMembers } from "../../drizzle/schema";
 import { eq, and, isNull } from "drizzle-orm";
 
 // ============================================================
