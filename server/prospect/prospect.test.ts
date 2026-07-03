@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { formatPhoneE164, formatPhoneDisplay } from "../utils/phone";
 
-describe("SMS Service", () => {
+describe("Phone utilities", () => {
   describe("formatPhoneE164", () => {
     it("formats 10-digit US number", () => {
       expect(formatPhoneE164("5551234567")).toBe("+15551234567");

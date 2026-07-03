@@ -193,11 +193,6 @@ function ProspectCard({ prospect, onClick, isDragging }: { prospect: any; onClic
             )}
           </div>
           <div className="flex items-center gap-1">
-            {prospect.totalSmsSent > 0 && (
-              <Badge variant="secondary" className="text-[9px] px-1 py-0">
-                {prospect.totalSmsSent} SMS
-              </Badge>
-            )}
             {hasEnrollment && (
               <Badge className={`text-[9px] px-1 py-0 ${enrollmentPaid ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"} hover:bg-opacity-100`}>
                 {enrollmentPaid ? <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" /> : <DollarSign className="h-2.5 w-2.5 mr-0.5" />}

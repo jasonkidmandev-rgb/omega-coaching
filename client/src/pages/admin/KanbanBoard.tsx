@@ -81,11 +81,6 @@ function ProspectCard({ prospect, onClick, isDragging }: { prospect: any; onClic
               <Clock className="h-3 w-3" /> {lastContact}
             </span>
           )}
-          {prospect.smsSentCount > 0 && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-              {prospect.smsSentCount} SMS
-            </Badge>
-          )}
         </div>
       </CardContent>
     </Card>

@@ -149,7 +149,6 @@ const engagementTypeConfig: Record<string, { label: string; icon: string; color:
   status_change: { label: "Status Change", icon: "🔄", color: "text-amber-600" },
   follow_up_scheduled: { label: "Follow-up Scheduled", icon: "📅", color: "text-teal-600" },
   other: { label: "Other", icon: "📌", color: "text-slate-600" },
-  sms_link_click: { label: "SMS Link Click", icon: "🔗", color: "text-cyan-600" },
   page_view: { label: "Page View", icon: "👁", color: "text-violet-600" },
   masterclass_view: { label: "Masterclass View", icon: "🎓", color: "text-pink-600" },
   tier_view: { label: "Tier View", icon: "📊", color: "text-rose-600" },
@@ -900,7 +899,6 @@ export default function Prospects() {
                     <TableHead>Status</TableHead>
                     <TableHead>Journey</TableHead>
                     <TableHead>Source</TableHead>
-                    <TableHead>SMS Sent</TableHead>
                     <TableHead>Last Contact</TableHead>
                     <TableHead>Last Click</TableHead>
                     <TableHead className="w-10"></TableHead>
@@ -917,7 +915,7 @@ export default function Prospects() {
                     </TableRow>
                   ) : (
                     prospects.map((prospect: any) => (
-                      <TableRow key={prospect.id} className={prospect.smsOptOut ? "opacity-50" : ""}>
+                      <TableRow key={prospect.id}>
                         <TableCell>
                           <input
                             type="checkbox"
@@ -939,9 +937,6 @@ export default function Prospects() {
                           >
                             {prospect.name}
                           </button>
-                          {!!prospect.smsOptOut && (
-                            <Badge variant="outline" className="ml-2 text-xs text-red-600 border-red-200">Opted Out</Badge>
-                          )}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
@@ -982,7 +977,6 @@ export default function Prospects() {
                           </div>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{prospect.source || "—"}</TableCell>
-                        <TableCell className="text-sm">{prospect.totalSmsSent}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {prospect.lastContactedAt ? toLocaleDateStringMT(prospect.lastContactedAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : "—"}
                         </TableCell>
@@ -1271,13 +1265,7 @@ export default function Prospects() {
                 </div>
                 
                 {/* Stats */}
-                <div className="grid grid-cols-4 gap-3 min-w-0">
-                  <Card>
-                    <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold">{prospectDetail.data.totalSmsSent}</p>
-                      <p className="text-xs text-muted-foreground">SMS Sent</p>
-                    </CardContent>
-                  </Card>
+                <div className="grid grid-cols-3 gap-3 min-w-0">
                   <Card>
                     <CardContent className="p-3 text-center">
                       <p className="text-2xl font-bold">{prospectDetail.data.totalClicks}</p>
@@ -1469,32 +1457,6 @@ export default function Prospects() {
                       </div>
                     );
                   })()}
-                </div>
-                
-                {/* SMS History */}
-                <div>
-                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-1">
-                    <MessageSquare className="h-4 w-4" /> SMS History
-                  </h4>
-                  {prospectDetail.data.messages?.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No messages sent yet.</p>
-                  ) : (
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {prospectDetail.data.messages?.map((msg: any) => (
-                        <div key={msg.id} className="text-sm border rounded p-2">
-                          <div className="flex items-center justify-between mb-1">
-                            <Badge variant={msg.status === "delivered" || msg.status === "sent" ? "default" : msg.status === "not_configured" ? "secondary" : "destructive"} className="text-xs">
-                              {msg.status}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {toLocaleDateStringMT(msg.createdAt)}
-                            </span>
-                          </div>
-                          <p className="text-muted-foreground break-words whitespace-pre-wrap">{msg.body}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
                 
                 {/* Engagement History */}
@@ -1817,7 +1779,7 @@ export default function Prospects() {
             <DialogHeader>
               <DialogTitle className="text-red-600">Delete Prospect</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete <strong>{selectedProspect?.name}</strong>? This will also delete all SMS history and engagement data. This action cannot be undone.
+                Are you sure you want to delete <strong>{selectedProspect?.name}</strong>? This will also delete all engagement data. This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

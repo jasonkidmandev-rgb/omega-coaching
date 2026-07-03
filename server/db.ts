@@ -6856,8 +6856,6 @@ export async function updateUserPhone(userId: number, phone: string) {
   await db.update(users).set({ phone }).where(eq(users.id, userId));
 }
 
-// Update user SMS notification preference
-
 // ============ PROGRESS PHOTOS FUNCTIONS ============
 
 export async function createProgressPhoto(data: Omit<InsertProgressPhoto, 'id' | 'createdAt'>) {

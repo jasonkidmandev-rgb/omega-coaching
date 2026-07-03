@@ -74,7 +74,6 @@ describe('Prospect Deduplication', () => {
         enrollmentId: null,
         notes: 'Original notes',
         totalClicks: 5,
-        totalSmsSent: 2,
       };
       
       const remove = {
@@ -84,7 +83,6 @@ describe('Prospect Deduplication', () => {
         enrollmentId: 123,
         notes: 'Secondary notes',
         totalClicks: 3,
-        totalSmsSent: 8,
       };
       
       // Merge logic
@@ -97,7 +95,6 @@ describe('Prospect Deduplication', () => {
         updates.notes = keep.notes ? `${keep.notes}\n\n[Merged] ${remove.notes}` : remove.notes;
       }
       if (remove.totalClicks > keep.totalClicks) updates.totalClicks = remove.totalClicks;
-      if (remove.totalSmsSent > keep.totalSmsSent) updates.totalSmsSent = remove.totalSmsSent;
       
       expect(updates.phone).toBe('+15551234567'); // Filled from secondary
       expect(updates.source).toBe('referral'); // Filled from secondary
@@ -105,7 +102,6 @@ describe('Prospect Deduplication', () => {
       expect(updates.notes).toContain('[Merged]'); // Notes merged
       expect(updates.email).toBeUndefined(); // Keep already has email
       expect(updates.totalClicks).toBeUndefined(); // Keep has more clicks
-      expect(updates.totalSmsSent).toBe(8); // Secondary has more SMS
     });
   });
 

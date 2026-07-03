@@ -839,8 +839,6 @@ export default function AdminStoreOrders() {
                 <Label htmlFor="notifications" className="text-gray-700 flex items-center gap-2">
                   <Mail className="w-4 h-4 text-blue-400" />
                   Send email notification
-                  <MessageSquare className="w-4 h-4 text-green-400 ml-2" />
-                  Send SMS notification
                 </Label>
               </div>
             </div>

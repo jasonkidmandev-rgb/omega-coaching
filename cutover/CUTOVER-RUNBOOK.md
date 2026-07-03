@@ -72,9 +72,14 @@ awk '{ while (match($0, /CONSTRAINT `fk_[0-9]+`/)) { n++; \
 5. **Constraints:** run `identity-constraints.sql` (STEP 1 verify → STEP 2 FKs →
    STEP 3 destructive) → **verify §5.B.**
 6. **Phase 3 chat:** run `phase3-chat-rekey.sql` → **verify §5.C** (~957/976 backfilled).
-7. **Deploy** the contactId-only app + Phase 3 code pointed at this DB.
-8. **Smoke test** (§4).
-9. **Unfreeze.**
+7. **SMS/Push cleanup (T9/R16):** run `drop-sms-push.sql`. Independent of the identity
+   steps — drops the retired `sms_*`/`push_*` tables + orphaned columns. **Keeps
+   `prospects.smsOptOut`** (still a do-not-contact filter). See manifest §C.
+8. **Deploy** the app pointed at this DB (contactId-only + Phase 3 chat + T9 removal).
+   **In the same deploy, delete the drizzle defs** for every object dropped in steps 5 & 7
+   (see the manifest's "drizzle def to remove" column) so schema.ts matches the DB.
+9. **Smoke test** (§4).
+10. **Unfreeze.**
 
 > **Order matters — Phase 3 code needs the column.** The app now reads/writes
 > `protocol_comments.contactId`, so `phase3-chat-rekey.sql` (at least STEP 1, the
@@ -82,6 +87,70 @@ awk '{ while (match($0, /CONSTRAINT `fk_[0-9]+`/)) { n++; \
 > including **staging**. The column is nullable and safe to add ahead of time; the
 > backfill (STEP 2) and FK (STEP 3) can follow. If you deploy the code against a DB
 > without the column, comment reads/writes will error on the unknown column.
+
+---
+
+## 2·5 Complete schema-change manifest — every DROP / ADD, and why
+
+**This is the exhaustive list of DDL the cutover applies.** If a step here surprises you
+at the window, read the reason column first. Nothing below runs in the normal deploy flow —
+all of it is manual, once, at the window, on the freshly-synced DB.
+
+**Why these are deferred to the window (and not done in code / on a live deploy):**
+- **Destructive / irreversible.** Drops, `NOT NULL`, and FKs can't be undone in place — a
+  mistake means restoring the whole DB from the pre-cutover dump.
+- **The DB is refreshed from a fresh Manus dump at go-live.** Manus is still the live
+  system and **still has every legacy table/column** — we only removed the app *code*, never
+  touched Manus's schema. So all of this legacy schema **returns** after the sync and must be
+  dropped *after* it. That is the core reason these live in SQL files, not in the codebase.
+- **Drizzle defs are kept on purpose until this runs.** The table/column definitions in
+  `drizzle/schema.ts` + `drizzle/relations.ts` for everything being dropped are left in place
+  so the ORM schema **matches the live DB** (which still has them until this runs). Removing a
+  def while its table still exists risks `drizzle-kit generate/push` emitting a **surprise
+  `DROP`** outside this window. Rule: **delete each def in the same deploy that runs its drop**
+  (step 8). This is the same approach used for the legacy `clients` table.
+
+### A. Identity consolidation — files: `identity-backfill.sql` → `identity-constraints.sql`
+
+| Change | Object | Reason | Drizzle def to remove |
+|---|---|---|---|
+| **backfill** | `contactId` on `client_protocols`, `protocol_orders`, `custom_orders`, `users` (fill NULLs) | app is contactId-only; must be non-null before the FK / NOT NULL below | — (already canonical) |
+| **backfill** | insert `contacts` rows for orphan auth users | every identity needs one canonical contact | — |
+| **ADD FK** | 10 tables `contactId → contacts(id)` ON DELETE RESTRICT (`appointments, client_packages, client_projects, client_protocols, custom_orders, packing_slips, prospects, protocol_orders, transformation_enrollments, users`) | make contact the enforced canonical identity; never silently orphaned | — |
+| **NOT NULL** | `client_protocols.contactId`, `protocol_orders.contactId`, `custom_orders.contactId` | client-stage rows must have a contact | — |
+| **DROP INDEX** | `client_protocols_client_id_idx`, `client_protocols_client_active_idx` | depend on `clientId`, which is being dropped | — |
+| **DROP COLUMN** | `client_protocols.clientId` | retire the legacy overloaded (40%-null, colliding) identity key | remove `clientId` field from `clientProtocols` |
+| **DROP TABLE** | `clients` | legacy identity fully collapsed into `contacts`; app no longer reads it | remove `clients` table + its relations |
+
+### B. Continuous chat / CR-1 — file: `phase3-chat-rekey.sql`
+
+| Change | Object | Reason | Drizzle def |
+|---|---|---|---|
+| **ADD COLUMN + INDEX** | `protocol_comments.contactId` (+ `protocol_comments_contact_idx`) | thread follows the contact across all protocol versions (CR-1). **Additive — already in `schema.ts`; must exist before Phase 3 code runs on any DB, incl. staging** | already present (keep) |
+| **backfill** | `protocol_comments.contactId` from each comment's parent protocol | existing comments join the unified thread (~957/976; 19 orphans stay NULL) | — |
+| **ADD FK** | `fk_protocol_comments_contact` (nullable, ON DELETE RESTRICT) | enforce the new key | — |
+
+### C. SMS + Push removal / T9 + R16 — file: `drop-sms-push.sql`
+
+| Change | Object | Reason | Drizzle def to remove |
+|---|---|---|---|
+| **DROP TABLE** | `push_notification_logs` **then** `push_subscriptions` (FK order) | web-push never shipped; tables fully orphaned | remove both defs |
+| **DROP TABLE** | `sms_messages`, `sms_conversations`, `sms_message_log`, `sms_settings`, `sms_templates`, `incoming_sms` | Twilio SMS sender removed earlier; T9 removed the last readers | remove all defs + relations |
+| **DROP COLUMN** | `appointments.sms24hSent`, `appointments.sms1hSent`, `appointments.smsOptIn` | dead SMS-reminder cadence columns (0 code refs) | remove those fields |
+| **DROP COLUMN** | `prospects.totalSmsSent` | SMS-sent counter; CRM display removed in T9 | remove field |
+| **DROP COLUMN** | `users.receiveSmsNotifications`, `users.pushSubscription`, `users.pushEnabledTypes`, `users.enabledSmsNotificationTypes` | orphaned SMS/Push preference columns | remove those fields |
+| **⚠️ KEEP** | `prospects.smsOptOut` | **do NOT drop** — still a do-not-contact compliance filter in `routers.ts` + `shannonDailyPipelineCron.ts`. Outlives SMS as a general "do not contact" flag | keep |
+| **optional** | strip `'sms'`/`'push'` values from enums (`preferredContactMethod`, automation `action_type`, notifications `channel`, `event_type`) | tidiness only — harmless to leave; no code writes them | left commented in the SQL |
+
+### D. Other feature removals — noted, SQL not yet written (see docs OPEN-ITEMS §4)
+
+Sequence these into the same window when their owning change lands; each is destructive.
+
+| Object | Reason | Status |
+|---|---|---|
+| `revenue_goals` (table) | feature removed | ready to drop |
+| `consultation_notes` (table) | feature removed | ready to drop |
+| `coupons` + `coupon_usage` (tables) | Coupons removal (R7) | **blocked — pending Jason's R7 decision**; client checkout box still live |
 
 ---
 
@@ -144,6 +213,7 @@ SELECT COUNT(*) FROM protocol_comments pc LEFT JOIN client_protocols cp
 | `identity-backfill.sql` | fill the 8 NULL contactIds + link the 1 orphan user |
 | `identity-constraints.sql` | STEP 1 verify · STEP 2 add 10 FKs · STEP 3 destructive (NOT NULL, drop clientId, DROP TABLE clients) |
 | `phase3-chat-rekey.sql` | add `protocol_comments.contactId` + backfill + FK (continuous chat) |
+| `drop-sms-push.sql` | drop retired `sms_*`/`push_*` tables + orphaned columns (T9/R16); keeps `prospects.smsOptOut` |
 | `local-data/phase2_build.py` | regenerate `identity-backfill.sql` from a fresh dump |
 
 _Dress-rehearsal DB (local, disposable): `docker rm -f pc-cutover-rehearsal` to tear

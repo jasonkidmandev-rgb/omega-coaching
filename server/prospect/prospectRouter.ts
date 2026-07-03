@@ -2,7 +2,7 @@ import { router, publicProcedure, adminProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb, createNotificationsForEnabledUsers } from "../db";
 import { eq, desc, and, sql, inArray, isNull, isNotNull, lte } from "drizzle-orm";
-import { prospects, smsMessages, prospectEngagement, smsTemplates } from "../../drizzle/schema";
+import { prospects, prospectEngagement } from "../../drizzle/schema";
 import { formatPhoneE164, formatPhoneDisplay } from "../utils/phone";
 import crypto from "crypto";
 import { findOrCreateContact } from "../contacts/contactService";
@@ -123,17 +123,10 @@ export const prospectRouter = router({
         .orderBy(desc(prospectEngagement.createdAt))
         .limit(50);
       
-      // Get SMS history
-      const messages = await d.select().from(smsMessages)
-        .where(eq(smsMessages.prospectId, input.id))
-        .orderBy(desc(smsMessages.createdAt))
-        .limit(50);
-      
       return {
         ...prospect,
         phoneDisplay: formatPhoneDisplay(prospect.phone),
         engagement,
-        messages,
       };
     }),
 
@@ -224,7 +217,6 @@ export const prospectRouter = router({
       source: z.string().optional(),
       notes: z.string().optional(),
       followUpPaused: z.boolean().optional(),
-      smsOptOut: z.boolean().optional(),
     }))
     .mutation(async ({ input }) => {
       const d = await db();
@@ -270,8 +262,6 @@ export const prospectRouter = router({
       const d = await db();
       // Delete engagement records first
       await d.delete(prospectEngagement).where(eq(prospectEngagement.prospectId, input.id));
-      // Delete SMS records
-      await d.delete(smsMessages).where(eq(smsMessages.prospectId, input.id));
       // Delete prospect
       await d.delete(prospects).where(eq(prospects.id, input.id));
       return { success: true };
@@ -737,16 +727,12 @@ export const prospectRouter = router({
       }
       // Take the better engagement stats
       if (remove.totalClicks > keep.totalClicks) updates.totalClicks = remove.totalClicks;
-      if (remove.totalSmsSent > keep.totalSmsSent) updates.totalSmsSent = remove.totalSmsSent;
       if (remove.lastContactedAt && (!keep.lastContactedAt || remove.lastContactedAt > keep.lastContactedAt)) updates.lastContactedAt = remove.lastContactedAt;
       if (remove.lastClickedAt && (!keep.lastClickedAt || remove.lastClickedAt > keep.lastClickedAt)) updates.lastClickedAt = remove.lastClickedAt;
       
       // Move engagement records to the kept prospect
       await d.update(prospectEngagement).set({ prospectId: input.keepId }).where(eq(prospectEngagement.prospectId, input.deleteId));
-      
-      // Move SMS messages to the kept prospect
-      await d.update(smsMessages).set({ prospectId: input.keepId }).where(eq(smsMessages.prospectId, input.deleteId));
-      
+
       // Update the kept prospect
       if (Object.keys(updates).length > 0) {
         await d.update(prospects).set(updates).where(eq(prospects.id, input.keepId));

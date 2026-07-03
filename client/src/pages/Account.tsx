@@ -134,7 +134,6 @@ export default function Account() {
     onSuccess: () => {
       toast.success("Phone number updated");
       setIsEditingPhone(false);
-      // Refresh user data so SMS toggle becomes enabled
       refresh();
     },
     onError: () => {
@@ -353,7 +352,7 @@ export default function Account() {
                 </div>
                 <div>
                   <CardTitle className="text-white">Phone Number</CardTitle>
-                  <CardDescription className="text-slate-400">For SMS shipping notifications</CardDescription>
+                  <CardDescription className="text-slate-400">For shipping and delivery updates</CardDescription>
                 </div>
               </div>
             </CardHeader>
