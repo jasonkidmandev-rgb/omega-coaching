@@ -2243,7 +2243,6 @@ export default function AdminClientEdit() {
         <VersionComparisonDialog
           open={isComparisonDialogOpen}
           onOpenChange={setIsComparisonDialogOpen}
-          clientId={client.clientId ?? undefined}
           currentProtocolId={client.id}
           versionHistory={versionHistory.map(v => ({
             id: v.id,

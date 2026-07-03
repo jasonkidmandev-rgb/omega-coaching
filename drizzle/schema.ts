@@ -762,7 +762,6 @@ export const clientProtocols = mysqlTable("client_protocols", {
 	showAffiliateLinks: tinyint().default(1).notNull(),
 	inviteSentAt: timestamp({ mode: 'string' }),
 	paymentReminderOptOut: tinyint().default(0).notNull(),
-	clientId: int(),
 	version: int().default(1).notNull(),
 	versionName: varchar({ length: 100 }),
 	isActiveVersion: tinyint().default(1).notNull(),
@@ -786,8 +785,6 @@ export const clientProtocols = mysqlTable("client_protocols", {
 	index("client_protocols_status_idx").on(table.status),
 	index("client_protocols_template_idx").on(table.templateId),
 	index("client_protocols_program_idx").on(table.programId),
-	index("client_protocols_client_id_idx").on(table.clientId),
-	index("client_protocols_client_active_idx").on(table.clientId, table.isActiveVersion),
 ]);
 
 export const clients = mysqlTable("clients", {
