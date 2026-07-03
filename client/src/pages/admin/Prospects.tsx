@@ -1450,7 +1450,7 @@ export default function Prospects() {
                                 <div className="flex items-center justify-between mb-1">
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs text-muted-foreground">{note.loggedBy}</span>
-                                    <span className="text-xs text-muted-foreground">{new Date(note.createdAt).toLocaleString()}</span>
+                                    <span className="text-xs text-muted-foreground">{toLocaleDateStringMT(note.createdAt)}</span>
                                   </div>
                                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { setEditingNoteId(note.id); setEditingNoteText(note.notes || ""); }}>
@@ -1487,7 +1487,7 @@ export default function Prospects() {
                               {msg.status}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
-                              {new Date(msg.createdAt).toLocaleString()}
+                              {toLocaleDateStringMT(msg.createdAt)}
                             </span>
                           </div>
                           <p className="text-muted-foreground break-words whitespace-pre-wrap">{msg.body}</p>
@@ -1517,7 +1517,7 @@ export default function Prospects() {
                                 {evt.loggedBy && <span className="text-xs text-muted-foreground">by {evt.loggedBy}</span>}
                               </div>
                               <span className="text-xs text-muted-foreground">
-                                {new Date(evt.createdAt).toLocaleString()}
+                                {toLocaleDateStringMT(evt.createdAt)}
                               </span>
                             </div>
                             {evt.notes && <p className="text-muted-foreground text-xs mt-1">{evt.notes}</p>}

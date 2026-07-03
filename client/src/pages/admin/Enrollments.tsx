@@ -789,7 +789,7 @@ export default function AdminEnrollments() {
                       <AlertTriangle className="h-4 w-4 text-red-600" />
                       <AlertTitle className="text-red-800 font-semibold">Program Start Overdue by {Math.abs(daysRemaining)} Days</AlertTitle>
                       <AlertDescription className="text-red-700">
-                        This client enrolled on {enrolledDate.toLocaleDateString()} and should have started by {deadlineDate.toLocaleDateString()}. Immediate follow-up required to prevent further delays.
+                        This client enrolled on {toLocaleDateStringMT(enrolledDate, { year: 'numeric', month: 'numeric', day: 'numeric' })} and should have started by {toLocaleDateStringMT(deadlineDate, { year: 'numeric', month: 'numeric', day: 'numeric' })}. Immediate follow-up required to prevent further delays.
                       </AlertDescription>
                     </Alert>
                   );
@@ -799,7 +799,7 @@ export default function AdminEnrollments() {
                       <Timer className="h-4 w-4 text-amber-600" />
                       <AlertTitle className="text-amber-800 font-semibold">Only {daysRemaining} Day{daysRemaining !== 1 ? 's' : ''} Until Start Deadline</AlertTitle>
                       <AlertDescription className="text-amber-700">
-                        Deadline: {deadlineDate.toLocaleDateString()}. Prioritize getting this client started to avoid delays.
+                        Deadline: {toLocaleDateStringMT(deadlineDate, { year: 'numeric', month: 'numeric', day: 'numeric' })}. Prioritize getting this client started to avoid delays.
                       </AlertDescription>
                     </Alert>
                   );
@@ -1058,7 +1058,7 @@ export default function AdminEnrollments() {
                                   )}
                                 </div>
                                 <span className="text-xs text-gray-400">
-                                  {track.sentAt ? new Date(track.sentAt).toLocaleString() : 'N/A'}
+                                  {track.sentAt ? toLocaleDateStringMT(track.sentAt) : 'N/A'}
                                 </span>
                               </div>
                               <div className="flex items-center gap-4 text-xs">
@@ -1073,7 +1073,7 @@ export default function AdminEnrollments() {
                                   </span>
                                   {track.openedAt && (
                                     <span className="text-gray-400 ml-1">
-                                      ({new Date(track.openedAt).toLocaleString()})
+                                      ({toLocaleDateStringMT(track.openedAt)})
                                     </span>
                                   )}
                                 </div>
@@ -1084,7 +1084,7 @@ export default function AdminEnrollments() {
                                   </span>
                                   {track.clickedAt && (
                                     <span className="text-gray-400 ml-1">
-                                      ({new Date(track.clickedAt).toLocaleString()})
+                                      ({toLocaleDateStringMT(track.clickedAt)})
                                     </span>
                                   )}
                                 </div>
@@ -1165,7 +1165,7 @@ export default function AdminEnrollments() {
                                 </div>
                                 <div className="text-xs text-gray-500 mt-0.5">
                                   {log.performed_by && <span>by {log.performed_by} &middot; </span>}
-                                  {log.created_at ? new Date(log.created_at).toLocaleString() : 'Unknown time'}
+                                  {log.created_at ? toLocaleDateStringMT(log.created_at) : 'Unknown time'}
                                 </div>
                               </div>
                             </div>
@@ -1206,7 +1206,7 @@ export default function AdminEnrollments() {
                         y += 5;
                         if (intakeFormData.submittedAt) {
                           doc.setFontSize(9);
-                          doc.text(`Submitted: ${new Date(intakeFormData.submittedAt).toLocaleString()}`, 105, y, { align: 'center' });
+                          doc.text(`Submitted: ${toLocaleDateStringMT(intakeFormData.submittedAt)}`, 105, y, { align: 'center' });
                         }
                         y += 10;
                         const pdfSections = [
@@ -1402,7 +1402,7 @@ export default function AdminEnrollments() {
                         <div className="space-y-4 max-h-[500px] overflow-y-auto">
                           <div className="flex items-center justify-between">
                             {intakeFormData.submittedAt && (
-                              <p className="text-xs text-gray-500">Submitted: {new Date(intakeFormData.submittedAt).toLocaleString()}</p>
+                              <p className="text-xs text-gray-500">Submitted: {toLocaleDateStringMT(intakeFormData.submittedAt)}</p>
                             )}
                             <Button size="sm" variant="outline" onClick={exportToPdf} className="ml-auto">
                               <Download className="h-4 w-4 mr-1" />

@@ -843,7 +843,7 @@ export default function EmailTemplatePreview() {
                       )}
                       <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                         <Clock className="h-3 w-3" />
-                        {new Date(version.createdAt).toLocaleString()}
+                        {toLocaleDateStringMT(version.createdAt)}
                       </div>
                     </div>
                     <div className="flex gap-2">

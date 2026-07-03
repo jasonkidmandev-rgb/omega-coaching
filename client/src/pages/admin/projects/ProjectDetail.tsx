@@ -1283,7 +1283,7 @@ export default function ProjectDetail() {
                           <div className="flex-1">
                             <p>{activity.description}</p>
                             <p className="text-xs text-muted-foreground">
-                              {new Date(activity.createdAt).toLocaleString()}
+                              {toLocaleDateStringMT(activity.createdAt)}
                               {activity.actorName && ` by ${activity.actorName}`}
                             </p>
                           </div>

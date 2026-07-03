@@ -443,7 +443,7 @@ export default function DetailsTab({
                       )}
                       {clientProgramInfo.phaseStartDate && (
                         <p className="text-xs text-muted-foreground mt-2">
-                          Started: {new Date(clientProgramInfo.phaseStartDate).toLocaleDateString()}
+                          Started: {toLocaleDateStringMT(clientProgramInfo.phaseStartDate, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                         </p>
                       )}
                     </div>

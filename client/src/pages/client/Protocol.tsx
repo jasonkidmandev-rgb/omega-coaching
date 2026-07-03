@@ -1012,7 +1012,7 @@ export default function ClientProtocol() {
                   )}
                   {programInfo.phaseStartDate && (
                     <p className="text-xs text-muted-foreground mt-3">
-                      Phase started: {new Date(programInfo.phaseStartDate).toLocaleDateString()}
+                      Phase started: {toLocaleDateStringMT(programInfo.phaseStartDate, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                     </p>
                   )}
                 </div>

@@ -1389,7 +1389,7 @@ export default function PackingSlipDetail() {
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Date & Time</Label>
-                  <p className="font-medium">{new Date(packingSlip.signedAt).toLocaleString()}</p>
+                  <p className="font-medium">{toLocaleDateStringMT(packingSlip.signedAt)}</p>
                 </div>
               </div>
               {packingSlip.signatureData && (
@@ -1909,7 +1909,7 @@ export default function PackingSlipDetail() {
                       </span>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(entry.createdAt).toLocaleString()}
+                      {toLocaleDateStringMT(entry.createdAt)}
                     </span>
                   </div>
                   <div className="mt-1 text-sm text-muted-foreground">

@@ -861,7 +861,7 @@ export default function PackingSlips() {
                         <div>
                           <p className="font-medium text-gray-600">{slip.clientName}</p>
                           <p className="text-sm text-muted-foreground">
-                            Archived {archivedDate.toLocaleDateString()} • 
+                            Archived {toLocaleDateStringMT(archivedDate, { year: 'numeric', month: 'numeric', day: 'numeric' })} •
                             <span className={daysUntilDelete <= 7 ? "text-red-500 font-medium" : ""}>
                               {daysUntilDelete > 0 ? ` Deletes in ${daysUntilDelete} days` : " Pending deletion"}
                             </span>

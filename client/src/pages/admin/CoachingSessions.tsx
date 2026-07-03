@@ -497,7 +497,7 @@ export default function CoachingSessions() {
                           )}
                           <div className="mt-2 text-xs text-gray-400">
                             by {note.coach_name || "Admin"} &middot;{" "}
-                            {new Date(note.created_at).toLocaleString()}
+                            {toLocaleDateStringMT(note.created_at)}
                           </div>
                         </div>
                       ))}
