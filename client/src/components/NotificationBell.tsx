@@ -72,7 +72,7 @@ export function NotificationBell() {
           ) : null}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-1rem)]">
         <div className="flex items-center justify-between px-3 py-2 border-b">
           <span className="font-semibold">Notifications</span>
           {unreadCount && unreadCount > 0 ? (
@@ -106,11 +106,11 @@ export function NotificationBell() {
                   {getNotificationIcon(notification.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${!notification.isRead ? "font-medium" : ""}`}>
+                  <p className={`text-sm break-words whitespace-normal ${!notification.isRead ? "font-medium" : ""}`}>
                     {notification.title}
                   </p>
                   {notification.message && (
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-xs text-muted-foreground break-words whitespace-normal">
                       {notification.message}
                     </p>
                   )}
