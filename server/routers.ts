@@ -8141,12 +8141,29 @@ export const appRouter = router({
         if (wasNotPaid && isBecomingPaid) {
           console.log(`[Store Order] Order #${input.orderId} marked as paid, processing inventory and email...`);
           
-          // Deduct inventory
+          // Deduct inventory — fail LOUD: unmapped/missing items and backorders
+          // alert admins (parity with the protocol payment path).
           try {
-            await db.deductInventoryForStoreOrder(input.orderId, order.userId);
+            const { alertInventoryDeductions } = await import('./payment/inventoryAlerts');
+            const deductions = await db.deductInventoryForStoreOrder(input.orderId, order.userId);
+            await alertInventoryDeductions({
+              subjectName: `Store order #${input.orderId}`,
+              subjectDesc: `Store order #${input.orderId}`,
+              results: deductions,
+            });
             console.log(`[Store Order] Inventory deducted for order #${input.orderId}`);
           } catch (invError) {
             console.error(`[Store Order] Failed to deduct inventory for order #${input.orderId}:`, invError);
+            try {
+              const { alertInventoryDeductions } = await import('./payment/inventoryAlerts');
+              await alertInventoryDeductions({
+                subjectName: `Store order #${input.orderId}`,
+                subjectDesc: `Store order #${input.orderId}`,
+                results: [{ itemName: 'Inventory deduction', quantity: 0, success: false, error: invError instanceof Error ? invError.message : 'deduction crashed entirely' }],
+              });
+            } catch (alertErr) {
+              console.error(`[Store Order] Inventory alert failed for order #${input.orderId}:`, alertErr);
+            }
           }
           
           // Auto-sync client inventory status (updates Client Corner "My Inventory" to "full")

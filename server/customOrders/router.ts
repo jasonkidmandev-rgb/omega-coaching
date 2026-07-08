@@ -5,6 +5,7 @@ import { createNotificationsForEnabledUsers } from "../db";
 import { findOrCreateContact } from "../contacts/contactService";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getStripeSecretKey } from "../stripe/stripeConfig";
+import { alertInventoryDeductions } from "../payment/inventoryAlerts";
 
 const lineItemSchema = z.object({
   inventoryItemId: z.number().nullable().optional(),
@@ -415,12 +416,23 @@ export const customOrdersRouter = router({
       // Update order status to paid
       await customOrderDb.updateCustomOrderStatus(order.id, "paid");
 
-      // Deduct inventory
+      // Deduct inventory — fail LOUD: failures, unmapped items, and backorders
+      // all alert admins (parity with the protocol payment path).
       try {
-        await customOrderDb.deductInventoryForCustomOrder(order.id, ctx.user.id);
+        const deductions = await customOrderDb.deductInventoryForCustomOrder(order.id, ctx.user.id);
+        await alertInventoryDeductions({
+          subjectName: order.clientName,
+          subjectDesc: `Custom order ${order.orderNumber} (${order.clientName})`,
+          results: deductions,
+        });
         console.log(`[CustomOrder] Inventory deducted for ${order.orderNumber}`);
       } catch (err) {
         console.error(`[CustomOrder] Inventory deduction failed:`, err);
+        await alertInventoryDeductions({
+          subjectName: order.clientName,
+          subjectDesc: `Custom order ${order.orderNumber} (${order.clientName})`,
+          results: [{ itemName: 'Inventory deduction', quantity: 0, success: false, error: err instanceof Error ? err.message : 'deduction crashed entirely' }],
+        }).catch(e => console.error(`[CustomOrder] Inventory alert failed:`, e));
       }
 
       // Create packing slip
@@ -629,12 +641,23 @@ export const customOrdersRouter = router({
       // Mark as paid (Stripe webhook will also confirm this)
       await customOrderDb.updateCustomOrderStatus(order.id, "paid");
 
-      // Deduct inventory
+      // Deduct inventory — fail LOUD: failures, unmapped items, and backorders
+      // all alert admins (parity with the protocol payment path).
       try {
-        await customOrderDb.deductInventoryForCustomOrder(order.id, 0);
+        const deductions = await customOrderDb.deductInventoryForCustomOrder(order.id, 0);
+        await alertInventoryDeductions({
+          subjectName: order.clientName,
+          subjectDesc: `Custom order ${order.orderNumber} (${order.clientName})`,
+          results: deductions,
+        });
         console.log(`[CustomOrder] Inventory deducted for ${order.orderNumber}`);
       } catch (err) {
         console.error(`[CustomOrder] Inventory deduction failed:`, err);
+        await alertInventoryDeductions({
+          subjectName: order.clientName,
+          subjectDesc: `Custom order ${order.orderNumber} (${order.clientName})`,
+          results: [{ itemName: 'Inventory deduction', quantity: 0, success: false, error: err instanceof Error ? err.message : 'deduction crashed entirely' }],
+        }).catch(e => console.error(`[CustomOrder] Inventory alert failed:`, e));
       }
 
       // Create packing slip

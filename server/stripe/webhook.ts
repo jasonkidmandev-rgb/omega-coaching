@@ -333,11 +333,28 @@ async function handleStoreOrderCompleted(
     if (userId) {
       try {
         const { deductInventoryForStoreOrder, syncClientInventoryFromStoreOrder } = await import('../db');
-        await deductInventoryForStoreOrder(orderId, userId);
+        const { alertInventoryDeductions } = await import('../payment/inventoryAlerts');
+        const deductions = await deductInventoryForStoreOrder(orderId, userId);
+        // Fail LOUD: unmapped/missing items and backorders alert admins (parity with protocol path).
+        await alertInventoryDeductions({
+          subjectName: `Store order #${orderId}`,
+          subjectDesc: `Store order #${orderId}`,
+          results: deductions,
+        });
         await syncClientInventoryFromStoreOrder(orderId, userId);
         console.log(`[Stripe Webhook] Inventory deducted and synced for store order ${orderId}`);
       } catch (err: any) {
         console.error(`[Stripe Webhook] Failed to deduct inventory for store order ${orderId}: ${err.message}`);
+        try {
+          const { alertInventoryDeductions } = await import('../payment/inventoryAlerts');
+          await alertInventoryDeductions({
+            subjectName: `Store order #${orderId}`,
+            subjectDesc: `Store order #${orderId}`,
+            results: [{ itemName: 'Inventory deduction', quantity: 0, success: false, error: err?.message || 'deduction crashed entirely' }],
+          });
+        } catch (alertErr) {
+          console.error(`[Stripe Webhook] Inventory alert failed for store order ${orderId}:`, alertErr);
+        }
       }
     }
 

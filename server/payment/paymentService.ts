@@ -1,7 +1,7 @@
-import { sql } from "drizzle-orm";
 import * as db from "../db";
 import { paymentEvents } from "../../drizzle/schema";
 import { sendPaymentStatusNotification } from "../emailService";
+import { alertInventoryDeductions, notifyInventoryAdmins } from "./inventoryAlerts";
 
 export type PaymentMethodInput = 'venmo' | 'cc' | 'stripe' | 'other' | 'paypal';
 
@@ -24,26 +24,6 @@ export interface ProcessPaymentResult {
   /** true if the protocol was already paid — no duplicate processing done */
   alreadyPaid: boolean;
   packingSlipId: number | null;
-}
-
-/**
- * Notify all admins + owners directly (not preference-gated), so inventory
- * problems are never silently lost — the count drives fulfillment, so anything
- * off must be visible.
- */
-async function notifyAdmins(title: string, message: string, clientProtocolId: number): Promise<void> {
-  const database = await db.getDb();
-  if (!database) return;
-  const [rows] = await database.execute(
-    sql`SELECT id FROM users WHERE role IN ('admin', 'owner')`
-  );
-  const adminIds = ((rows as unknown) as any[]).map((r: any) => r.id as number);
-  for (const userId of adminIds) {
-    await database.execute(sql`
-      INSERT INTO notifications (userId, type, title, message, clientProtocolId, createdAt)
-      VALUES (${userId}, 'other', ${title}, ${message}, ${clientProtocolId}, NOW())
-    `);
-  }
 }
 
 /**
@@ -100,39 +80,15 @@ export async function processProtocolPaymentReceived(
   // alert admins, not pass silently. Payment itself stays unaffected (best-effort).
   try {
     const deductions = await db.deductInventoryForProtocol(clientProtocolId, options.performedBy ?? 0);
-    const list = (deductions ?? []) as any[];
-
-    // (a) Hard failures + unmapped items — something couldn't deduct / isn't set up.
-    const failures = list.filter(d => d && d.success === false);
-    if (failures.length > 0) {
-      const issues = failures.map(f => `${f.itemName} (x${f.quantity}): ${f.error ?? 'not deducted'}`).join('; ');
-      console.warn(`[PaymentService] Inventory issues for protocol ${clientProtocolId}: ${issues}`);
-      await notifyAdmins(
-        `⚠️ Inventory not fully deducted: ${protocol.clientName}`,
-        `Protocol #${clientProtocolId} (${protocol.clientName}) was paid but ${failures.length} item(s) did not deduct: ${issues}. Check stock levels / inventory mappings.`,
-        clientProtocolId
-      ).catch(err => console.error('[PaymentService] Inventory alert failed:', err));
-    }
-
-    // (b) Backorders — stock deliberately went negative (we owe the customer).
-    // Loud, but DISTINCT from a failure: the deduction worked, the shelf is short.
-    const backorders = list.filter(d => d && d.success === true && d.wentNegative === true);
-    if (backorders.length > 0) {
-      const items = backorders.map(b => `${b.itemName} (${b.previousQuantity}→${b.newQuantity})`).join('; ');
-      console.warn(`[PaymentService] Backorder (negative stock) for protocol ${clientProtocolId}: ${items}`);
-      await notifyAdmins(
-        `📦 Backorder — stock went negative: ${protocol.clientName}`,
-        `Protocol #${clientProtocolId} (${protocol.clientName}): ${backorders.length} item(s) went to negative stock (owed / backordered): ${items}. Restock or dropship to fulfill.`,
-        clientProtocolId
-      ).catch(err => console.error('[PaymentService] Backorder alert failed:', err));
-    }
-
-    if (failures.length === 0 && backorders.length === 0) {
-      console.log(`[PaymentService] Inventory deducted for protocol ${clientProtocolId}`);
-    }
+    await alertInventoryDeductions({
+      subjectName: protocol.clientName,
+      subjectDesc: `Protocol #${clientProtocolId} (${protocol.clientName})`,
+      results: deductions,
+      clientProtocolId,
+    });
   } catch (e) {
     console.error('[PaymentService] Inventory deduction threw (non-fatal to payment):', e);
-    await notifyAdmins(
+    await notifyInventoryAdmins(
       `⚠️ Inventory not fully deducted: ${protocol.clientName}`,
       `Protocol #${clientProtocolId} (${protocol.clientName}) was paid but inventory deduction failed entirely: ${e instanceof Error ? e.message : 'unknown error'}. Check stock / mappings.`,
       clientProtocolId

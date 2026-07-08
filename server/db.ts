@@ -6554,44 +6554,71 @@ export async function deductInventoryForStoreOrder(storeOrderId: number, userId?
   
   // Get all items in the order
   const items = await getStoreOrderItems(storeOrderId);
-  
+  // Normalized to match deductInventoryForProtocol so all paths share one alerting helper.
+  const results: { itemName: string; quantity: number; success: boolean; error?: string; wentNegative?: boolean; previousQuantity?: number; newQuantity?: number }[] = [];
+
   for (const item of items) {
     // Get current inventory
     const inventoryItem = await db.select().from(inventoryItems)
       .where(eq(inventoryItems.id, item.inventoryItemId));
-    
+
     if (inventoryItem.length === 0) {
       console.warn(`[Inventory] Item ${item.inventoryItemId} not found for deduction`);
+      results.push({
+        itemName: item.name,
+        quantity: item.quantity,
+        success: false,
+        error: `Inventory item #${item.inventoryItemId} not found`,
+      });
       continue;
     }
-    
+
     const currentQty = inventoryItem[0].quantity;
     // Allow negative stock — serves as safety net to track what's owed/backordered
     const newQty = currentQty - item.quantity;
-    
-    // Update inventory quantity
-    await db.update(inventoryItems)
-      .set({ quantity: newQty, updatedAt: new Date() })
-      .where(eq(inventoryItems.id, item.inventoryItemId));
-    
-    // Create inventory transaction record
-    await db.insert(inventoryTransactions).values({
-      inventoryItemId: item.inventoryItemId,
-      type: "sale",
-      quantityChange: -item.quantity,
-      previousQuantity: currentQty,
-      newQuantity: newQty,
-      notes: `Store order #${storeOrderId}`,
-      createdBy: userId || null,
-    });
-    
-    console.log(`[Inventory] Deducted ${item.quantity} of item ${item.inventoryItemId} (${currentQty} -> ${newQty})`);
+    const wentNegative = newQty < 0;
+
+    try {
+      // Update inventory quantity
+      await db.update(inventoryItems)
+        .set({ quantity: newQty, updatedAt: new Date() })
+        .where(eq(inventoryItems.id, item.inventoryItemId));
+
+      // Create inventory transaction record
+      await db.insert(inventoryTransactions).values({
+        inventoryItemId: item.inventoryItemId,
+        type: "sale",
+        quantityChange: -item.quantity,
+        previousQuantity: currentQty,
+        newQuantity: newQty,
+        notes: `Store order #${storeOrderId}`,
+        createdBy: userId || null,
+      });
+
+      results.push({
+        itemName: item.name,
+        quantity: item.quantity,
+        success: true,
+        ...(wentNegative ? { wentNegative: true, previousQuantity: currentQty, newQuantity: newQty } : {}),
+      });
+      console.log(`[Inventory] Deducted ${item.quantity} of item ${item.inventoryItemId} (${currentQty} -> ${newQty})`);
+    } catch (err) {
+      console.error(`[Inventory] Failed to deduct store order item ${item.name}:`, err);
+      results.push({
+        itemName: item.name,
+        quantity: item.quantity,
+        success: false,
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
+    }
   }
-  
+
   // Auto-trigger restock alert check (non-blocking)
-  checkAndSendRestockAlerts(`Store order #${storeOrderId}`).catch(err => 
+  checkAndSendRestockAlerts(`Store order #${storeOrderId}`).catch(err =>
     console.error('[Inventory] Restock alert check failed:', err)
   );
+
+  return results;
 }
 
 // Restock inventory when a store order is refunded (reverse of deductInventoryForStoreOrder)

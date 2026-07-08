@@ -216,30 +216,56 @@ export async function deleteCustomOrderItems(customOrderId: number) {
 export async function deductInventoryForCustomOrder(customOrderId: number, userId?: number) {
   const database = await getDb();
   if (!database) throw new Error("Database not available");
-  
+
   const items = await getCustomOrderItems(customOrderId);
-  const results: { itemId: number; name: string; deducted: number; success: boolean }[] = [];
-  
+  // Normalized to match deductInventoryForProtocol so all paths share one alerting helper.
+  const results: { itemName: string; quantity: number; success: boolean; error?: string; wentNegative?: boolean; previousQuantity?: number; newQuantity?: number }[] = [];
+
   for (const item of items) {
-    if (!item.inventoryItemId || item.itemType !== "product") continue;
-    
+    // Only physical products deduct stock. Service / shipping / one-off "custom"
+    // lines legitimately have no inventory and must not raise alarms.
+    if (item.itemType !== "product") continue;
+
+    // A physical product with no inventory mapping sells without ever deducting —
+    // surface it as a failure so admins can map it (mirrors the protocol path).
+    if (!item.inventoryItemId) {
+      results.push({
+        itemName: item.name,
+        quantity: item.quantity,
+        success: false,
+        error: 'No inventory mapping — item not deducted (map it to an inventory item)',
+      });
+      continue;
+    }
+
     try {
       const [invItem] = await database
         .select()
         .from(inventoryItems)
         .where(eq(inventoryItems.id, item.inventoryItemId));
-      
-      if (!invItem) continue;
-      
+
+      if (!invItem) {
+        results.push({
+          itemName: item.name,
+          quantity: item.quantity,
+          success: false,
+          error: `Inventory item #${item.inventoryItemId} not found`,
+        });
+        continue;
+      }
+
       const previousQty = invItem.quantity;
-      const newQty = Math.max(0, previousQty - item.quantity);
-      
+      // Allow negative stock — a negative marks a backorder ("we owe this"), which
+      // must stay visible. (Previously clamped at 0, silently hiding backorders.)
+      const newQty = previousQty - item.quantity;
+      const wentNegative = newQty < 0;
+
       // Update inventory quantity
       await database
         .update(inventoryItems)
         .set({ quantity: newQty })
         .where(eq(inventoryItems.id, item.inventoryItemId));
-      
+
       // Record transaction
       await database.insert(inventoryTransactions).values({
         inventoryItemId: item.inventoryItemId,
@@ -250,14 +276,24 @@ export async function deductInventoryForCustomOrder(customOrderId: number, userI
         notes: `Custom order #${customOrderId} - ${item.name}`,
         performedBy: userId || null,
       });
-      
-      results.push({ itemId: item.inventoryItemId, name: item.name, deducted: item.quantity, success: true });
+
+      results.push({
+        itemName: item.name,
+        quantity: item.quantity,
+        success: true,
+        ...(wentNegative ? { wentNegative: true, previousQuantity: previousQty, newQuantity: newQty } : {}),
+      });
     } catch (err) {
       console.error(`[CustomOrder] Failed to deduct inventory for item ${item.name}:`, err);
-      results.push({ itemId: item.inventoryItemId || 0, name: item.name, deducted: 0, success: false });
+      results.push({
+        itemName: item.name,
+        quantity: item.quantity,
+        success: false,
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
     }
   }
-  
+
   return results;
 }
 
