@@ -184,8 +184,10 @@ export default function Order() {
     setCart(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {
-        if (!item.isOutOfStock && existing.quantity >= item.quantity) return prev;
-        return prev.map(i => 
+        // Stock never limits how many can be ordered — overage is backordered.
+        // Only the universal max applies.
+        if (existing.quantity >= existing.maxQuantity) return prev;
+        return prev.map(i =>
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
@@ -195,7 +197,7 @@ export default function Order() {
         price: Math.round(parseFloat(item.price!) * 100), // Convert to cents
         quantity: 1,
         isDiscountable: !!item.isDiscountable,
-        maxQuantity: item.isOutOfStock ? 99 : item.quantity, // Allow up to 99 for dropship items
+        maxQuantity: 99, // Stock never caps the order — overage is backordered (ships later)
         isDropship: item.isOutOfStock,
         pricingTiers: item.pricingTiers as PricingTier[] | null | undefined,
       }];
@@ -716,12 +718,17 @@ export default function Order() {
                         Volume discounts available
                       </div>
                     )}
-                    {/* Stock info */}
+                    {/* Stock info — stock is advisory only; ordering past it is allowed (backorder) */}
                     {isOutOfStock ? (
                       <div className="flex items-center gap-1 text-xs text-blue-600">
                         <Clock className="w-3 h-3" />
-                        Ships in 5-7 days
+                        Backordered · Ships in 5-7 days
                       </div>
+                    ) : cartItem && cartItem.quantity > item.quantity ? (
+                      <span className="text-xs text-gray-500">
+                        In stock: {item.quantity}
+                        <span className="text-blue-600"> · {cartItem.quantity - item.quantity} backordered (ships in 5-7 days)</span>
+                      </span>
                     ) : (
                       <span className="text-xs text-gray-500">In stock: {item.quantity}</span>
                     )}
@@ -740,7 +747,7 @@ export default function Order() {
                       <span className="text-gray-900 font-medium">{cartItem.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.id, 1)}
-                        disabled={!isOutOfStock && cartItem.quantity >= item.quantity}
+                        disabled={cartItem.quantity >= cartItem.maxQuantity}
                         className="p-1 bg-white hover:bg-gray-50 rounded transition-colors disabled:opacity-50 border border-gray-200"
                       >
                         <Plus className="w-4 h-4 text-gray-700" />
