@@ -4040,28 +4040,23 @@ const ordersRouter = router({
         (sum: number, item: any) => sum + item.price * item.quantity,
         0
       );
+      // Stripe Checkout forbids negative line items (rejects with "Invalid
+      // non-negative integer"), so fold any discount directly into the neutral
+      // items line rather than adding a negative "discount" line. The itemized
+      // + discount detail is preserved in our own store_order_items / store_orders.
+      const discountCents = input.discountAmountCents && input.discountAmountCents > 0
+        ? input.discountAmountCents
+        : 0;
+      const netItemsCents = Math.max(0, itemsSubtotalCents - discountCents);
+
       const lineItems: any[] = [{
         price_data: {
           currency: 'usd',
           product_data: { name: 'Coaching Program' },
-          unit_amount: itemsSubtotalCents, // already in cents
+          unit_amount: netItemsCents, // items subtotal minus discount, in cents
         },
         quantity: 1,
       }];
-
-      // Add discount as negative line item if applicable
-      if (input.discountAmountCents && input.discountAmountCents > 0) {
-        lineItems.push({
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Loyalty Discount (10%)',
-            },
-            unit_amount: -input.discountAmountCents,
-          },
-          quantity: 1,
-        });
-      }
 
       // Add shipping fee
       if (input.shippingFeeCents && input.shippingFeeCents > 0) {
