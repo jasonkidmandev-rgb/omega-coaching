@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -62,6 +63,8 @@ export default function TransformationPayments() {
   const [deleteTarget, setDeleteTarget] = useState<PendingPayment | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
   // Fetch pending payments
   const { data: payments, isLoading, refetch } = trpc.transformation.getPendingPayments.useQuery();
@@ -104,6 +107,18 @@ export default function TransformationPayments() {
     },
   });
 
+  const bulkDelete = trpc.transformation.bulkDeletePayments.useMutation({
+    onSuccess: (res) => {
+      toast.success(`Deleted ${res.deleted} payment record(s)${res.failed ? `, ${res.failed} failed` : ""}`);
+      setSelectedKeys(new Set());
+      setShowBulkDeleteDialog(false);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete selected payments");
+    },
+  });
+
   // Filter payments
   const filteredPayments = (payments || []).filter((payment: PendingPayment) => {
     const matchesStatus = statusFilter === "all" || payment.status === statusFilter;
@@ -116,6 +131,32 @@ export default function TransformationPayments() {
 
   const pendingCount = (payments || []).filter((p: PendingPayment) => p.status === "pending").length;
   const autoVerifiedCount = (payments || []).filter((p: PendingPayment) => p.source === "auto_verified").length;
+
+  // Bulk selection (keyed by the row's unique id: numeric for pending, "auto-<id>" for verified)
+  const selectedVisible = filteredPayments.filter((p: PendingPayment) => selectedKeys.has(String(p.id)));
+  const allVisibleSelected = filteredPayments.length > 0 && selectedVisible.length === filteredPayments.length;
+
+  const toggleSelect = (key: string) => {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedKeys(() => (allVisibleSelected ? new Set<string>() : new Set(filteredPayments.map((p: PendingPayment) => String(p.id)))));
+  };
+
+  const handleBulkDelete = () => {
+    const items = selectedVisible.map((p: PendingPayment) =>
+      p.source === "auto_verified"
+        ? { source: "auto_verified" as const, enrollmentId: p.enrollmentId }
+        : { source: "venmo_pending" as const, paymentId: Number(p.id) }
+    );
+    if (items.length === 0) return;
+    bulkDelete.mutate({ items });
+  };
 
   const getTierIcon = (tier: string) => {
     switch (tier) {
@@ -278,6 +319,38 @@ export default function TransformationPayments() {
           </CardContent>
         </Card>
 
+        {/* Bulk selection toolbar */}
+        {!isLoading && filteredPayments.length > 0 && (
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border bg-white px-4 py-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Checkbox
+                checked={allVisibleSelected}
+                onCheckedChange={toggleSelectAll}
+                aria-label="Select all payments"
+              />
+              <span className="text-sm text-gray-600">
+                {selectedVisible.length > 0 ? `${selectedVisible.length} selected` : `Select all (${filteredPayments.length})`}
+              </span>
+            </label>
+            {selectedVisible.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setSelectedKeys(new Set())}>
+                  Clear
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowBulkDeleteDialog(true)}
+                  disabled={bulkDelete.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete selected
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Payments List */}
         {isLoading ? (
           <div className="text-center py-12">
@@ -304,6 +377,11 @@ export default function TransformationPayments() {
                   <div className="space-y-3">
                     {/* Name + Badges row */}
                     <div className="flex flex-wrap items-center gap-2">
+                      <Checkbox
+                        checked={selectedKeys.has(String(payment.id))}
+                        onCheckedChange={() => toggleSelect(String(payment.id))}
+                        aria-label={`Select payment for ${payment.clientName}`}
+                      />
                       <h3 className="text-base sm:text-lg font-semibold text-gray-900">{payment.clientName}</h3>
                       {getTierBadge(payment.tier)}
                       {getStatusBadge(payment.status)}
@@ -566,6 +644,44 @@ export default function TransformationPayments() {
             >
               <Trash2 className="h-4 w-4 mr-1" />
               {deletePayment.isPending ? "Deleting..." : "Delete Record"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={showBulkDeleteDialog} onOpenChange={(open) => { if (!open) setShowBulkDeleteDialog(false); }}>
+        <DialogContent className="bg-white max-w-[95vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" />
+              Delete {selectedVisible.length} payment record{selectedVisible.length === 1 ? "" : "s"}
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              This is intended for removing test/dummy records.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700 my-2">
+            Verified entries will have their payment reversed (the enrollment is kept and moved
+            back to "enrolled"); pending records are permanently deleted. This cannot be undone.
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowBulkDeleteDialog(false)}
+              disabled={bulkDelete.isPending}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDelete.isPending}
+              className="w-full sm:w-auto"
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              {bulkDelete.isPending ? "Deleting..." : `Delete ${selectedVisible.length}`}
             </Button>
           </DialogFooter>
         </DialogContent>

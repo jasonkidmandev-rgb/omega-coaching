@@ -1900,6 +1900,59 @@ export const transformationRouter = router({
       return { success: true };
     }),
 
+  // Bulk-delete test/dummy payment records (same per-item logic as deletePayment).
+  bulkDeletePayments: adminProcedure
+    .input(z.object({
+      items: z.array(z.object({
+        source: z.enum(["venmo_pending", "auto_verified"]),
+        paymentId: z.number().optional(),
+        enrollmentId: z.number().optional(),
+      })).min(1),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const database = await db();
+      let deleted = 0;
+      let failed = 0;
+
+      for (const item of input.items) {
+        try {
+          if (item.source === "venmo_pending") {
+            if (!item.paymentId) { failed++; continue; }
+            const result = await database.execute(sql`
+              DELETE FROM transformation_pending_payments WHERE id = ${item.paymentId}
+            `);
+            if (((result[0] as any)?.affectedRows ?? 0) > 0) deleted++; else failed++;
+          } else {
+            if (!item.enrollmentId) { failed++; continue; }
+            const result = await database.execute(sql`
+              UPDATE transformation_enrollments
+              SET coachingFeePaid = FALSE,
+                  coachingFeePaidAt = NULL,
+                  coachingFeeAmount = NULL,
+                  coachingFeeStripePaymentId = NULL,
+                  status = CASE WHEN status = 'coaching_paid' THEN 'enrolled' ELSE status END,
+                  updatedAt = NOW()
+              WHERE id = ${item.enrollmentId}
+            `);
+            if (((result[0] as any)?.affectedRows ?? 0) > 0) {
+              deleted++;
+              await logEnrollmentActivity(database, item.enrollmentId, "test_payment_deleted", {
+                deletedBy: ctx.user.id, bulk: true,
+              }, ctx.user.name || ctx.user.email || "Admin", ctx.user.id);
+            } else {
+              failed++;
+            }
+          }
+        } catch (err) {
+          console.error(`[Transformation] Bulk delete failed for item`, item, err);
+          failed++;
+        }
+      }
+
+      console.log(`[Transformation] Admin ${ctx.user.id} bulk-deleted ${deleted} payment(s), ${failed} failed`);
+      return { deleted, failed };
+    }),
+
   // Get pending payment count (for badge)
   getPendingPaymentsCount: adminProcedure.query(async () => {
     const database = await db();
