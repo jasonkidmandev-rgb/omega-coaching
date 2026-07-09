@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
+import { useGoBack } from "@/hooks/useGoBack";
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +10,7 @@ import { format } from 'date-fns';
 
 export default function CheckinLatest() {
   const [, setLocation] = useLocation();
+  const goBack = useGoBack('/dashboard');
   
   // Get pending check-ins for the logged-in client
   const { data: pendingCheckins, isLoading: loadingPending } = trpc.checkin.getClientPending.useQuery();
@@ -38,7 +40,7 @@ export default function CheckinLatest() {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => setLocation('/dashboard')}
+            onClick={goBack}
             className="text-slate-400 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />

@@ -9,6 +9,7 @@ import {
   ShoppingCart, RefreshCw, ArrowLeft
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useGoBack } from "@/hooks/useGoBack";
 import { toast } from "sonner";
 
 type InventoryStatus = 'full' | 'half' | 'running_low' | 'out';
@@ -22,6 +23,7 @@ const statusConfig: Record<InventoryStatus, { label: string; icon: React.Compone
 
 export default function ClientInventory() {
   const [, setLocation] = useLocation();
+  const goBack = useGoBack('/dashboard');
 
   // Fetch inventory
   const { data: inventory, isLoading, refetch } = trpc.clientInventory.getMyInventory.useQuery();
@@ -104,7 +106,7 @@ export default function ClientInventory() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation('/dashboard')}>
+          <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

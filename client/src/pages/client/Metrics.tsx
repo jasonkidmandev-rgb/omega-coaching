@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Scale, TrendingUp, TrendingDown, Minus, Plus, Calendar, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useGoBack } from "@/hooks/useGoBack";
 import { format } from "date-fns";
 import {
   LineChart,
@@ -23,6 +24,7 @@ import {
 
 export default function ClientMetrics() {
   const [, setLocation] = useLocation();
+  const goBack = useGoBack('/dashboard');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [weight, setWeight] = useState("");
   const [bodyFatPercentage, setBodyFatPercentage] = useState("");
@@ -134,7 +136,7 @@ export default function ClientMetrics() {
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation('/dashboard')}>
+          <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

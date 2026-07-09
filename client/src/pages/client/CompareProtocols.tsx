@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useGoBack } from "@/hooks/useGoBack";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT } from "@/lib/timezone";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 
 export default function CompareProtocols() {
   const [, setLocation] = useLocation();
+  const goBack = useGoBack('/dashboard');
   const { user } = useAuth();
   const trpcUtils = trpc.useUtils();
   
@@ -68,7 +70,7 @@ export default function CompareProtocols() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" onClick={() => setLocation("/dashboard")}>
+          <Button variant="ghost" onClick={goBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>

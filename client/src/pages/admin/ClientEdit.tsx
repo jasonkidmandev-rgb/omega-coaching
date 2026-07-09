@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useLocation, useParams } from "wouter";
+import { useGoBack } from "@/hooks/useGoBack";
 import { toast } from "sonner";
 import { useEffect, useLayoutEffect, useState, useRef, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +98,7 @@ export default function AdminClientEdit() {
   const trpcUtils = trpc.useUtils();
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
+  const goBack = useGoBack("/admin/clients");
   const isNew = !params.id || params.id === "new";
   const clientId = isNew ? null : parseInt(params.id);
   
@@ -1363,7 +1365,7 @@ export default function AdminClientEdit() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation("/admin/clients")}
+              onClick={goBack}
               className="shrink-0 h-8 w-8"
             >
               <ArrowLeft className="h-4 w-4" />

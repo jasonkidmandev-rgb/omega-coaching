@@ -64,6 +64,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import { useLocation, useParams } from "wouter";
+import { useGoBack } from "@/hooks/useGoBack";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo } from "react";
 import {
@@ -115,6 +116,7 @@ const noteTypeConfig = {
 export default function ProjectDetail() {
   const params = useParams();
   const [, setLocation] = useLocation();
+  const goBack = useGoBack("/admin/projects");
   const isNew = !params.id || params.id === "new";
   const projectId = isNew ? null : parseInt(params.id || "0");
 
@@ -444,7 +446,7 @@ export default function ProjectDetail() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/admin/projects")} aria-label="Back to projects">
+          <Button variant="ghost" size="icon" onClick={goBack} aria-label="Back to projects">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">

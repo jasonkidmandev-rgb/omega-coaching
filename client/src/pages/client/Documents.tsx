@@ -12,6 +12,7 @@ import {
   Plus, File, Image, FileSpreadsheet, ArrowLeft
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useGoBack } from "@/hooks/useGoBack";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ const folderIcons: Record<string, React.ComponentType<{ className?: string }>> =
 
 export default function ClientDocuments() {
   const [, setLocation] = useLocation();
+  const goBack = useGoBack('/dashboard');
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -118,7 +120,7 @@ export default function ClientDocuments() {
     return (
       <div className="space-y-6 p-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation('/dashboard')}>
+          <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -145,7 +147,7 @@ export default function ClientDocuments() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation('/dashboard')}>
+          <Button variant="ghost" size="icon" onClick={goBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

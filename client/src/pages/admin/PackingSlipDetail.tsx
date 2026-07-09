@@ -53,6 +53,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLocation, useParams } from "wouter";
+import { useGoBack } from "@/hooks/useGoBack";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -63,6 +64,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 export default function PackingSlipDetail() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
+  const goBack = useGoBack("/admin/packing-slips");
   const [signatureMode, setSignatureMode] = React.useState(false);
   const [signatureData, setSignatureData] = React.useState("");
   const [notes, setNotes] = React.useState("");
@@ -883,7 +885,7 @@ export default function PackingSlipDetail() {
       <div className="space-y-6 print:space-y-4">
         {/* Header - Hidden on print */}
         <div className="flex items-center justify-between print:hidden">
-          <Button variant="ghost" onClick={() => setLocation('/admin/packing-slips')}>
+          <Button variant="ghost" onClick={goBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Packing Slips
           </Button>

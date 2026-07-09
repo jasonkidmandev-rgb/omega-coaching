@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
+import { useGoBack } from "@/hooks/useGoBack";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import {
@@ -29,6 +30,7 @@ import { format, formatDistanceToNow, isPast, isToday, isTomorrow } from "date-f
 export default function ClientSessions() {
   const { user, loading: isAuthLoading } = useAuth();
   const [, setLocation] = useLocation();
+  const goBack = useGoBack('/dashboard');
 
   // Fetch client's session packages
   const { data: sessionPackages, isLoading: isPackagesLoading } = trpc.booking.getMySessionPackages.useQuery(
@@ -142,7 +144,7 @@ export default function ClientSessions() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation('/dashboard')}
+              onClick={goBack}
               className="text-gray-600"
             >
               <ArrowLeft className="h-5 w-5" />
