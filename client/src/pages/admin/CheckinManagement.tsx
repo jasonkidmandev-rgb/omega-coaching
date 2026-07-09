@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,7 @@ import { Slider } from "@/components/ui/slider";
 import { 
   ClipboardCheck, Settings, FileText, Plus, Edit, Trash2,
   Eye, CheckCircle, AlertTriangle, Clock, MessageSquare, Video, Mic, Users, BarChart3,
-  GripVertical, ArrowUp, ArrowDown, Save, RefreshCw, Activity, Play, XCircle, Zap, Timer
+  GripVertical, ArrowUp, ArrowDown, Save, RefreshCw, Activity, Play, XCircle, Zap, Timer, Search
 } from "lucide-react";
 import BulkScheduleUpdate from "@/components/BulkScheduleUpdate";
 import CheckinAnalytics from "@/components/CheckinAnalytics";
@@ -44,14 +44,19 @@ export default function CheckinManagement() {
   const [lowScoreThreshold, setLowScoreThreshold] = useState(5);
   const [reminderHours, setReminderHours] = useState(48);
   const [newTemplateName, setNewTemplateName] = useState("");
-  
+
+  // "All Check-ins" tab — search / filter / pagination state
+  const [checkinSearch, setCheckinSearch] = useState("");
+  const [checkinStatusFilter, setCheckinStatusFilter] = useState<string>("all");
+  const [checkinVisibleCount, setCheckinVisibleCount] = useState(25);
+
   // Fetch templates
   const { data: templates, isLoading: loadingTemplates, refetch: refetchTemplates } = 
     trpc.checkin.templates.list.useQuery();
   
   // Fetch all check-ins
-  const { data: allCheckins, isLoading: loadingCheckins, refetch: refetchCheckins } = 
-    trpc.checkin.list.useQuery({});
+  const { data: allCheckins, isLoading: loadingCheckins, refetch: refetchCheckins } =
+    trpc.checkin.list.useQuery({ limit: 500 });
   
   // Fetch enabled schedules
   const { data: enabledSchedules, isLoading: loadingSchedules } = 
@@ -66,7 +71,38 @@ export default function CheckinManagement() {
     trpc.checkin.cronHealth.useQuery(undefined, {
       refetchInterval: 60000, // Auto-refresh every 60 seconds
     });
-  
+
+  // Derived data for the "All Check-ins" tab: at-a-glance counts + filtered/paged list.
+  // Filtering is done in-memory (small dataset) for instant, responsive UX.
+  const checkinCounts = useMemo(() => {
+    const list = allCheckins || [];
+    return {
+      total: list.length,
+      needsReview: list.filter(c => c.status === 'submitted').length,
+      lowScore: list.filter(c => c.hasLowScore).length,
+      awaiting: list.filter(c => c.status === 'pending' || c.status === 'incomplete').length,
+      reviewed: list.filter(c => c.status === 'reviewed').length,
+    };
+  }, [allCheckins]);
+
+  const filteredCheckins = useMemo(() => {
+    let list = allCheckins || [];
+    if (checkinStatusFilter === 'submitted') list = list.filter(c => c.status === 'submitted');
+    else if (checkinStatusFilter === 'low') list = list.filter(c => c.hasLowScore);
+    else if (checkinStatusFilter === 'awaiting') list = list.filter(c => c.status === 'pending' || c.status === 'incomplete');
+    else if (checkinStatusFilter === 'reviewed') list = list.filter(c => c.status === 'reviewed');
+    const q = checkinSearch.trim().toLowerCase();
+    if (q) {
+      list = list.filter(c =>
+        (((c as any).clientName as string) || '').toLowerCase().includes(q) ||
+        `client #${c.clientProtocolId}`.includes(q)
+      );
+    }
+    return list;
+  }, [allCheckins, checkinStatusFilter, checkinSearch]);
+
+  const visibleCheckins = filteredCheckins.slice(0, checkinVisibleCount);
+
   // Global kill switch
   const { data: globalStatus, refetch: refetchGlobalStatus } = trpc.checkin.global.getStatus.useQuery();
   const setGlobalStatusMutation = trpc.checkin.global.setStatus.useMutation({
@@ -429,7 +465,53 @@ export default function CheckinManagement() {
                 View and manage all client check-in submissions
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* At-a-glance filter chips — also serve as status counts */}
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'all', label: 'All', count: checkinCounts.total, active: 'bg-primary text-primary-foreground border-transparent' },
+                  { key: 'submitted', label: 'Needs review', count: checkinCounts.needsReview, active: 'bg-orange-500 text-white border-transparent' },
+                  { key: 'low', label: 'Low score', count: checkinCounts.lowScore, active: 'bg-red-500 text-white border-transparent' },
+                  { key: 'awaiting', label: 'Awaiting client', count: checkinCounts.awaiting, active: 'bg-blue-500 text-white border-transparent' },
+                  { key: 'reviewed', label: 'Reviewed', count: checkinCounts.reviewed, active: 'bg-green-600 text-white border-transparent' },
+                ].map(chip => {
+                  const isActive = checkinStatusFilter === chip.key;
+                  return (
+                    <button
+                      key={chip.key}
+                      onClick={() => { setCheckinStatusFilter(chip.key); setCheckinVisibleCount(25); }}
+                      className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+                        isActive ? chip.active : 'bg-card border-border hover:bg-accent'
+                      }`}
+                    >
+                      {chip.label}
+                      <span className={`rounded-full px-1.5 text-xs ${isActive ? 'bg-white/20' : 'bg-muted text-muted-foreground'}`}>
+                        {chip.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Search + result count + refresh */}
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by client name..."
+                    value={checkinSearch}
+                    onChange={(e) => { setCheckinSearch(e.target.value); setCheckinVisibleCount(25); }}
+                    className="pl-9"
+                  />
+                </div>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  Showing {visibleCheckins.length} of {filteredCheckins.length}
+                </span>
+                <Button variant="outline" size="icon" onClick={() => refetchCheckins()} title="Refresh">
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+
               <ScrollArea className="h-[600px]">
                 {loadingCheckins ? (
                   <div className="space-y-3">
@@ -437,9 +519,9 @@ export default function CheckinManagement() {
                       <Skeleton key={i} className="h-20 w-full" />
                     ))}
                   </div>
-                ) : allCheckins && allCheckins.length > 0 ? (
+                ) : filteredCheckins.length > 0 ? (
                   <div className="space-y-3">
-                    {allCheckins.map((checkin) => (
+                    {visibleCheckins.map((checkin) => (
                       <div 
                         key={checkin.id} 
                         className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
@@ -502,12 +584,25 @@ export default function CheckinManagement() {
                         </div>
                       </div>
                     ))}
+                    {filteredCheckins.length > visibleCheckins.length && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setCheckinVisibleCount(c => c + 25)}
+                      >
+                        Load more ({filteredCheckins.length - visibleCheckins.length} more)
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <ClipboardCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No check-ins yet</p>
-                    <p className="text-sm">Check-ins will appear here once clients submit them</p>
+                    <p>{(allCheckins?.length ?? 0) > 0 ? 'No check-ins match your filters' : 'No check-ins yet'}</p>
+                    <p className="text-sm">
+                      {(allCheckins?.length ?? 0) > 0
+                        ? 'Try clearing the search or choosing a different filter'
+                        : 'Check-ins will appear here once clients submit them'}
+                    </p>
                   </div>
                 )}
               </ScrollArea>
