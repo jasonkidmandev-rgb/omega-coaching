@@ -1,17 +1,12 @@
-import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Package, AlertTriangle, CheckCircle2, Circle, 
-  ShoppingCart, Plus, RefreshCw, ArrowLeft
+import {
+  Package, AlertTriangle, CheckCircle2, Circle,
+  ShoppingCart, RefreshCw, ArrowLeft
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -27,11 +22,7 @@ const statusConfig: Record<InventoryStatus, { label: string; icon: React.Compone
 
 export default function ClientInventory() {
   const [, setLocation] = useLocation();
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemCategory, setNewItemCategory] = useState('');
-  const [newItemNotes, setNewItemNotes] = useState('');
-  
+
   // Fetch inventory
   const { data: inventory, isLoading, refetch } = trpc.clientInventory.getMyInventory.useQuery();
   
@@ -123,10 +114,6 @@ export default function ClientInventory() {
             </p>
           </div>
         </div>
-        <Button onClick={() => setAddDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Item
-        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -292,65 +279,6 @@ export default function ClientInventory() {
         </div>
       )}
 
-      {/* Add Item Dialog */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Custom Item</DialogTitle>
-            <DialogDescription>
-              Add a supplement or item that's not in your protocol
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="itemName">Item Name</Label>
-              <Input
-                id="itemName"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                placeholder="e.g., Vitamin D3"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="itemCategory">Category (optional)</Label>
-              <Input
-                id="itemCategory"
-                value={newItemCategory}
-                onChange={(e) => setNewItemCategory(e.target.value)}
-                placeholder="e.g., Vitamins"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="itemNotes">Notes (optional)</Label>
-              <Textarea
-                id="itemNotes"
-                value={newItemNotes}
-                onChange={(e) => setNewItemNotes(e.target.value)}
-                placeholder="Any additional notes..."
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => {
-                // TODO: Implement add item via token
-                toast.info("Feature coming soon - contact your coach to add items");
-                setAddDialogOpen(false);
-              }}
-              disabled={!newItemName.trim()}
-            >
-              Add Item
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

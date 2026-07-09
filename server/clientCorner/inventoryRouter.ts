@@ -525,9 +525,11 @@ export const clientInventoryRouter = router({
         }
       }
       
-      // Get store link for the item
-      const storeLink = '/order';
-      
+      // Get store link for the item — absolute so it resolves inside emails
+      // (a relative "/order" breaks in an email client).
+      const baseUrl = process.env.VITE_APP_URL || 'https://www.humanedge.health';
+      const storeLink = `${baseUrl}/order`;
+
       return { success: true, storeLink };
     }),
 
