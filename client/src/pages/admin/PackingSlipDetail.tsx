@@ -1053,11 +1053,38 @@ export default function PackingSlipDetail() {
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">{packingSlip.clientName}</span>
-                {(packingSlip as any).source === 'store' && (
-                  <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50 text-xs">
-                    Store Order{(packingSlip as any).storeOrderId ? ` #${(packingSlip as any).storeOrderId}` : ''}
-                  </Badge>
-                )}
+                {/* Source link — bridge back to the originating protocol invoice /
+                    custom order / store order (data is on the slip; this makes it clickable). */}
+                {(() => {
+                  const src = (packingSlip as any).source as 'protocol' | 'store' | 'custom' | undefined;
+                  const protocolId = (packingSlip as any).clientProtocolId;
+                  const customOrderId = (packingSlip as any).customOrderId;
+                  const storeOrderId = (packingSlip as any).storeOrderId;
+                  let href: string | null = null;
+                  let label = '';
+                  if (src === 'custom' && customOrderId) {
+                    href = `/admin/custom-orders/${customOrderId}`;
+                    label = `Custom Order #${customOrderId}`;
+                  } else if (src === 'store' && storeOrderId) {
+                    href = `/admin/store-orders`;
+                    label = `Store Order #${storeOrderId}`;
+                  } else if (protocolId) {
+                    href = `/admin/clients/${protocolId}`;
+                    label = `Protocol / Invoice #${protocolId}`;
+                  }
+                  if (!href) return null;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setLocation(href!)}
+                      title={`Open source: ${label}`}
+                      className="print:hidden inline-flex items-center gap-1 rounded-full border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-100 transition-colors"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      {label}
+                    </button>
+                  );
+                })()}
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
