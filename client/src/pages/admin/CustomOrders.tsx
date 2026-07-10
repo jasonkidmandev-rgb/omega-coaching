@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import AdminLayout from "@/components/AdminLayout";
@@ -1471,6 +1472,18 @@ export default function CustomOrders() {
   const [createOpen, setCreateOpen] = useState(false);
   const [detailOrderId, setDetailOrderId] = useState<number | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+
+  // Deep-link: /admin/custom-orders/:id opens that order's detail dialog.
+  const params = useParams<{ id?: string }>();
+  useEffect(() => {
+    if (params.id) {
+      const idNum = Number(params.id);
+      if (!Number.isNaN(idNum)) {
+        setDetailOrderId(idNum);
+        setDetailOpen(true);
+      }
+    }
+  }, [params.id]);
 
   const { data: orders, refetch, isLoading } = trpc.customOrders.list.useQuery(
     { status: statusFilter === "all" ? undefined : statusFilter }

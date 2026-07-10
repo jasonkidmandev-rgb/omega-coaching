@@ -212,6 +212,7 @@ function Router() {
         <Route path={"/admin/projects/:id"} component={AdminProjectDetail} />
         <Route path={"/admin/projects"} component={AdminProjectList} />
         <Route path={"/admin/workflow-templates"} component={AdminWorkflowTemplates} />
+        <Route path={"/admin/store-orders/:id"} component={AdminStoreOrders} />
         <Route path={"/admin/store-orders"} component={AdminStoreOrders} />
         <Route path={"/admin/custom-orders/:id"} component={AdminCustomOrders} />
         <Route path={"/admin/custom-orders"} component={AdminCustomOrders} />

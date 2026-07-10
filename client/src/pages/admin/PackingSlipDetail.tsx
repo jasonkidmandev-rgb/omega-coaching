@@ -1066,7 +1066,7 @@ export default function PackingSlipDetail() {
                     href = `/admin/custom-orders/${customOrderId}`;
                     label = `Custom Order #${customOrderId}`;
                   } else if (src === 'store' && storeOrderId) {
-                    href = `/admin/store-orders`;
+                    href = `/admin/store-orders/${storeOrderId}`;
                     label = `Store Order #${storeOrderId}`;
                   } else if (protocolId) {
                     href = `/admin/clients/${protocolId}`;

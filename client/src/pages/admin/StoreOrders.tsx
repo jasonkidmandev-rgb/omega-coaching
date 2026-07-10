@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT } from "@/lib/timezone";
@@ -93,6 +93,11 @@ export default function AdminStoreOrders() {
   const { data: orders, isLoading, refetch } = trpc.storeOrders.adminList.useQuery(
     statusFilter === "all" ? undefined : { status: statusFilter }
   );
+
+  // Deep-link: /admin/store-orders/:id focuses the list on that single order.
+  const params = useParams<{ id?: string }>();
+  const focusedId = params.id ? Number(params.id) : null;
+  const displayOrders = focusedId && orders ? orders.filter((o: any) => o.id === focusedId) : (orders || []);
 
   const updateStatusMutation = trpc.storeOrders.updateStatus.useMutation({
     onSuccess: () => {
@@ -410,19 +415,28 @@ export default function AdminStoreOrders() {
           </Select>
         </div>
 
+        {focusedId && (
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2">
+            <span className="text-sm font-medium text-blue-700">Viewing store order #{focusedId}</span>
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin/store-orders")}>
+              Show all orders
+            </Button>
+          </div>
+        )}
+
         {/* Orders - Mobile Card Layout */}
         <div className="md:hidden space-y-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
             </div>
-          ) : !orders || orders.length === 0 ? (
+          ) : displayOrders.length === 0 ? (
             <div className="text-center py-12 text-gray-600">
               <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>No orders found</p>
             </div>
           ) : (
-            orders.map((order) => {
+            displayOrders.map((order) => {
               const status = statusConfig[order.status as OrderStatus] || statusConfig.pending;
               const isVenmoPending = order.paymentMethod === 'venmo' && order.status === 'pending';
               return (
@@ -534,7 +548,7 @@ export default function AdminStoreOrders() {
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
               </div>
-            ) : !orders || orders.length === 0 ? (
+            ) : displayOrders.length === 0 ? (
               <div className="text-center py-12 text-gray-600">
                 <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>No orders found</p>
