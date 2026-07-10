@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
-import { ArrowLeft, ShoppingCart, Plus, Minus, Trash2, Tag, Package, AlertCircle, Heart, Search, CheckCircle, X, History, Truck, Clock, FolderOpen, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Plus, Minus, Trash2, Tag, Package, AlertCircle, Heart, Search, CheckCircle, X, History, Truck, FolderOpen, ChevronDown } from 'lucide-react';
 import { Link } from 'wouter';
 import { StoreWaiver } from '@/components/StoreWaiver';
 import StorePaymentSelector from '@/components/StorePaymentSelector';
@@ -663,15 +663,12 @@ export default function Order() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredItems.map(item => {
               const cartItem = cart.find(i => i.id === item.id);
-              const isOutOfStock = item.isOutOfStock;
               const isFavorite = favoriteIds.has(item.id);
-              
+
               return (
-                <div 
+                <div
                   key={item.id}
-                  className={`bg-white border rounded-xl p-4 hover:shadow-md transition-all ${
-                    isOutOfStock ? 'border-blue-300' : 'border-gray-200'
-                  }`}
+                  className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all"
                 >
                   {/* Category & Favorite */}
                   <div className="flex items-start justify-between mb-3">
@@ -684,12 +681,6 @@ export default function Order() {
                       }`}>
                         {item.categoryName}
                       </span>
-                      {isOutOfStock && (
-                        <span className="text-xs font-medium px-2 py-1 rounded bg-blue-100 text-blue-700 flex items-center gap-1">
-                          <Truck className="w-3 h-3" />
-                          Dropship
-                        </span>
-                      )}
                     </div>
                     <button
                       onClick={() => toggleFavorite(item.id)}
@@ -718,20 +709,8 @@ export default function Order() {
                         Volume discounts available
                       </div>
                     )}
-                    {/* Stock info — stock is advisory only; ordering past it is allowed (backorder) */}
-                    {isOutOfStock ? (
-                      <div className="flex items-center gap-1 text-xs text-blue-600">
-                        <Clock className="w-3 h-3" />
-                        Backordered · Ships in 5-7 days
-                      </div>
-                    ) : cartItem && cartItem.quantity > item.quantity ? (
-                      <span className="text-xs text-gray-500">
-                        In stock: {item.quantity}
-                        <span className="text-blue-600"> · {cartItem.quantity - item.quantity} backordered (ships in 5-7 days)</span>
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-500">In stock: {item.quantity}</span>
-                    )}
+                    {/* Stock status is intentionally hidden from customers (Jason, 2026-07-10):
+                        no count, no low-stock / backorder / delay messaging — order freely. */}
                   </div>
                   
                   {/* Add to Cart / Quantity Controls */}
