@@ -332,8 +332,8 @@ export default function AdminChat() {
                       >
                         {/* Message text - supports both rich HTML and legacy plain text */}
                         <div
-                          className={`text-[13px] sm:text-sm leading-relaxed break-words whitespace-pre-wrap
-                            [&_p]:my-0.5 [&_br]:block
+                          className={`text-[13px] sm:text-sm leading-relaxed break-words whitespace-pre-wrap prose prose-sm max-w-none
+                            [&_p]:my-1.5 [&_p:empty]:min-h-[1em] [&_br]:block
                             [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1
                             [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1
                             [&_li]:my-0

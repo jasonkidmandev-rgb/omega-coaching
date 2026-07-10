@@ -1870,7 +1870,7 @@ onPaymentSuccess={() => {
                       </div>
                     </div>
                     <div 
-                      className="text-sm prose prose-sm max-w-none whitespace-pre-wrap [&_p]:my-1 [&_p]:leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_li]:my-0 [&_strong]:font-bold [&_em]:italic [&_u]:underline [&_s]:line-through [&_a]:text-blue-600 [&_a]:underline"
+                      className="text-sm prose prose-sm max-w-none whitespace-pre-wrap break-words [&_p]:my-1.5 [&_p]:leading-relaxed [&_p:empty]:min-h-[1em] [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_li]:my-0 [&_strong]:font-bold [&_em]:italic [&_u]:underline [&_s]:line-through [&_a]:text-blue-600 [&_a]:underline"
                       dangerouslySetInnerHTML={{ __html: processMessageForDisplay(comment.message, comment.authorType === 'coach') }}
                     />
                     {comment.loomUrl && (
