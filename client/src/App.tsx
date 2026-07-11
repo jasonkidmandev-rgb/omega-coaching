@@ -7,7 +7,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AgeDisclaimer, useAgeVerification } from "./components/AgeDisclaimer";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
-import { StagingBanner } from "./components/StagingBanner";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { ScrollRestoration } from "./components/ScrollRestoration";
 import { usePageTracker } from "./hooks/usePageTracker";
@@ -337,7 +336,6 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <TooltipProvider>
-          <StagingBanner />
           <AgeVerificationWrapper>
             <ScrollRestoration />
             <PageTracker />
