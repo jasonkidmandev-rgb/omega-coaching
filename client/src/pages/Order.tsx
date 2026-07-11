@@ -877,6 +877,13 @@ export default function Order() {
                   <ShoppingCart className="w-5 h-5" />
                   Checkout
                 </button>
+
+                {/* Sourcing disclaimer (Jason, 2026-07-11) */}
+                <p className="mt-3 text-xs text-gray-400 leading-relaxed">
+                  On rare occasions when an item is out of stock with us and our primary
+                  supplier, we'll send an equivalent product from one of our trusted backup
+                  vendors instead.
+                </p>
               </>
             )}
           </div>
