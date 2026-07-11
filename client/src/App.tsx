@@ -14,6 +14,7 @@ import { lazyWithRetry } from "./lib/lazyWithRetry";
 
 // Eagerly loaded pages (critical path)
 import Home from "./pages/Home";
+import Cover from "./pages/Cover";
 import LaunchpadHub from "./pages/LaunchpadHub";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -156,9 +157,9 @@ function Router() {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Switch>
-        <Route path={"/"} component={Home} />
+        <Route path={"/"} component={Cover} />
         <Route path={"/launchpad"} component={LaunchpadHub} />
-        <Route path={"/home"} component={Home} />
+        <Route path={"/home"} component={Cover} />
         {/* Legal pages - accessible without age verification */}
         <Route path={"/terms"} component={Terms} />
         <Route path={"/privacy"} component={Privacy} />
