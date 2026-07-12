@@ -28,7 +28,8 @@ import {
   Unlock,
   Download,
   FileDown,
-  ShoppingCart
+  ShoppingCart,
+  ExternalLink
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -699,12 +700,38 @@ export default function PackingSlips() {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-medium">{slip.clientName}</p>
-                            {(slip as any).source === 'store' && (
-                              <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50 text-xs">
-                                <ShoppingCart className="h-3 w-3 mr-1" />
-                                Store
-                              </Badge>
-                            )}
+                            {/* Source link — see & jump to the protocol invoice /
+                                custom order / store order this slip came from. */}
+                            {(() => {
+                              const src = (slip as any).source as 'protocol' | 'store' | 'custom' | undefined;
+                              const protocolId = (slip as any).clientProtocolId;
+                              const customOrderId = (slip as any).customOrderId;
+                              const storeOrderId = (slip as any).storeOrderId;
+                              let href: string | null = null;
+                              let label = '';
+                              if (src === 'custom' && customOrderId) {
+                                href = `/admin/custom-orders/${customOrderId}`;
+                                label = `Custom Order #${customOrderId}`;
+                              } else if (src === 'store' && storeOrderId) {
+                                href = `/admin/store-orders/${storeOrderId}`;
+                                label = `Store Order #${storeOrderId}`;
+                              } else if (protocolId) {
+                                href = `/admin/clients/${protocolId}`;
+                                label = `Protocol #${protocolId}`;
+                              }
+                              if (!href) return null;
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); setLocation(href!); }}
+                                  title={`Open source: ${label}`}
+                                  className="inline-flex items-center gap-1 rounded-full border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-100"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  {label}
+                                </button>
+                              );
+                            })()}
                           </div>
                           <p className="text-sm text-muted-foreground">{slip.clientEmail}</p>
                           <div className="flex items-center gap-2 mt-1">
