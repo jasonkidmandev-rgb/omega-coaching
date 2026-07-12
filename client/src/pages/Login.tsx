@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { HumanEdgeMark, Wordmark, AuroraBackground } from "@/components/HumanEdgeBrand";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -51,10 +48,10 @@ export default function Login() {
       }
 
       toast.success(`Welcome back, ${data.user.name || ""}!`);
-      
+
       // Invalidate auth cache and redirect
       await utils.auth.me.invalidate();
-      
+
       // Redirect based on role
       if (data.user.role === "admin" || data.user.role === "manager") {
         window.location.href = returnTo === "/launchpad" ? "/admin" : returnTo;
@@ -96,7 +93,7 @@ export default function Login() {
       }
 
       toast.success("Account created successfully!");
-      
+
       // Invalidate auth cache and redirect
       await utils.auth.me.invalidate();
       window.location.href = returnTo;
@@ -106,43 +103,53 @@ export default function Login() {
     }
   };
 
+  const inputClass =
+    "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-colors focus:border-amber-400/60 focus:bg-white/10";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <img
-            src="/omega-longevity-logo.png"
-            alt="Omega Longevity"
-            className="h-12 mx-auto mb-4"
-          />
-          <CardTitle className="text-2xl">
-            {mode === "login" ? "Welcome Back" : "Create Your Account"}
-          </CardTitle>
-          <CardDescription>
-            {mode === "login"
-              ? "Sign in to your Peptide Coach account"
-              : "Sign up to get started with Peptide Coach"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 p-4 text-white">
+      <AuroraBackground />
+
+      <div className="relative z-10 w-full max-w-md">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+          {/* Brand */}
+          <div className="mb-6 flex flex-col items-center text-center">
+            <HumanEdgeMark className="mb-4 h-14 w-14 rounded-2xl shadow-lg shadow-amber-500/20" />
+            <h1 className="text-2xl font-bold tracking-tight">
+              {mode === "login" ? "Welcome back" : "Create your account"}
+            </h1>
+            <p className="mt-1.5 text-sm text-slate-400">
+              {mode === "login" ? (
+                <>Sign in to your <Wordmark /> account</>
+              ) : (
+                <>Sign up to get started with <Wordmark /></>
+              )}
+            </p>
+          </div>
+
           <form onSubmit={mode === "login" ? handleLogin : handleSignup} className="space-y-4">
             {mode === "signup" && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
+              <div className="space-y-1.5">
+                <label htmlFor="name" className="text-sm font-medium text-slate-300">
+                  Full Name
+                </label>
+                <input
                   id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your full name"
                   autoComplete="name"
+                  className={inputClass}
                 />
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-sm font-medium text-slate-300">
+                Email Address
+              </label>
+              <input
                 id="email"
                 type="email"
                 value={email}
@@ -150,24 +157,27 @@ export default function Login() {
                 placeholder="Enter your email"
                 required
                 autoComplete="email"
+                className={inputClass}
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <label htmlFor="password" className="text-sm font-medium text-slate-300">
+                  Password
+                </label>
                 {mode === "login" && (
                   <button
                     type="button"
                     onClick={() => setLocation("/forgot-password")}
-                    className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                    className="text-xs font-medium text-amber-400 hover:text-amber-300"
                   >
                     Forgot password?
                   </button>
                 )}
               </div>
               <div className="relative">
-                <Input
+                <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
@@ -176,49 +186,49 @@ export default function Login() {
                   required
                   minLength={mode === "signup" ? 8 : undefined}
                   autoComplete={mode === "login" ? "current-password" : "new-password"}
-                  className="pr-10"
+                  className={`${inputClass} pr-10`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            <Button
+            <button
               type="submit"
-              className="w-full bg-orange-500 hover:bg-orange-600"
               disabled={isSubmitting}
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:from-amber-400 hover:to-orange-400 hover:shadow-orange-500/40 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   {mode === "login" ? "Signing in..." : "Creating account..."}
                 </>
               ) : mode === "login" ? (
                 <>
-                  <LogIn className="w-4 h-4 mr-2" />
+                  <LogIn className="h-4 w-4" />
                   Sign In
                 </>
               ) : (
                 <>
-                  <UserPlus className="w-4 h-4 mr-2" />
+                  <UserPlus className="h-4 w-4" />
                   Create Account
                 </>
               )}
-            </Button>
+            </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-slate-400">
             {mode === "login" ? (
               <>
                 Don't have an account?{" "}
                 <button
                   onClick={() => { setMode("signup"); setPassword(""); }}
-                  className="text-orange-600 hover:text-orange-700 font-medium"
+                  className="font-medium text-amber-400 hover:text-amber-300"
                 >
                   Sign up
                 </button>
@@ -228,7 +238,7 @@ export default function Login() {
                 Already have an account?{" "}
                 <button
                   onClick={() => { setMode("login"); setPassword(""); }}
-                  className="text-orange-600 hover:text-orange-700 font-medium"
+                  className="font-medium text-amber-400 hover:text-amber-300"
                 >
                   Sign in
                 </button>
@@ -239,13 +249,13 @@ export default function Login() {
           <div className="mt-4 text-center">
             <button
               onClick={() => setLocation("/")}
-              className="text-xs text-gray-400 hover:text-gray-600"
+              className="text-xs text-slate-500 hover:text-slate-300"
             >
               Back to home page
             </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
