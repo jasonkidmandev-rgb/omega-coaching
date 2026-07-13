@@ -150,6 +150,7 @@ const menuCategories: MenuCategory[] = [
     label: "Coaching",
     roles: ['admin', 'manager'],
     items: [
+      { icon: LayoutDashboard, label: "Acquisition & Retention", path: "/admin/acquisition", roles: ['admin'] },
       { icon: Users, label: "Enrollments", path: "/admin/enrollments", roles: ['admin', 'manager'] },
       { icon: Filter, label: "Lead Pipeline", path: "/admin/prospects", roles: ['admin'] },
       { icon: LayoutGrid, label: "Shannon's Kanban", path: "/admin/shannon-kanban", roles: ['admin'] },

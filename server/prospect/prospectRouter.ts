@@ -7,6 +7,7 @@ import { formatPhoneE164, formatPhoneDisplay } from "../utils/phone";
 import crypto from "crypto";
 import { findOrCreateContact } from "../contacts/contactService";
 import { propagateContactChanges } from "../contacts/propagateContactChanges";
+import { gatherPipelineData } from "../cron/shannonDailyPipelineCron";
 
 async function db() {
   const database = await getDb();
@@ -303,6 +304,25 @@ export const prospectRouter = router({
     return {
       prospects: (statusCounts as unknown as any[])?.[0] || {},
       customStatusCounts,
+    };
+  }),
+
+  // ========== Client Acquisition & Retention Dashboard ==========
+  // Powers the single-screen dashboard for Shannon. Reuses gatherPipelineData()
+  // so the on-screen scorecard and the daily 8 AM email never disagree.
+  // `retentionWatch` is a placeholder until Jason confirms the at-risk signal
+  // (no contact in N days / payment due / program ending) — see the Jason note.
+  getShannonDashboard: adminProcedure.query(async () => {
+    const pipeline = await gatherPipelineData();
+    return {
+      ...pipeline,
+      retentionWatch: [] as Array<{
+        name: string;
+        reason: string;
+        detail: string;
+        contactId: number | null;
+      }>,
+      retentionReady: false, // flips true once the retention query is wired
     };
   }),
 

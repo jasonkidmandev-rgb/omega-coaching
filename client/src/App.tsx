@@ -83,6 +83,7 @@ const AdminChat = lazyWithRetry(() => import("./pages/admin/Chat"));
 const AdminMorningBriefing = lazyWithRetry(() => import("./pages/admin/MorningBriefing"));
 const AdminConversionTracking = lazyWithRetry(() => import("./pages/admin/ConversionTracking"));
 const AdminShannonKanban = lazyWithRetry(() => import("./pages/admin/ShannonKanban"));
+const AdminAcquisitionDashboard = lazyWithRetry(() => import("./pages/admin/AcquisitionDashboard"));
 const AdminUpcomingAppointments = lazyWithRetry(() => import("./pages/admin/UpcomingAppointments"));
 const AdminCalendlySettings = lazyWithRetry(() => import("./pages/admin/CalendlySettings"));
 const AdminContactAdmin = lazyWithRetry(() => import("./pages/admin/ContactAdmin"));
@@ -243,6 +244,7 @@ function Router() {
         <Route path={"/admin/morning-briefing"} component={AdminMorningBriefing} />
         <Route path={"/admin/conversion-tracking"} component={AdminConversionTracking} />
         <Route path={"/admin/shannon-kanban"} component={AdminShannonKanban} />
+        <Route path={"/admin/acquisition"} component={AdminAcquisitionDashboard} />
         <Route path={"/admin/upcoming-appointments"} component={AdminUpcomingAppointments} />
         <Route path={"/admin/calendly-settings"} component={AdminCalendlySettings} />
         <Route path={"/admin/contact-admin"} component={AdminContactAdmin} />

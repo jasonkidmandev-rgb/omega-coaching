@@ -11,7 +11,7 @@ import { sql } from "drizzle-orm";
 const SHANNON_EMAIL = "shannon@omegalongevity.com";
 const SHANNON_NAME = "Shannon";
 
-interface PipelineEmailData {
+export interface PipelineEmailData {
   overdueCallbacks: Array<{
     name: string; phone: string; status: string; source: string;
     nextFollowUpAt: string; followUpCount: number; hoursOverdue: number;
@@ -40,7 +40,7 @@ interface PipelineEmailData {
   };
 }
 
-async function gatherPipelineData(): Promise<PipelineEmailData> {
+export async function gatherPipelineData(): Promise<PipelineEmailData> {
   const database = await getDb();
   if (!database) throw new Error("Database not available");
 
