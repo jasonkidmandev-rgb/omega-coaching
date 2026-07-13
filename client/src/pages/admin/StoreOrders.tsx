@@ -570,7 +570,7 @@ export default function AdminStoreOrders() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {orders.map((order) => {
+                  {displayOrders.map((order) => {
                     const status = statusConfig[order.status as OrderStatus] || statusConfig.pending;
                     return (
                       <TableRow key={order.id} className="border-gray-200 hover:bg-gray-100/50">
