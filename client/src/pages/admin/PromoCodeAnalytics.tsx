@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, TrendingUp, DollarSign, Users, Percent, Tag, Calendar, BarChart3 } from "lucide-react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import {
   Table,
   TableBody,
@@ -57,7 +58,7 @@ export default function PromoCodeAnalytics() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/admin/promo-codes")}>
+          <Button variant="ghost" size="icon" onClick={() => goBackTo("/admin/promo-codes")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

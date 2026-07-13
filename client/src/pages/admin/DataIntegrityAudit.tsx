@@ -21,6 +21,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import { toast } from "sonner";
 
 export default function DataIntegrityAudit() {
@@ -91,7 +92,7 @@ export default function DataIntegrityAudit() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/admin")}>
+            <Button variant="ghost" size="sm" onClick={() => goBackTo("/admin")}>
               <ArrowLeft className="w-4 h-4 mr-1" /> Back
             </Button>
             <div>

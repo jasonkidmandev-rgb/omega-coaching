@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useLocation, useParams } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT } from "@/lib/timezone";
@@ -336,7 +337,7 @@ export default function AdminStoreOrders() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/admin")}
+              onClick={() => goBackTo("/admin")}
               className="text-gray-600 hover:text-white"
             >
               <ArrowLeft className="w-5 h-5" />

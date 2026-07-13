@@ -30,6 +30,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useLocation, useParams } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import { toast } from "sonner";
 import { useEffect, useState, useMemo, useRef } from "react";
 import SortableTemplateItem from "./template-edit/SortableTemplateItem";
@@ -491,7 +492,7 @@ export default function AdminTemplateEdit() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation("/admin/templates")}
+              onClick={() => goBackTo("/admin/templates")}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>

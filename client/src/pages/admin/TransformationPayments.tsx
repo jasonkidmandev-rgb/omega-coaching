@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -227,7 +228,7 @@ export default function TransformationPayments() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLocation("/admin")}
+                onClick={() => goBackTo("/admin")}
                 className="text-gray-600 hover:text-gray-900 px-2 sm:px-3"
               >
                 <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />

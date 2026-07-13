@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PhoneInput } from "@/components/ui/phone-input";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import { toast } from "sonner";
 import { DashboardOnboardingWizard, OnboardingTriggerButton } from "@/components/DashboardOnboardingWizard";
 
@@ -179,7 +180,7 @@ export default function Account() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation("/")}
+              onClick={() => goBackTo("/")}
               className="text-slate-400 hover:text-white"
             >
               <ArrowLeft className="h-5 w-5" />

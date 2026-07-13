@@ -19,6 +19,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 
 export default function CommunityChoice() {
   const [, setLocation] = useLocation();
@@ -51,7 +52,7 @@ export default function CommunityChoice() {
         <div className="container max-w-6xl py-4 px-4">
           <div className="flex items-center justify-between">
             <button 
-              onClick={() => setLocation('/')}
+              onClick={() => goBackTo('/')}
               className="flex items-center gap-2 text-gray-600 hover:text-amber-600 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />

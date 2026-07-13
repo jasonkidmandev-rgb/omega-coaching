@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { goBackTo } from "@/hooks/useGoBack";
 import { trpc } from '@/lib/trpc';
 import { ArrowLeft, ShoppingCart, Plus, Minus, Trash2, Tag, Package, AlertCircle, Heart, Search, CheckCircle, X, History, Truck, FolderOpen, ChevronDown } from 'lucide-react';
 import { Link } from 'wouter';
@@ -463,7 +464,7 @@ export default function Order() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setLocation('/launchpad')}
+              onClick={() => goBackTo('/launchpad')}
               className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />

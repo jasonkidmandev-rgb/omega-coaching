@@ -15,6 +15,7 @@ import {
 import { format, formatDistanceToNow } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { Link, useParams, useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import { toast } from "sonner";
 
 export default function CheckinReview() {
@@ -207,7 +208,7 @@ export default function CheckinReview() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => setLocation(`/admin/clients/${params.clientId}`)}>
+        <Button variant="ghost" size="sm" onClick={() => goBackTo(`/admin/clients/${params.clientId}`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Client
         </Button>

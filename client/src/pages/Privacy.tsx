@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield } from "lucide-react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 
 export default function Privacy() {
   const [, setLocation] = useLocation();
@@ -14,7 +15,7 @@ export default function Privacy() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation("/")}
+              onClick={() => goBackTo("/")}
               className="text-slate-400 hover:text-white"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -162,7 +163,7 @@ export default function Privacy() {
 
           <div className="mt-12 pt-8 border-t border-slate-700">
             <Button
-              onClick={() => setLocation("/")}
+              onClick={() => goBackTo("/")}
               className="bg-gradient-to-r from-amber-400 to-orange-500 text-black hover:from-amber-500 hover:to-orange-600"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />

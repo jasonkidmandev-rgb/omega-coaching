@@ -30,3 +30,18 @@ export function useGoBack(fallback: string) {
     }
   }, [fallback, setLocation]);
 }
+
+/**
+ * Non-hook version of the same "go back" behavior, for calling directly inside
+ * an onClick without wiring up a hook const. Real browser-back when there's
+ * in-app history to return to; otherwise a full navigation to the fallback
+ * (the cold deep-link case). Same guardrail as useGoBack — page-navigation back
+ * buttons only, not wizard/step controls.
+ */
+export function goBackTo(fallback: string) {
+  if (typeof window !== "undefined" && window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = fallback;
+  }
+}

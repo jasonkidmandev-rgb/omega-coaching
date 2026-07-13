@@ -28,6 +28,7 @@ import {
   Link2,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 
 const NO_TEMPLATE = "none";
 
@@ -183,7 +184,7 @@ export default function IntegrationSettings() {
       <div className="space-y-6 p-6 max-w-6xl">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/admin/settings")}>
+          <Button variant="ghost" size="icon" onClick={() => goBackTo("/admin/settings")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

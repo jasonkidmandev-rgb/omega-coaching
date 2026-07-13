@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { formatMT, formatDistanceToNowMT, getDateLabelMT, isSameDayMT } from "@/lib/timezone";
 import { useLocation, useParams } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 
 interface Comment {
   id: number;
@@ -200,7 +201,7 @@ export default function AdminChat() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setLocation("/admin/inbox")}
+          onClick={() => goBackTo("/admin/inbox")}
           className="h-9 w-9 p-0 flex-shrink-0"
         >
           <ArrowLeft className="h-5 w-5" />

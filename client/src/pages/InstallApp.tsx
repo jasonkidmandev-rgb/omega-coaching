@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import {
   Smartphone,
   Apple,
@@ -42,7 +43,7 @@ export default function InstallApp() {
               variant="ghost" 
               size="sm" 
               className="text-slate-400 hover:text-white"
-              onClick={() => setLocation('/launchpad')}
+              onClick={() => goBackTo('/launchpad')}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back

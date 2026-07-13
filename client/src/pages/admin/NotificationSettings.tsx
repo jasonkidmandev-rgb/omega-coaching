@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "../../lib/trpc";
 import { Button } from "../../components/ui/button";
@@ -446,7 +447,7 @@ export default function NotificationSettings() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/admin/settings")}>
+          <Button variant="ghost" size="icon" onClick={() => goBackTo("/admin/settings")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

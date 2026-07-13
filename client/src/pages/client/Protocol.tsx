@@ -31,6 +31,7 @@ import {
   Download,
 } from "lucide-react";
 import { useParams, useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import { SkeletonProtocol } from "@/components/ui/skeleton";
 import { useSwipeGesture } from "@/components/SwipeableProtocolItems";
 import { toast } from "sonner";
@@ -780,7 +781,7 @@ export default function ClientProtocol() {
         <div className="container max-w-5xl py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => setLocation('/dashboard')}>
+              <Button variant="ghost" size="icon" onClick={() => goBackTo('/dashboard')}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">

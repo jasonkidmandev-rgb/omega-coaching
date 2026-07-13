@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, FileText, Download, ExternalLink, Loader2, Heart } from "lucide-react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
@@ -90,7 +91,7 @@ export default function PeptideCheatSheet() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setLocation("/launchpad")}
+                onClick={() => goBackTo("/launchpad")}
                 className="text-slate-300 hover:text-white hover:bg-slate-700"
               >
                 <ArrowLeft className="h-5 w-5" />

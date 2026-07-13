@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Mail, Clock, Calendar, Users, Plus, Trash2, Send, Settings, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -177,7 +178,7 @@ export default function EmailReportSettings() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/admin/settings")}>
+          <Button variant="ghost" size="icon" onClick={() => goBackTo("/admin/settings")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

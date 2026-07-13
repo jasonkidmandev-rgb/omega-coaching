@@ -16,6 +16,7 @@ import {
   Quote
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 
@@ -78,7 +79,7 @@ export default function Partners() {
           <Button 
             variant="ghost" 
             className="text-slate-400 hover:text-white"
-            onClick={() => setLocation("/")}
+            onClick={() => goBackTo("/")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Launchpad

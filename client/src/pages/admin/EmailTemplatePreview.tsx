@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Mail, Eye, Code, RefreshCw, Send, Copy, Check, Edit, Save, RotateCcw, AlertCircle, History, BarChart3, MousePointer, TrendingUp, Clock, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { goBackTo } from "@/hooks/useGoBack";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -384,7 +385,7 @@ export default function EmailTemplatePreview() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/admin/settings")}>
+          <Button variant="ghost" size="icon" onClick={() => goBackTo("/admin/settings")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
