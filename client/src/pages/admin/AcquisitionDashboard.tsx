@@ -241,18 +241,38 @@ export default function AcquisitionDashboard() {
                   <EmptyRow text="No clients need attention right now." />
                 ) : (
                   <div className="space-y-2">
-                    {data.retentionWatch.map((c, i) => (
-                      <div
-                        key={`ret-${i}`}
-                        className="flex items-center justify-between gap-3 rounded-md border p-3"
-                      >
-                        <div>
-                          <p className="font-medium">{c.name}</p>
-                          <p className="text-sm text-muted-foreground">{c.detail}</p>
+                    {data.retentionWatch.map((c, i) => {
+                      const isRenewal = c.reason.startsWith("Renewal");
+                      const row = (
+                        <div className="flex items-center justify-between gap-3 rounded-md border p-3 hover:bg-muted/50 transition-colors">
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{c.name}</p>
+                            <p className="text-sm text-muted-foreground truncate">{c.detail}</p>
+                          </div>
+                          <Badge
+                            className={
+                              isRenewal
+                                ? "bg-rose-100 text-rose-800 shrink-0"
+                                : "bg-sky-100 text-sky-800 shrink-0"
+                            }
+                          >
+                            {c.reason}
+                          </Badge>
                         </div>
-                        <Badge className="bg-rose-100 text-rose-800">{c.reason}</Badge>
-                      </div>
-                    ))}
+                      );
+                      return c.protocolId ? (
+                        <button
+                          key={`ret-${i}`}
+                          type="button"
+                          className="w-full text-left"
+                          onClick={() => navigate(`/admin/clients/${c.protocolId}`)}
+                        >
+                          {row}
+                        </button>
+                      ) : (
+                        <div key={`ret-${i}`}>{row}</div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

@@ -8,6 +8,7 @@ import crypto from "crypto";
 import { findOrCreateContact } from "../contacts/contactService";
 import { propagateContactChanges } from "../contacts/propagateContactChanges";
 import { gatherPipelineData } from "../cron/shannonDailyPipelineCron";
+import { gatherRetentionWatch } from "../dashboard/retentionWatch";
 
 async function db() {
   const database = await getDb();
@@ -309,20 +310,18 @@ export const prospectRouter = router({
 
   // ========== Client Acquisition & Retention Dashboard ==========
   // Powers the single-screen dashboard for Shannon. Reuses gatherPipelineData()
-  // so the on-screen scorecard and the daily 8 AM email never disagree.
-  // `retentionWatch` is a placeholder until Jason confirms the at-risk signal
-  // (no contact in N days / payment due / program ending) — see the Jason note.
+  // so the on-screen scorecard and the daily 8 AM email never disagree, and
+  // gatherRetentionWatch() for the retention list (renewal nudges at 4/2 weeks +
+  // a monthly client-relations call per active enrollment).
   getShannonDashboard: adminProcedure.query(async () => {
-    const pipeline = await gatherPipelineData();
+    const [pipeline, retentionWatch] = await Promise.all([
+      gatherPipelineData(),
+      gatherRetentionWatch(),
+    ]);
     return {
       ...pipeline,
-      retentionWatch: [] as Array<{
-        name: string;
-        reason: string;
-        detail: string;
-        contactId: number | null;
-      }>,
-      retentionReady: false, // flips true once the retention query is wired
+      retentionWatch,
+      retentionReady: true,
     };
   }),
 
