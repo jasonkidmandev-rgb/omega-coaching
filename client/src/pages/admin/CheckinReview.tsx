@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,10 +36,27 @@ export default function CheckinReview() {
   const { data: checkin, isLoading, refetch } = trpc.checkin.get.useQuery({ id: checkinId });
   
   // Fetch client trends
-  const { data: trends } = trpc.checkin.getTrends.useQuery({ 
-    clientProtocolId, 
-    weeks: 12 
+  const { data: trends } = trpc.checkin.getTrends.useQuery({
+    clientProtocolId,
+    weeks: 12
   });
+
+  // Prev/Next navigation across the "needs review" queue, so a reviewer can work
+  // through submissions in sequence without bouncing back to the list each time.
+  // Same source + order as the Manage Check-ins list. The current check-in is kept
+  // in the queue even after it's reviewed, so it stays locatable and the position
+  // indicator doesn't jump.
+  const { data: checkinListData } = trpc.checkin.list.useQuery({ limit: 500 });
+  const reviewQueue = useMemo(() => {
+    const all = (checkinListData as any[]) || [];
+    return all.filter((c: any) => c.status === 'submitted' || c.id === checkinId);
+  }, [checkinListData, checkinId]);
+  const queueIndex = reviewQueue.findIndex((c: any) => c.id === checkinId);
+  const prevCheckin = queueIndex > 0 ? reviewQueue[queueIndex - 1] : null;
+  const nextCheckin =
+    queueIndex >= 0 && queueIndex < reviewQueue.length - 1 ? reviewQueue[queueIndex + 1] : null;
+  const goToCheckin = (c: any) =>
+    setLocation(`/admin/clients/${c.clientProtocolId}/checkins/${c.id}`);
   
   // Mutations
   const exportPdfMutation = trpc.checkin.exportPdf.useMutation({
@@ -219,6 +236,33 @@ export default function CheckinReview() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          {queueIndex >= 0 && reviewQueue.length > 1 && (
+            <div className="flex items-center gap-1 mr-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => prevCheckin && goToCheckin(prevCheckin)}
+                disabled={!prevCheckin}
+                aria-label="Previous check-in"
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Prev
+              </Button>
+              <span className="text-xs text-muted-foreground px-1 whitespace-nowrap">
+                {queueIndex + 1} of {reviewQueue.length}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => nextCheckin && goToCheckin(nextCheckin)}
+                disabled={!nextCheckin}
+                aria-label="Next check-in"
+              >
+                Next
+                <ArrowLeft className="h-4 w-4 ml-1 rotate-180" />
+              </Button>
+            </div>
+          )}
           <Button
             variant="outline"
             size="sm"
