@@ -225,14 +225,21 @@ export default function CheckinReview() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => goBackTo(`/admin/clients/${params.clientId}`)}>
+        <Button variant="ghost" size="sm" onClick={() => goBackTo('/admin/checkins')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Client
+          Back
         </Button>
         <div>
           <h1 className="text-2xl font-bold">Check-in Review</h1>
           <p className="text-muted-foreground">
-            {(checkin as any).clientName || `Client #${clientProtocolId}`} • {checkin.sentAt ? format(new Date(checkin.sentAt), 'MMMM d, yyyy') : 'N/A'}
+            <Link
+              href={`/admin/clients/${clientProtocolId}`}
+              className="font-medium text-foreground hover:underline"
+            >
+              {(checkin as any).clientName || `Client #${clientProtocolId}`}
+            </Link>
+            {' • '}
+            {checkin.sentAt ? format(new Date(checkin.sentAt), 'MMMM d, yyyy') : 'N/A'}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
