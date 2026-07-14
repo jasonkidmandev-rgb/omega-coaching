@@ -153,7 +153,6 @@ const menuCategories: MenuCategory[] = [
       { icon: LayoutDashboard, label: "Acquisition & Retention", path: "/admin/acquisition", roles: ['admin'] },
       { icon: Users, label: "Enrollments", path: "/admin/enrollments", roles: ['admin', 'manager'] },
       { icon: Filter, label: "Lead Pipeline", path: "/admin/prospects", roles: ['admin'] },
-      { icon: LayoutGrid, label: "Shannon's Kanban", path: "/admin/shannon-kanban", roles: ['admin'] },
       { icon: ClipboardList, label: "Coaching Sessions", path: "/admin/coaching-sessions", roles: ['admin', 'manager'] },
       { icon: Calendar, label: "Booking Calendar", path: "/admin/booking-calendar", roles: ['admin', 'manager'] },
       { icon: ClipboardCheck, label: "Manage Check-Ins", path: "/admin/checkins", roles: ['admin', 'manager'] },

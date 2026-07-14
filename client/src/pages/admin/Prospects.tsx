@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT } from "@/lib/timezone";
-import KanbanBoard from "./KanbanBoard";
+import ShannonKanban from "./ShannonKanban";
 import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -216,7 +216,11 @@ function SortableStatusCard({ id, label, count, icon: Icon, color, bgColor, isCu
 }
 
 export default function Prospects() {
-  const [activeTab, setActiveTab] = useState("pipeline");
+  const [activeTab, setActiveTab] = useState(
+    () => (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "kanban")
+      ? "kanban"
+      : "pipeline"
+  );
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -1013,47 +1017,10 @@ export default function Prospects() {
             </div>
           </TabsContent>
           
-          {/* Kanban Board Tab */}
+          {/* Board Tab — the simplified 5-stage pipeline board (consolidated here from
+              the former standalone "Shannon's Kanban" page; renders embedded, no page shell). */}
           <TabsContent value="kanban" className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                {activeView === 'active_pipeline' && (
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    <Zap className="h-3 w-3 mr-1" /> Active Pipeline
-                  </Badge>
-                )}
-                {activeView === 'watch_list' && (
-                  <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">
-                    <EyeOff className="h-3 w-3 mr-1" /> Watch List
-                  </Badge>
-                )}
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => { prospectList.refetch(); stats.refetch(); }}>
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                {filteredProspects.length} prospect{filteredProspects.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-            <KanbanBoard
-              prospects={filteredProspects}
-              customStatuses={customStatuses}
-              onCardClick={(prospect) => { setSelectedProspect(prospect); setShowDetailDialog(true); }}
-              onStatusChange={(prospectId, newStatus, customStatusName) => {
-                updateProspectStatus.mutate({
-                  id: prospectId,
-                  status: newStatus as any,
-                  customStatus: customStatusName || null,
-                });
-              }}
-              statusOrder={(() => {
-                try {
-                  const raw = statusOrderQuery.data;
-                  if (!raw) return [];
-                  return JSON.parse(typeof raw === 'string' ? raw : (raw as any)?.value || '[]');
-                } catch { return []; }
-              })()}
-            />
+            <ShannonKanban embedded />
           </TabsContent>
 
         </Tabs>

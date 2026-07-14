@@ -82,7 +82,6 @@ const AdminInbox = lazyWithRetry(() => import("./pages/admin/Inbox"));
 const AdminChat = lazyWithRetry(() => import("./pages/admin/Chat"));
 const AdminMorningBriefing = lazyWithRetry(() => import("./pages/admin/MorningBriefing"));
 const AdminConversionTracking = lazyWithRetry(() => import("./pages/admin/ConversionTracking"));
-const AdminShannonKanban = lazyWithRetry(() => import("./pages/admin/ShannonKanban"));
 const AdminAcquisitionDashboard = lazyWithRetry(() => import("./pages/admin/AcquisitionDashboard"));
 const AdminUpcomingAppointments = lazyWithRetry(() => import("./pages/admin/UpcomingAppointments"));
 const AdminCalendlySettings = lazyWithRetry(() => import("./pages/admin/CalendlySettings"));
@@ -243,7 +242,8 @@ function Router() {
         <Route path={"/admin/chat/:id"} component={AdminChat} />
         <Route path={"/admin/morning-briefing"} component={AdminMorningBriefing} />
         <Route path={"/admin/conversion-tracking"} component={AdminConversionTracking} />
-        <Route path={"/admin/shannon-kanban"} component={AdminShannonKanban} />
+        {/* Retired: the standalone board now lives as the "Kanban" tab inside Lead Pipeline. */}
+        <Route path={"/admin/shannon-kanban"}>{() => { window.location.replace('/admin/prospects?tab=kanban'); return null; }}</Route>
         <Route path={"/admin/acquisition"} component={AdminAcquisitionDashboard} />
         <Route path={"/admin/upcoming-appointments"} component={AdminUpcomingAppointments} />
         <Route path={"/admin/calendly-settings"} component={AdminCalendlySettings} />

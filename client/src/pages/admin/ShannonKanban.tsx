@@ -599,7 +599,7 @@ function FollowUpQueue({ prospects, onCardClick }: { prospects: any[]; onCardCli
 }
 
 // Main Kanban Page
-export default function ShannonKanban() {
+export default function ShannonKanban({ embedded = false }: { embedded?: boolean } = {}) {
   const [search, setSearch] = useState("");
   const [activeProspect, setActiveProspect] = useState<any>(null);
   const [selectedProspect, setSelectedProspect] = useState<any>(null);
@@ -706,12 +706,12 @@ export default function ShannonKanban() {
     });
   }
 
-  return (
-    <AdminLayout>
+  const content = (
+    <>
       <div className="space-y-4 p-4 md:p-6">
-        {/* Header */}
+        {/* Header — hidden when embedded inside the Lead Pipeline page (avoids a double heading) */}
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
+          <div className={embedded ? "sr-only" : undefined}>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
               <LayoutGrid className="h-6 w-6" /> Shannon's Pipeline
             </h1>
@@ -818,6 +818,8 @@ export default function ShannonKanban() {
           )}
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
+
+  return embedded ? content : <AdminLayout>{content}</AdminLayout>;
 }
