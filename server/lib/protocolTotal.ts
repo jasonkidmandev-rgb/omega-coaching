@@ -14,12 +14,25 @@
  * drives the Stripe charge:
  *   "Items marked as 'client buys' are NOT included in the charged total"
  *
- * NOTE: this is the simple total (flat discount over everything). The client-facing
- * page additionally applies tiered pricing and per-item/category discountable flags,
- * so these figures can still differ from the charged amount in those cases — a
- * known, pre-existing gap kept out of scope here.
+ * It mirrors the client page's math exactly, so the figure we show always equals
+ * the figure we charge:
+ *   - tiered/volume unit pricing (a custom price always wins)
+ *   - discount applies to the items subtotal, but NEVER to the coaching fee
+ *   - total = subtotal - discount + coaching
+ * The previous version discounted the coaching fee too, which under-stated 9 of
+ * 31 active protocols by up to $756.
+ *
+ * ⚠️ KNOWN (deliberately mirrored) BUG — needs Jason's pricing call, do not "fix"
+ * here in isolation: the `isDiscountable` flag on items/categories is INERT. It's
+ * a tinyint (0/1), but the client tests `isDiscountable !== false` — and `0 !== false`
+ * is always true in JS — so every item is treated as discountable even though 123 of
+ * 185 items and 10 of 18 categories are explicitly marked non-discountable. Honouring
+ * the flag would raise 9 active clients' totals by ~$3,207 in aggregate, so it's a
+ * business decision. We mirror the live behaviour here on purpose: this figure must
+ * match what the client is actually charged, not what we wish it were.
  */
 import * as db from "../db";
+import { getTieredUnitPrice, type PricingTier } from "@shared/tieredPricing";
 
 /** True for items the client buys themselves — never billed by us. */
 export function isClientSourced(item: any): boolean {
@@ -31,25 +44,33 @@ export async function calculateProtocolTotal(protocol: any): Promise<number> {
     const protocolItems = await db.getClientProtocolItems(protocol.id);
     const allItems = await db.getAllProtocolItems();
 
-    let total = 0;
+    let subtotal = 0;
+
     for (const item of protocolItems) {
       if (!item.isIncluded) continue;
       if (isClientSourced(item)) continue; // client sources these — not ours to bill
-      const protocolItem = allItems.find((i: any) => i.id === item.protocolItemId);
-      const price = parseFloat(item.customPrice || protocolItem?.price || "0");
-      total += price * item.quantity;
+
+      const protocolItem: any = allItems.find((i: any) => i.id === item.protocolItemId);
+      if (!protocolItem) continue;
+
+      const defaultPrice = parseFloat(protocolItem.price || "0");
+      const unitPrice = item.customPrice
+        ? parseFloat(item.customPrice)
+        : getTieredUnitPrice(
+            item.quantity,
+            protocolItem.pricingTiers as PricingTier[] | null,
+            defaultPrice
+          );
+      subtotal += unitPrice * item.quantity;
     }
 
-    if (protocol.coachingPrice) {
-      total += parseFloat(protocol.coachingPrice);
-    }
+    // Discount hits the items subtotal only — the coaching fee is never discounted.
+    // (Every item counts as discountable today; see the isDiscountable note above.)
+    const discountPercent = parseFloat(protocol.discountPercent || "0");
+    const discount = (subtotal * discountPercent) / 100;
+    const coaching = parseFloat(protocol.coachingPrice || "0");
 
-    if (protocol.discountPercent) {
-      const discount = parseFloat(protocol.discountPercent);
-      total = total * (1 - discount / 100);
-    }
-
-    return total;
+    return subtotal - discount + coaching;
   } catch (error) {
     console.error(`Error calculating total for protocol ${protocol?.id}:`, error);
     return 0;

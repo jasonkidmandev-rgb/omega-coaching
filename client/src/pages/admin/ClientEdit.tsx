@@ -52,7 +52,7 @@ import { ClientProtocolItem as ClientProtocolItemType, ProtocolItem as ProtocolI
 import RichTextEditor from "@/components/RichTextEditor";
 import NotesHistoryViewer from "@/components/NotesHistoryViewer";
 import { useAutoSave, formatLastSaved } from "@/hooks/useAutoSave";
-import { getTieredUnitPrice, hasTieredPricing, type PricingTier } from "@/lib/tieredPricing";
+import { getTieredUnitPrice, hasTieredPricing, type PricingTier } from "@shared/tieredPricing";
 
 type ClientProtocolItem = {
   id: number;

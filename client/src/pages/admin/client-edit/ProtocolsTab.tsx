@@ -33,7 +33,7 @@ import { ClientProtocolItem, ProtocolItem, Category, ClientProgramInfo } from ".
 import { Badge } from "@/components/ui/badge";
 import { useState, useCallback } from "react";
 import { ChevronDown, ChevronUp, Edit2, Eye, ExternalLink } from "lucide-react";
-import { getTieredUnitPrice, hasTieredPricing, type PricingTier } from "@/lib/tieredPricing";
+import { getTieredUnitPrice, hasTieredPricing, type PricingTier } from "@shared/tieredPricing";
 import { PeriodizationOverview, TrainingSplitOverview, CompleteProgramGuide } from "@/components/protocol-sections";
 
 // Protocol Sections Toggle + Inline Editor Component

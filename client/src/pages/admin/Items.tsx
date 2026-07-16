@@ -45,7 +45,7 @@ import { TableSkeleton } from "@/components/TableSkeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useState, useRef, useEffect } from "react";
-import { type PricingTier, formatTieredPricing, hasTieredPricing } from "@/lib/tieredPricing";
+import { type PricingTier, formatTieredPricing, hasTieredPricing } from "@shared/tieredPricing";
 
 export default function AdminItems() {
   const [searchQuery, setSearchQuery] = useState("");

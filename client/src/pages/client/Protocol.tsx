@@ -46,7 +46,7 @@ import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { PaymentStatusWidget } from "@/components/PaymentStatusWidget";
 import { ProfileCompletionGate, isProfileComplete } from "@/components/ProfileCompletionGate";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getTieredUnitPrice, hasTieredPricing, formatTieredPricing, type PricingTier } from "@/lib/tieredPricing";
+import { getTieredUnitPrice, hasTieredPricing, formatTieredPricing, type PricingTier } from "@shared/tieredPricing";
 import { AddressAutocomplete, type AddressComponents } from '@/components/ui/address-autocomplete';
 import { PricingTierChart } from "@/components/PricingTierChart";
 import { PeriodizationOverview, TrainingSplitOverview, CompleteProgramGuide } from "@/components/protocol-sections";

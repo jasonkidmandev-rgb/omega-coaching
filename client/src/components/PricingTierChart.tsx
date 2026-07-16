@@ -1,4 +1,4 @@
-import { type PricingTier } from "@/lib/tieredPricing";
+import { type PricingTier } from "@shared/tieredPricing";
 import { Tag, TrendingDown, Check } from "lucide-react";
 
 interface PricingTierChartProps {
