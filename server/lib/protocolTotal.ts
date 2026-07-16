@@ -32,7 +32,7 @@
  * match what the client is actually charged, not what we wish it were.
  */
 import * as db from "../db";
-import { getTieredUnitPrice, type PricingTier } from "@shared/tieredPricing";
+import { getTieredUnitPrice, hasTieredPricing, type PricingTier } from "@shared/tieredPricing";
 
 /** True for items the client buys themselves — never billed by us. */
 export function isClientSourced(item: any): boolean {
@@ -54,13 +54,14 @@ export async function calculateProtocolTotal(protocol: any): Promise<number> {
       if (!protocolItem) continue;
 
       const defaultPrice = parseFloat(protocolItem.price || "0");
+      const tiers = protocolItem.pricingTiers as PricingTier[] | null;
+      // Guard exactly like the client page does — a custom price always wins, and
+      // tiered pricing only applies when real tiers are configured.
       const unitPrice = item.customPrice
         ? parseFloat(item.customPrice)
-        : getTieredUnitPrice(
-            item.quantity,
-            protocolItem.pricingTiers as PricingTier[] | null,
-            defaultPrice
-          );
+        : hasTieredPricing(tiers)
+          ? getTieredUnitPrice(item.quantity, tiers, defaultPrice)
+          : defaultPrice;
       subtotal += unitPrice * item.quantity;
     }
 

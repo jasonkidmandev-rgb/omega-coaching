@@ -27,7 +27,10 @@ export function getTieredUnitPrice(
   tiers: PricingTier[] | null | undefined,
   defaultPrice: number
 ): number {
-  if (!tiers || tiers.length === 0) {
+  // Must be a real array. The `pricingTiers` JSON column can hold a non-array
+  // (there is live data storing `{}`), and `[...{}]` throws "not iterable" —
+  // which, inside a money calculation, previously surfaced as a $0 total.
+  if (!Array.isArray(tiers) || tiers.length === 0) {
     return defaultPrice;
   }
 
