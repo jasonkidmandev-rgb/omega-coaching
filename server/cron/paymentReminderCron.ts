@@ -100,45 +100,7 @@ function shouldRunCron(): boolean {
 // Store last cron run data
 let lastCronRunData: { timestamp: string; sent: number; failed: number } | null = null;
 
-/**
- * Calculate the total amount due for a protocol
- */
-async function calculateProtocolTotal(protocolId: number): Promise<number> {
-  try {
-    const protocolItems = await db.getClientProtocolItems(protocolId);
-    const allItems = await db.getAllProtocolItems();
-    const protocol = await db.getClientProtocolById(protocolId);
-    
-    if (!protocol) return 0;
-    
-    let total = 0;
-    
-    // Sum up included items
-    for (const item of protocolItems) {
-      if (item.isIncluded) {
-        const protocolItem = allItems.find((i: any) => i.id === item.protocolItemId);
-        const price = parseFloat(item.customPrice || protocolItem?.price || '0');
-        total += price * item.quantity;
-      }
-    }
-    
-    // Add coaching price if applicable
-    if (protocol.coachingPrice) {
-      total += parseFloat(protocol.coachingPrice);
-    }
-    
-    // Apply discount if applicable
-    if (protocol.discountPercent) {
-      const discount = parseFloat(protocol.discountPercent);
-      total = total * (1 - discount / 100);
-    }
-    
-    return total;
-  } catch (error) {
-    console.error(`[Payment Reminder] Error calculating total for protocol ${protocolId}:`, error);
-    return 0;
-  }
-}
+import { calculateProtocolTotalById as calculateProtocolTotal } from "../lib/protocolTotal";
 
 /**
  * Get the appropriate reminder message based on days overdue

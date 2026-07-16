@@ -554,6 +554,10 @@ export function generateProtocolPdfBuffer(params: GeneratePdfParams): Buffer {
 
     let subtotal = 0;
     includedItems.forEach((item) => {
+      // Client-sourced items are bought by the client via our links — we never sell
+      // them, so they must not be added to the emailed total (this mirrors the
+      // protocol page, which is what actually drives the charge).
+      if ((item as any).fulfillmentSource === "client") return;
       const protocolItem = allItems.find((i) => i.id === item.protocolItemId);
       if (protocolItem) {
         const price = item.customPrice || protocolItem.price || "0";

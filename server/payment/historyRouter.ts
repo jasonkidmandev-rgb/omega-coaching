@@ -7,39 +7,7 @@ import { sql } from "drizzle-orm";
 /**
  * Calculate the total amount for a protocol based on its items and settings
  */
-async function calculateProtocolTotal(protocol: any): Promise<number> {
-  try {
-    const protocolItems = await db.getClientProtocolItems(protocol.id);
-    const allItems = await db.getAllProtocolItems();
-    
-    let total = 0;
-    
-    // Sum up included items
-    for (const item of protocolItems) {
-      if (item.isIncluded) {
-        const protocolItem = allItems.find((i: any) => i.id === item.protocolItemId);
-        const price = parseFloat(item.customPrice || protocolItem?.price || '0');
-        total += price * item.quantity;
-      }
-    }
-    
-    // Add coaching price if applicable
-    if (protocol.coachingPrice) {
-      total += parseFloat(protocol.coachingPrice);
-    }
-    
-    // Apply discount if applicable
-    if (protocol.discountPercent) {
-      const discount = parseFloat(protocol.discountPercent);
-      total = total * (1 - discount / 100);
-    }
-    
-    return total;
-  } catch (error) {
-    console.error(`Error calculating total for protocol ${protocol.id}:`, error);
-    return 0;
-  }
-}
+import { calculateProtocolTotal } from "../lib/protocolTotal";
 
 /**
  * Unified payment record type used across all sources
