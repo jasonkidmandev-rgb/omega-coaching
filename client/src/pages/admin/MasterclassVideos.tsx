@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Video, Edit, ExternalLink, Play, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { flagOn } from "@shared/flags";
 
 export default function MasterclassVideos() {
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -53,7 +54,7 @@ export default function MasterclassVideos() {
     setEstimatedDurationMinutes(video.estimatedDurationMinutes?.toString() || "");
     setChapters(video.chapters || "");
     setIsRequired(video.isRequired || false);
-    setIsActive(video.isActive !== false);
+    setIsActive(flagOn(video.isActive));
     setIsEditOpen(true);
   };
   

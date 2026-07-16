@@ -52,6 +52,7 @@ import {
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, GripVertical, ChevronUp, ChevronDown, FolderOpen, Package, Upload, X, Image, ArrowUpDown, SortAsc, SortDesc, Hash, Calendar, CheckSquare, Square, AlertTriangle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { flagOn, flagOff } from "@shared/flags";
 
 interface Category {
   id: number;
@@ -183,12 +184,12 @@ function SortableCategoryItem({
           {category.displayName && category.displayName !== category.name && (
             <span className="text-xs text-gray-500">({category.name})</span>
           )}
-          {category.isActive === false && (
+          {flagOff(category.isActive) && (
             <span className="px-2 py-0.5 text-xs bg-yellow-500/20 text-yellow-400 rounded">
               Inactive
             </span>
           )}
-          {category.isDiscountable === false && (
+          {flagOff(category.isDiscountable) && (
             <span className="px-2 py-0.5 text-xs bg-red-500/20 text-red-400 rounded">
               Non-Discountable
             </span>
@@ -509,8 +510,8 @@ export default function CategoryManagement() {
       displayName: category.displayName || "",
       description: category.description || "",
       iconUrl: category.iconUrl || "",
-      isActive: category.isActive !== false,
-      isDiscountable: category.isDiscountable !== false,
+      isActive: flagOn(category.isActive),
+      isDiscountable: flagOn(category.isDiscountable),
     });
     setIsEditOpen(true);
   };

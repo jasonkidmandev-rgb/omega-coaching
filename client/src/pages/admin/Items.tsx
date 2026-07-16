@@ -46,6 +46,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useState, useRef, useEffect } from "react";
 import { type PricingTier, formatTieredPricing, hasTieredPricing } from "@shared/tieredPricing";
+import { flagOn, flagOff } from "@shared/flags";
 
 export default function AdminItems() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -531,7 +532,7 @@ export default function AdminItems() {
                     <Checkbox
                       id="isDiscountable"
                       name="isDiscountable"
-                      defaultChecked={editingItem?.isDiscountable !== false}
+                      defaultChecked={flagOn(editingItem?.isDiscountable)}
                     />
                     <Label htmlFor="isDiscountable" className="text-sm font-normal cursor-pointer">
                       Eligible for discounts (uncheck for non-discountable items like Tirzepatide, supplies, etc.)
@@ -1016,7 +1017,7 @@ export default function AdminItems() {
                         <TableCell>${item.price}</TableCell>
                         <TableCell>{item.defaultQty}</TableCell>
                         <TableCell>
-                          {item.isDiscountable === false ? (
+                          {flagOff(item.isDiscountable) ? (
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                               <Ban className="h-3 w-3" />
                               ND

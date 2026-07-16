@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { goBackTo } from "@/hooks/useGoBack";
+import { flagOn } from "@shared/flags";
 import { trpc } from '@/lib/trpc';
 import { ArrowLeft, ShoppingCart, Plus, Minus, Trash2, Tag, Package, AlertCircle, Heart, Search, CheckCircle, X, History, Truck, FolderOpen, ChevronDown } from 'lucide-react';
 import { Link } from 'wouter';
@@ -111,7 +112,7 @@ export default function Order() {
     if (!inventoryData) return [];
     
     let items = inventoryData
-      .filter(cat => ALLOWED_CATEGORIES.includes(cat.name) && (cat as any).isActive !== false) // Filter out inactive categories
+      .filter(cat => ALLOWED_CATEGORIES.includes(cat.name) && flagOn((cat as any).isActive)) // Filter out inactive categories
       .flatMap(cat => 
         cat.items.filter(item => item.isActive && item.price) // Removed quantity > 0 filter to show all items
           .map(item => ({ 
@@ -560,7 +561,7 @@ export default function Order() {
                     
                     {/* Category Options */}
                     {inventoryData
-                      ?.filter(cat => ALLOWED_CATEGORIES.includes(cat.name) && (cat as any).isActive !== false)
+                      ?.filter(cat => ALLOWED_CATEGORIES.includes(cat.name) && flagOn((cat as any).isActive))
                       .map(cat => (
                         <button
                           key={cat.id}

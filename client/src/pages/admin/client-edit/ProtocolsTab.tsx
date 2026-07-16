@@ -35,6 +35,7 @@ import { useState, useCallback } from "react";
 import { ChevronDown, ChevronUp, Edit2, Eye, ExternalLink } from "lucide-react";
 import { getTieredUnitPrice, hasTieredPricing, type PricingTier } from "@shared/tieredPricing";
 import { PeriodizationOverview, TrainingSplitOverview, CompleteProgramGuide } from "@/components/protocol-sections";
+import { flagOff } from "@shared/flags";
 
 // Protocol Sections Toggle + Inline Editor Component
 function ProtocolSectionsToggle({ clientProtocolId }: { clientProtocolId: number }) {
@@ -1104,7 +1105,7 @@ export default function ProtocolsTab({
                                   Optional
                                 </span>
                               )}
-{(protocolItem as any)?.isDiscountable === false && (
+{flagOff((protocolItem as any)?.isDiscountable) && (
                                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
                                                   <Ban className="h-3 w-3" />
                                                   ND

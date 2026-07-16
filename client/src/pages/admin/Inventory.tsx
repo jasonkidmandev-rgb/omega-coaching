@@ -76,6 +76,7 @@ import AddItemDialog from "./inventory/AddItemDialog";
 import EditItemDialog from "./inventory/EditItemDialog";
 import AdjustQuantityDialog from "./inventory/AdjustQuantityDialog";
 import { BulkRestockDialog } from "@/components/BulkRestockDialog";
+import { flagOn, flagOff } from "@shared/flags";
 
 export default function AdminInventory() {
   const [activeTab, setActiveTab] = useState("inventory");
@@ -470,7 +471,7 @@ export default function AdminInventory() {
     setEditCategoryDescription(category.description || "");
     setEditCategoryIconUrl(category.iconUrl || "");
     setEditCategoryAccentColor(category.accentColor || "");
-    setEditCategoryIsActive(category.isActive !== false);
+    setEditCategoryIsActive(flagOn(category.isActive));
     setIsEditCategoryOpen(true);
   };
 
@@ -1056,7 +1057,7 @@ ${inventoryData.map(cat => {
                       {categories.map((cat, index) => {
                         const itemCount = inventoryData?.find(c => c.id === cat.id)?.items.length || 0;
                         return (
-                          <TableRow key={cat.id} className={(cat as any).isActive === false ? 'opacity-50' : ''}>
+                          <TableRow key={cat.id} className={flagOff((cat as any).isActive) ? 'opacity-50' : ''}>
                             <TableCell>
                               <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
                                 {(cat as any).iconUrl ? (
@@ -1086,7 +1087,7 @@ ${inventoryData.map(cat => {
                               )}
                             </TableCell>
                             <TableCell className="text-center">
-                              {(cat as any).isActive === false ? (
+                              {flagOff((cat as any).isActive) ? (
                                 <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-600">
                                   <EyeOff className="h-3 w-3 mr-1" />
                                   Hidden
