@@ -1658,8 +1658,18 @@ const clientProtocolRouter = router({
       // Look up the master item name to snapshot it
       const allItems = await db.getAllProtocolItems();
       const masterItem = allItems.find((m: any) => m.id === input.protocolItemId);
+      // Inherit the catalog item's fulfillment rather than falling back to the
+      // column default ('coach'). Items we never sell directly — Specialized
+      // Supplementation, EMF, most Adjuncts — are marked "client" in the catalog;
+      // the client sources them via our links. Those start at qty 0 (still
+      // adjustable) and carry no price, so nobody gets billed for them by mistake.
+      const fulfillmentSource: "coach" | "client" =
+        (masterItem as any)?.fulfillmentSource === "client" ? "client" : "coach";
+      const quantity = fulfillmentSource === "client" ? 0 : input.quantity;
       const id = await db.addClientProtocolItem({
         ...input,
+        quantity,
+        fulfillmentSource,
         snapshotName: masterItem?.name || undefined,
       });
       return { id };

@@ -1115,10 +1115,14 @@ export default function ProtocolsTab({
                                                   type="button"
                                                   onClick={() => {
                                                     const newSource = (item as any).fulfillmentSource === 'client' ? 'coach' : 'client';
+                                                    // Switching to "Client Buys": default the qty to 0. It stays editable, so it
+                                                    // can be bumped up or left at zero (the client reorders on their own).
+                                                    // Pricing is forced to zero + greyed out for these — we never charge for them.
+                                                    const qtyPatch = newSource === 'client' ? { quantity: 0 } : {};
                                                     setProtocolItems((prev: any[]) =>
-                                                      prev.map((i: any) => i.id === item.id ? { ...i, fulfillmentSource: newSource } : i)
+                                                      prev.map((i: any) => i.id === item.id ? { ...i, fulfillmentSource: newSource, ...qtyPatch } : i)
                                                     );
-                                                    updateItemMutation.mutate({ id: item.id, fulfillmentSource: newSource } as any);
+                                                    updateItemMutation.mutate({ id: item.id, fulfillmentSource: newSource, ...qtyPatch } as any);
                                                   }}
                                                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium cursor-pointer transition-colors ${
                                                     (item as any).fulfillmentSource === 'client'
@@ -1180,6 +1184,17 @@ export default function ProtocolsTab({
                             />
                           </div>
                           {!hidePricing && (() => {
+                            // "Client Buys" items are sourced by the client through our links —
+                            // we never sell them directly, so the price is always zero and shown
+                            // greyed-out (and not editable) to avoid confusing us or the client.
+                            if ((item as any).fulfillmentSource === 'client') {
+                              return (
+                                <div className="text-right min-w-[80px] opacity-50">
+                                  <p className="font-medium">$0.00</p>
+                                  <p className="text-xs text-muted-foreground">Client buys</p>
+                                </div>
+                              );
+                            }
                             const hasCustomPrice = !!item.customPrice;
                             const defaultPrice = parseFloat(protocolItem?.price || "0");
                             const itemTiers = protocolItem ? (protocolItem as any).pricingTiers as PricingTier[] | null : null;
@@ -1284,17 +1299,32 @@ export default function ProtocolsTab({
                 placeholder="e.g., Bone health, calcium absorption"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="customPrice">Price ($)</Label>
-              <Input
-                id="customPrice"
-                type="number"
-                step="0.01"
-                value={editItemData.customPrice}
-                onChange={(e) => setEditItemData({ ...editItemData, customPrice: e.target.value })}
-                placeholder="Leave empty for default/volume pricing"
-              />
-            </div>
+            {(() => {
+              // "Client Buys" items are sourced by the client via our links — never sold
+              // by us — so the price is locked at zero rather than left editable.
+              const editingIsClientBuys =
+                (protocolItems.find((i: any) => i.id === editingItemId) as any)?.fulfillmentSource === 'client';
+              return (
+                <div className="space-y-2">
+                  <Label htmlFor="customPrice">Price ($)</Label>
+                  <Input
+                    id="customPrice"
+                    type="number"
+                    step="0.01"
+                    value={editingIsClientBuys ? '0' : editItemData.customPrice}
+                    onChange={(e) => setEditItemData({ ...editItemData, customPrice: e.target.value })}
+                    placeholder={editingIsClientBuys ? 'Client buys — not sold by us' : 'Leave empty for default/volume pricing'}
+                    disabled={editingIsClientBuys}
+                    className={editingIsClientBuys ? 'opacity-50' : undefined}
+                  />
+                  {editingIsClientBuys && (
+                    <p className="text-xs text-muted-foreground">
+                      This item is marked "Client Buys" — the client purchases it themselves, so we don't price it.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
             <div className="space-y-2">
               <Label>Notes</Label>
               <RichTextEditor
