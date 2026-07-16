@@ -276,7 +276,10 @@ async function runPaymentReminderJob(): Promise<void> {
       try {
         // Calculate the actual amount due
         const totalAmount = await calculateProtocolTotal(protocol.id);
-        const formattedAmount = totalAmount > 0 ? totalAmount.toFixed(2) : 'See Protocol';
+        // null => the total couldn't be computed; fall back to "See Protocol" rather
+        // than emailing the client a figure we don't trust.
+        const formattedAmount =
+          totalAmount !== null && totalAmount > 0 ? totalAmount.toFixed(2) : 'See Protocol';
         
         // Generate payment link
         const paymentLink = `${baseUrl}/protocol/${protocol.accessToken}`;

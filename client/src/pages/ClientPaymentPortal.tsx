@@ -257,7 +257,13 @@ export default function ClientPaymentPortal() {
                         {formatDate(payment.createdAt)}
                       </TableCell>
                       <TableCell className="text-white font-medium">
-                        {formatCurrency(payment.amount)}
+                        {/* Never render a fabricated $0: if the amount couldn't be
+                            calculated, say so rather than show a payable-looking figure. */}
+                        {payment.amount === null ? (
+                          <span className="text-muted-foreground italic">Unavailable</span>
+                        ) : (
+                          formatCurrency(payment.amount)
+                        )}
                       </TableCell>
                       <TableCell>{getPaymentMethodIcon(payment.paymentMethod)}</TableCell>
                       <TableCell>{getStatusBadge(payment.paymentStatus)}</TableCell>

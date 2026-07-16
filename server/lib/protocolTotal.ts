@@ -39,7 +39,17 @@ export function isClientSourced(item: any): boolean {
   return item?.fulfillmentSource === "client";
 }
 
-export async function calculateProtocolTotal(protocol: any): Promise<number> {
+/**
+ * Returns the amount owed, or `null` when it genuinely cannot be computed.
+ *
+ * It must never invent a number. This used to `catch { return 0 }`, which turned a
+ * crash into "the client owes nothing" — a plausible-looking figure that reached the
+ * payment portal, reminder emails and payment history. On 2026-07-17 exactly that
+ * happened: a non-array `pricingTiers` threw, and 57 protocols would have shown
+ * $0.00 owed. `null` forces each caller to decide what to show, since only the caller
+ * knows whether "unavailable" is safe to render or the work should be skipped.
+ */
+export async function calculateProtocolTotal(protocol: any): Promise<number | null> {
   try {
     const protocolItems = await db.getClientProtocolItems(protocol.id);
     const allItems = await db.getAllProtocolItems();
@@ -73,13 +83,18 @@ export async function calculateProtocolTotal(protocol: any): Promise<number> {
 
     return subtotal - discount + coaching;
   } catch (error) {
-    console.error(`Error calculating total for protocol ${protocol?.id}:`, error);
-    return 0;
+    // Loud on purpose: a money figure we couldn't compute is an incident, not a $0.
+    console.error(
+      `[ProtocolTotal] FAILED to calculate total for protocol ${protocol?.id} — ` +
+        `returning null (callers must not show a figure):`,
+      error
+    );
+    return null;
   }
 }
 
-export async function calculateProtocolTotalById(protocolId: number): Promise<number> {
+export async function calculateProtocolTotalById(protocolId: number): Promise<number | null> {
   const protocol = await db.getClientProtocolById(protocolId);
-  if (!protocol) return 0;
+  if (!protocol) return null;
   return calculateProtocolTotal(protocol);
 }

@@ -16,7 +16,8 @@ interface UnifiedPayment {
   id: string;
   clientName: string;
   clientEmail: string | null;
-  amount: number;
+  /** null when the total could not be computed — render "Unavailable", never $0. */
+  amount: number | null;
   paymentMethod: string;
   paymentStatus: string;
   paymentType: "protocol" | "coaching_fee" | "store_order";
@@ -368,17 +369,17 @@ export const paymentHistoryRouter = router({
       let thisWeekRevenue = 0;
       
       for (const payment of paidPayments) {
-        totalRevenue += payment.amount;
+        totalRevenue += payment.amount ?? 0;
         
         const paidDate = payment.paymentDate;
         if (paidDate && paidDate >= currentMonthStart) {
-          currentMonthRevenue += payment.amount;
+          currentMonthRevenue += payment.amount ?? 0;
         }
         if (paidDate && paidDate >= previousMonthStart && paidDate <= previousMonthEnd) {
-          previousMonthRevenue += payment.amount;
+          previousMonthRevenue += payment.amount ?? 0;
         }
         if (paidDate && paidDate >= weekStart) {
-          thisWeekRevenue += payment.amount;
+          thisWeekRevenue += payment.amount ?? 0;
         }
       }
       
@@ -526,7 +527,7 @@ export const paymentHistoryRouter = router({
         
         breakdown[method] = {
           count: methodPayments.length,
-          revenue: Math.round(methodPayments.reduce((sum, p) => sum + p.amount, 0) * 100) / 100,
+          revenue: Math.round(methodPayments.reduce((sum, p) => sum + (p.amount ?? 0), 0) * 100) / 100,
         };
       }
       
@@ -570,7 +571,7 @@ export const paymentHistoryRouter = router({
           return paidDate && paidDate >= monthStart && paidDate <= monthEnd;
         });
         
-        const monthRevenue = monthPayments.reduce((sum, p) => sum + p.amount, 0);
+        const monthRevenue = monthPayments.reduce((sum, p) => sum + (p.amount ?? 0), 0);
         
         trends.push({
           month: monthStart.toLocaleDateString('en-US', { timeZone: 'America/Denver', month: 'short', year: 'numeric' }),

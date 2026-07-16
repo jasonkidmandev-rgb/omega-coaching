@@ -43,7 +43,9 @@ export const clientPaymentPortalRouter = router({
               protocolName: "Health Protocol",
               paymentStatus: p.paymentStatus || "pending",
               paymentMethod: p.paymentMethod,
-              amount: Math.round(amount * 100) / 100,
+              // null => we could not compute it; the UI shows "Unavailable" rather
+              // than a fabricated $0 the client might pay against.
+              amount: amount === null ? null : Math.round(amount * 100) / 100,
               createdAt: p.createdAt,
               paymentReceivedAt: p.paymentReceivedAt,
               accessToken: p.accessToken,
@@ -59,14 +61,15 @@ export const clientPaymentPortalRouter = router({
           return dateB.getTime() - dateA.getTime();
         });
 
-        // Calculate summary
+        // Calculate summary. Amounts we couldn't compute are skipped rather than
+        // counted as 0 — a silent 0 would quietly understate the totals.
         const totalPaid = paymentsWithDetails
           .filter((p) => p.paymentStatus === "paid")
-          .reduce((sum, p) => sum + p.amount, 0);
+          .reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
         const totalPending = paymentsWithDetails
           .filter((p) => p.paymentStatus === "pending")
-          .reduce((sum, p) => sum + p.amount, 0);
+          .reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
         const paidCount = paymentsWithDetails.filter((p) => p.paymentStatus === "paid").length;
         const pendingCount = paymentsWithDetails.filter((p) => p.paymentStatus === "pending").length;
