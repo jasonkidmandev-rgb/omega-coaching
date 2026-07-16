@@ -36,7 +36,15 @@ type ClientProtocolItem = {
   customDuration: string | null;
   customPrice: string | null;
   customNotes: string | null;
+  /** 'client' = the client sources this themselves via our link; we never bill for it. */
+  fulfillmentSource?: string | null;
 };
+
+/** Items the client buys themselves are shown as "Purchase Separately" and excluded
+ *  from every total — matching the client-facing protocol page. */
+function isClientSourced(item: ClientProtocolItem): boolean {
+  return (item as any).fulfillmentSource === "client";
+}
 
 type Protocol = {
   id: number;
@@ -154,8 +162,11 @@ export async function generateProtocolPdf({
     }
   };
 
-  // Pre-load logo as base64 data URL
+  // Pre-load logo as base64 data URL, and measure it so we can draw it at its true
+  // aspect ratio. It was previously forced into a fixed 50x11mm box while the asset
+  // is ~8.5:1, which squashed the wordmark to ~54% of its width on every PDF.
   let logoDataUrl = "";
+  let logoAspect = 778 / 92; // fallback: intrinsic size of the current logo asset
   try {
     const logoResponse = await fetch("/omega-longevity-logo.png");
     const logoBlob = await logoResponse.blob();
@@ -164,6 +175,13 @@ export async function generateProtocolPdf({
       reader.onloadend = () => resolve(reader.result as string);
       reader.readAsDataURL(logoBlob);
     });
+    const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+      img.onerror = reject;
+      img.src = logoDataUrl;
+    });
+    if (dims.w > 0 && dims.h > 0) logoAspect = dims.w / dims.h;
   } catch (e) {
     console.error("Logo loading failed:", e);
   }
@@ -181,7 +199,11 @@ export async function generateProtocolPdf({
     // Add logo image or fallback to text
     if (logoDataUrl) {
       try {
-        doc.addImage(logoDataUrl, "PNG", margin, 12, 50, 11);
+        // Draw at the logo's real proportions (never stretched); width is capped so
+        // it stays inside the header bar.
+        const logoW = 70;
+        const logoH = logoW / logoAspect;
+        doc.addImage(logoDataUrl, "PNG", margin, 12, logoW, logoH);
       } catch (e) {
         // Fallback to text if logo fails
         doc.setFontSize(24);
@@ -389,7 +411,9 @@ export async function generateProtocolPdf({
           tableData.push([
             nameWithPurpose,
             item.quantity.toString(),
-            `$${parseFloat(price).toFixed(2)}`,
+            // The client sources these themselves via our link — never show a price
+            // for them (and they're excluded from the totals below).
+            isClientSourced(item) ? "Purchase Separately" : `$${parseFloat(price).toFixed(2)}`,
             schedule,
             duration,
             affiliateCode,
@@ -570,6 +594,11 @@ export async function generateProtocolPdf({
 
     let subtotal = 0;
     includedItems.forEach((item) => {
+      // Client-sourced items are bought by the client through our links — we never
+      // sell them, so they must not land in the subtotal/total. (Previously they
+      // were billed here, inflating the client's total and contradicting the
+      // "Purchase Separately" shown on the protocol page.)
+      if (isClientSourced(item)) return;
       const protocolItem = allItems.find((i) => i.id === item.protocolItemId);
       if (protocolItem) {
         const price = item.customPrice || protocolItem.price || "0";
