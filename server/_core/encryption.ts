@@ -13,20 +13,37 @@ const AUTH_TAG_LENGTH = 16; // 128 bits
 const SALT_LENGTH = 32;
 const KEY_LENGTH = 32; // 256 bits
 
-// Get encryption key from environment or generate a secure default
+// Get encryption key from environment.
+//
+// There is deliberately NO silent fallback in production. Deriving the PHI key from
+// JWT_SECRET (which this used to do) ties patient data to an auth secret: rotating
+// JWT_SECRET — a routine security action — would permanently destroy every encrypted
+// record, with no way back. The final fallback was worse still: the literal string
+// "development-key" produces data that *looks* encrypted but is readable by anyone
+// holding this source file.
+//
+// Encryption must therefore be an explicit, provisioned decision. Before enabling it:
+//   1. generate a dedicated 32-byte key  ->  openssl rand -hex 32
+//   2. set PHI_ENCRYPTION_KEY in the environment
+//   3. BACK THE KEY UP somewhere durable — losing it means losing the data forever
 function getEncryptionKey(): Buffer {
   const envKey = process.env.PHI_ENCRYPTION_KEY;
   if (envKey) {
-    // If provided as hex string
-    if (envKey.length === 64) {
-      return Buffer.from(envKey, "hex");
-    }
-    // If provided as base64
-    return Buffer.from(envKey, "base64");
+    // Hex (64 chars) or base64
+    return envKey.length === 64
+      ? Buffer.from(envKey, "hex")
+      : Buffer.from(envKey, "base64");
   }
-  
-  // In production, this should always be set via environment variable
-  // For development, derive from JWT_SECRET
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "PHI_ENCRYPTION_KEY is not set. Refusing to encrypt PHI with a key derived from " +
+        "JWT_SECRET (rotating it would destroy the data) or from a hard-coded default " +
+        "(not real encryption). Provision a dedicated key and back it up first."
+    );
+  }
+
+  // Local development only — never reached in production (see the throw above).
   const jwtSecret = process.env.JWT_SECRET || "development-key";
   return crypto.scryptSync(jwtSecret, "phi-encryption-salt", KEY_LENGTH);
 }
