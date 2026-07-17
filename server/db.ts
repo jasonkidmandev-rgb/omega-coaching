@@ -1200,6 +1200,16 @@ export async function createNewProtocolVersionFromProtocol(currentProtocol: any,
     })
     .where(eq(clientProtocols.id, currentProtocol.id));
   
+  // Capture the outgoing check-in schedule before disabling it, so it can be
+  // carried onto the new version below. Schedules are keyed per protocol, so a
+  // renewal used to disable the old one and create nothing — silently stopping a
+  // client's weekly check-ins with no signal to anyone.
+  const [previousSchedule] = await db
+    .select()
+    .from(checkinSchedules)
+    .where(eq(checkinSchedules.clientProtocolId, currentProtocol.id))
+    .limit(1);
+
   // Auto-disable check-in schedule for the archived protocol
   await db.update(checkinSchedules)
     .set({ isEnabled: false })
@@ -1245,7 +1255,26 @@ export async function createNewProtocolVersionFromProtocol(currentProtocol: any,
   };
   
   const result = await db.insert(clientProtocols).values(newProtocolData);
-  return result[0].insertId;
+  const newProtocolId = result[0].insertId;
+
+  // Carry the check-in schedule onto the new version, preserving cadence and the
+  // enabled state. A renewal is a continuation of the same coaching relationship —
+  // the client's weekly check-ins should not stop because a new version was cut.
+  if (previousSchedule) {
+    await db.insert(checkinSchedules).values({
+      clientProtocolId: newProtocolId,
+      templateId: previousSchedule.templateId,
+      isEnabled: previousSchedule.isEnabled,
+      frequency: previousSchedule.frequency,
+      dayOfWeek: previousSchedule.dayOfWeek,
+      timeOfDay: previousSchedule.timeOfDay,
+      timezone: previousSchedule.timezone,
+      // Streaks/last-sent deliberately start clean on the new version; cadence and
+      // the on/off decision are what must survive.
+    });
+  }
+
+  return newProtocolId;
 }
 
 // ============ CLIENT PROTOCOL QUERIES ============

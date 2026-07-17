@@ -526,6 +526,10 @@ const clientProtocolRouter = router({
             quantity: item.quantity,
             isIncluded: item.isIncluded,
             isRecommended: false, // Start fresh with recommendations
+            // Carry who sources the item. Without this it fell back to the column
+            // default ('coach'), so every "client buys" item silently became one we
+            // ship — priced and billed — on every renewal.
+            fulfillmentSource: (item as any).fulfillmentSource || 'coach',
             customSchedule: item.customSchedule || undefined,
             customDuration: item.customDuration || undefined,
             customPrice: item.customPrice || undefined,
@@ -841,6 +845,9 @@ const clientProtocolRouter = router({
           quantity: item.quantity,
           isIncluded: item.isIncluded,
           isRecommended: item.isRecommended,
+          // See the note on the other copy path: without this, restoring/cloning a
+          // version reset every "client buys" item to coach-fulfilled.
+          fulfillmentSource: (item as any).fulfillmentSource || 'coach',
           customSchedule: item.customSchedule || undefined,
           customDuration: item.customDuration || undefined,
           customPrice: item.customPrice || undefined,
