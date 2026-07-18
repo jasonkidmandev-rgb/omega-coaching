@@ -1,9 +1,27 @@
 import { z } from "zod";
 import { router, adminProcedure, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { getDb } from "../db";
-import { documentFolders, documents, documentRequests } from "../../drizzle/schema";
-import { eq, and, desc, asc, isNull, sql } from "drizzle-orm";
+import { documentFolders, documents, documentRequests, clientProtocols } from "../../drizzle/schema";
+import { eq, and, or, desc, asc, isNull, sql } from "drizzle-orm";
 import { storagePut, storageGet } from "../storage";
+
+/**
+ * A client's document library follows the CONTACT across all their protocol
+ * versions (Phase 3b) — the same rule the chat uses — so a renewal doesn't reset
+ * documents to zero. Returns a WHERE that scopes to the contact when we can resolve
+ * one, falling back to the single protocol for orphans (parent protocol deleted).
+ */
+async function documentScope(database: any, clientProtocolId: number) {
+  const [p] = await database
+    .select({ contactId: clientProtocols.contactId })
+    .from(clientProtocols)
+    .where(eq(clientProtocols.id, clientProtocolId))
+    .limit(1);
+  const contactId = p?.contactId ?? null;
+  return contactId
+    ? eq(documents.contactId, contactId)
+    : eq(documents.clientProtocolId, clientProtocolId);
+}
 
 // Helper to get db with null check
 async function db() {
@@ -170,15 +188,13 @@ export const documentRouter = router({
     .query(async ({ input }) => {
       const database = await db();
       
+      const scope = await documentScope(database, input.clientProtocolId);
       let query = database
         .select()
         .from(documents)
-        .where(and(
-          eq(documents.clientProtocolId, input.clientProtocolId),
-          isNull(documents.deletedAt)
-        ))
+        .where(and(scope, isNull(documents.deletedAt)))
         .orderBy(desc(documents.createdAt));
-      
+
       const results = await query;
       
       // Filter by folder if specified
@@ -467,14 +483,22 @@ export const documentRouter = router({
       return [];
     }
     
-    // Get folders
+    // Documents & folders follow the CONTACT across protocol versions (Phase 3b),
+    // so a renewal doesn't reset the library to zero. System folders are auto-created
+    // per version, so the same names repeat across versions — we de-duplicate by name
+    // for display.
+    const contactId = (protocol as any).contactId ?? null;
+    const folderWhere = contactId
+      ? eq(documentFolders.contactId, contactId)
+      : eq(documentFolders.clientProtocolId, protocol.id);
+
     let folders = await database
       .select()
       .from(documentFolders)
-      .where(eq(documentFolders.clientProtocolId, protocol.id))
+      .where(folderWhere)
       .orderBy(asc(documentFolders.sortOrder));
-    
-    // Auto-initialize system folders if none exist
+
+    // Auto-initialize system folders only if this client has none anywhere.
     if (folders.length === 0) {
       const SYSTEM_FOLDERS = [
         { name: 'Labs', systemType: 'labs' },
@@ -483,41 +507,52 @@ export const documentRouter = router({
         { name: 'Resources', systemType: 'resources' },
         { name: 'Personal', systemType: 'personal' },
       ];
-      
+
       for (let i = 0; i < SYSTEM_FOLDERS.length; i++) {
         const folder = SYSTEM_FOLDERS[i];
         await database.insert(documentFolders).values({
           clientProtocolId: protocol.id,
+          contactId, // stamp identity so the folder follows the contact from creation
           name: folder.name,
           isSystem: true,
           systemType: folder.systemType,
           sortOrder: i,
         });
       }
-      
-      // Re-fetch folders after creation
+
       folders = await database
         .select()
         .from(documentFolders)
-        .where(eq(documentFolders.clientProtocolId, protocol.id))
+        .where(folderWhere)
         .orderBy(asc(documentFolders.sortOrder));
     }
-    
-    // Get documents for each folder
+
+    // De-duplicate folders by name; prefer the current protocol's copy as the
+    // representative so its id stays stable for this session.
+    const folderNameById = new Map<number, string>();
+    for (const f of folders) folderNameById.set(f.id, f.name);
+    const repByName = new Map<string, any>();
+    for (const f of folders) {
+      const existing = repByName.get(f.name);
+      if (!existing || f.clientProtocolId === protocol.id) repByName.set(f.name, f);
+    }
+    const dedupedFolders = Array.from(repByName.values()).sort((a, b) => a.sortOrder - b.sortOrder);
+
+    // Documents for this contact (shared, not deleted).
+    const docScope = contactId
+      ? eq(documents.contactId, contactId)
+      : eq(documents.clientProtocolId, protocol.id);
     const docs = await database
       .select()
       .from(documents)
-      .where(and(
-        eq(documents.clientProtocolId, protocol.id),
-        eq(documents.visibility, 'shared'),
-        isNull(documents.deletedAt)
-      ))
+      .where(and(docScope, eq(documents.visibility, 'shared'), isNull(documents.deletedAt)))
       .orderBy(desc(documents.createdAt));
-    
-    // Group documents by folder
-    return folders.map(folder => ({
+
+    // Group documents under the representative folder that shares their folder's name,
+    // so files filed under an older version's "Labs" still show under the one "Labs".
+    return dedupedFolders.map((folder: any) => ({
       ...folder,
-      documents: docs.filter(d => d.folderId === folder.id),
+      documents: docs.filter((d: any) => folderNameById.get(d.folderId) === folder.name),
     }));
   }),
 

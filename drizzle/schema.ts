@@ -1073,6 +1073,10 @@ export const dataAccessRequests = mysqlTable("data_access_requests", {
 export const documentFolders = mysqlTable("document_folders", {
 	id: int().autoincrement().notNull(),
 	clientProtocolId: int().notNull(),
+	// Canonical identity (Phase 3b): folders follow the contact across versions, so a
+	// renewed client keeps one document library. Because system folders are auto-created
+	// per version, reads de-duplicate by name. Applied to Railway 2026-07-19.
+	contactId: int(),
 	name: varchar({ length: 255 }).notNull(),
 	parentId: int(),
 	isSystem: tinyint().default(0).notNull(),
@@ -1110,6 +1114,12 @@ export const documentRequests = mysqlTable("document_requests", {
 export const documents = mysqlTable("documents", {
 	id: int().autoincrement().notNull(),
 	clientProtocolId: int().notNull(),
+	// Canonical identity (identity-consolidation Phase 3b): a document library follows
+	// the contact across all their protocol versions, not just one version — so a
+	// client's uploaded labs/waivers don't vanish on renewal. Nullable for the few
+	// documents whose parent protocol was deleted. Applied to Railway 2026-07-19;
+	// re-runs at cutover via cutover/phase3b-documents-rekey.sql.
+	contactId: int(),
 	folderId: int().notNull(),
 	name: varchar({ length: 500 }).notNull(),
 	description: text(),
