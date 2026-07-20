@@ -1580,9 +1580,17 @@ const clientProtocolRouter = router({
     .mutation(async ({ input }) => {
       const protocol = await db.getClientProtocolByToken(input.token);
       if (!protocol) throw new Error("Protocol not found");
+      // Never move a protocol backward. If it's already paid/active (or completed),
+      // approving again must NOT knock it back to "approved" — the payment path sets
+      // 'active', and an approval landing afterward is how a paid protocol ended up
+      // displaying as not-yet-active. Only record the approval timestamp in that case.
+      const alreadyAdvanced =
+        protocol.status === "active" ||
+        protocol.status === "completed" ||
+        protocol.paymentStatus === "paid";
       await db.updateClientProtocol(protocol.id, {
-        status: "approved",
-        approvedAt: new Date(),
+        status: alreadyAdvanced ? protocol.status : "approved",
+        approvedAt: (protocol as any).approvedAt || new Date(),
       });
       
       // Deduct inventory items based on protocol-to-inventory mappings
@@ -1617,7 +1625,9 @@ const clientProtocolRouter = router({
           const allItems = await db.getAllProtocolItems();
           let totalAmount = 0;
           for (const item of protocolItems) {
-            if (item.isIncluded) {
+            // Skip client-sourced items — the client buys those themselves, so they
+            // must not be billed (matches the protocol page and the shared total).
+            if (item.isIncluded && (item as any).fulfillmentSource !== 'client') {
               const protocolItem = allItems.find((i: any) => i.id === item.protocolItemId);
               const price = parseFloat(item.customPrice || protocolItem?.price || '0');
               totalAmount += price * (item.quantity || 1);
@@ -2635,13 +2645,15 @@ const clientProtocolRouter = router({
       const allItems = await db.getAllProtocolItems();
       let totalAmount = 0;
       for (const item of protocolItems) {
-        if (item.isIncluded) {
+        // Client-sourced items are bought by the client — never bill them in the
+        // amount we email (matches the protocol page and the shared total helper).
+        if (item.isIncluded && (item as any).fulfillmentSource !== 'client') {
           const protocolItem = allItems.find((i: any) => i.id === item.protocolItemId);
           const price = parseFloat(item.customPrice || protocolItem?.price || '0');
           totalAmount += price * (item.quantity || 1);
         }
       }
-      
+
       const urgencyLevel = input.urgencyLevel || 'friendly';
       const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
       const paymentLink = `${baseUrl}/protocol/${protocol.accessToken}`;
