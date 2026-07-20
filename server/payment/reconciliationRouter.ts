@@ -110,7 +110,9 @@ async function sendPaymentConfirmationEmailSafe(
     
     let totalAmount = 0;
     for (const item of protocolItems) {
-      if (item.isIncluded) {
+      // Skip client-sourced items — the client buys those themselves, so the
+      // payment-confirmation email must not bill them (matches the shared total).
+      if (item.isIncluded && (item as any).fulfillmentSource !== 'client') {
         const protocolItem = allItems.find((i: any) => i.id === item.protocolItemId);
         const price = parseFloat(item.customPrice || protocolItem?.price || '0');
         totalAmount += price * (item.quantity || 1);

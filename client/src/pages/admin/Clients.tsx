@@ -137,6 +137,9 @@ export default function AdminClients() {
     let itemCount = 0;
     for (const ti of selectedTemplateItems) {
       const item = allProtocolItems.find((p: any) => p.id === ti.protocolItemId);
+      // Client-sourced items are bought by the client — don't fold them into the
+      // template's cost preview, so it reflects what we'd actually bill.
+      if (item?.fulfillmentSource === 'client') continue;
       const price = parseFloat(item?.price || '0');
       total += price * (ti.quantity || 1);
       itemCount++;
