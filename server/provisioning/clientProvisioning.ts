@@ -36,7 +36,7 @@ export async function logEnrollmentActivity(
 // Ensure the canonical CONTACT exists for an enrollment, ensure a client_protocol
 // exists, and link the enrollment to both. Identity is keyed on verified email via
 // `contacts` (the legacy `clients` table and `client_protocols.clientId` are no
-// longer written — contactId is canonical). Shipping is persisted on the protocol
+// longer written — personId is canonical). Shipping is persisted on the protocol
 // (the fulfillment record), replacing the old clients.shipping write.
 export async function autoCreateOrLinkClient(
   database: any,
@@ -44,9 +44,9 @@ export async function autoCreateOrLinkClient(
   email: string,
   name: string | null | undefined,
   extra?: { phone?: string | null; shippingStreet?: string | null; shippingCity?: string | null; shippingState?: string | null; shippingZip?: string | null }
-): Promise<{ contactId: number; clientProtocolId: number; action: 'created' | 'linked' | 'skipped' }> {
+): Promise<{ personId: number; clientProtocolId: number; action: 'created' | 'linked' | 'skipped' }> {
   try {
-    if (!email) return { contactId: 0, clientProtocolId: 0, action: 'skipped' };
+    if (!email) return { personId: 0, clientProtocolId: 0, action: 'skipped' };
 
     // Helper to treat 'NULL' strings as actual null
     const clean = (v: string | null | undefined) => (v && v !== 'NULL' && v !== '') ? v : null;
@@ -65,19 +65,19 @@ export async function autoCreateOrLinkClient(
       source: 'coaching_onboarding',
       lifecycleStage: 'active_client',
     });
-    const contactId = contact.id;
+    const personId = contact.id;
     const action: 'created' | 'linked' = contact.isNew ? 'created' : 'linked';
 
-    // 2. Ensure a client_protocol exists (contactId is set at creation).
+    // 2. Ensure a client_protocol exists (personId is set at creation).
     let clientProtocolId = 0;
     try {
       const existingProtocol = await getClientProtocolByEmail(email);
       if (existingProtocol) {
         clientProtocolId = existingProtocol.id;
         // Point the protocol at the canonical contact if not already.
-        if (!existingProtocol.contactId) {
+        if (!existingProtocol.personId) {
           await database.execute(sql`
-            UPDATE client_protocols SET contactId = ${contactId} WHERE id = ${clientProtocolId}
+            UPDATE client_protocols SET personId = ${personId} WHERE id = ${clientProtocolId}
           `);
         }
       } else {
@@ -97,7 +97,7 @@ export async function autoCreateOrLinkClient(
             status: 'draft',
           });
         }
-        // contactId is set by createClientProtocol -> findOrCreateContact.
+        // personId is set by createClientProtocol -> findOrCreateContact.
       }
     } catch (protocolErr) {
       console.error('[autoCreateOrLinkClient] Failed to create/link client_protocol:', protocolErr);
@@ -123,21 +123,21 @@ export async function autoCreateOrLinkClient(
     if (clientProtocolId > 0) {
       await database.execute(sql`
         UPDATE transformation_enrollments
-        SET contactId = ${contactId}, clientProtocolId = ${clientProtocolId}, updatedAt = NOW()
+        SET personId = ${personId}, clientProtocolId = ${clientProtocolId}, updatedAt = NOW()
         WHERE id = ${enrollmentId}
       `);
     } else {
       await database.execute(sql`
         UPDATE transformation_enrollments
-        SET contactId = ${contactId}, updatedAt = NOW()
+        SET personId = ${personId}, updatedAt = NOW()
         WHERE id = ${enrollmentId}
       `);
     }
 
-    console.log(`[autoCreateOrLinkClient] ${action} contact ${contactId}, protocol ${clientProtocolId} for enrollment ${enrollmentId} (${email})`);
-    return { contactId, clientProtocolId, action };
+    console.log(`[autoCreateOrLinkClient] ${action} contact ${personId}, protocol ${clientProtocolId} for enrollment ${enrollmentId} (${email})`);
+    return { personId, clientProtocolId, action };
   } catch (err) {
     console.error('[autoCreateOrLinkClient] Failed:', err);
-    return { contactId: 0, clientProtocolId: 0, action: 'skipped' };
+    return { personId: 0, clientProtocolId: 0, action: 'skipped' };
   }
 }

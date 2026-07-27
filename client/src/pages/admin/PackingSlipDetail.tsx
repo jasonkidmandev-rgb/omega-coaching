@@ -89,6 +89,7 @@ export default function PackingSlipDetail() {
     packageLength: "",
     packageWidth: "",
     packageHeight: "",
+    insuranceAmount: "",
   });
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const isDrawingRef = React.useRef(false);
@@ -272,6 +273,7 @@ export default function PackingSlipDetail() {
         packageLength: packingSlip.packageLength || "",
         packageWidth: packingSlip.packageWidth || "",
         packageHeight: packingSlip.packageHeight || "",
+        insuranceAmount: (packingSlip as any).insuranceAmount || "",
       });
     }
     setEditDimensionsOpen(true);
@@ -285,6 +287,7 @@ export default function PackingSlipDetail() {
       packageLength: dimensionsForm.packageLength ? parseFloat(dimensionsForm.packageLength) : null,
       packageWidth: dimensionsForm.packageWidth ? parseFloat(dimensionsForm.packageWidth) : null,
       packageHeight: dimensionsForm.packageHeight ? parseFloat(dimensionsForm.packageHeight) : null,
+      insuranceAmount: dimensionsForm.insuranceAmount ? parseFloat(dimensionsForm.insuranceAmount) : null,
     });
   };
 
@@ -421,6 +424,10 @@ export default function PackingSlipDetail() {
 
   // Derived item groupings for the grouped view
   const pendingItems = packingSlip?.items?.filter((i: any) => i.status === 'pending' || i.status === 'partial') ?? [];
+  // Split what Kari actually needs to pack from what ships separately (drop-ship/vendor).
+  // shipSource defaults to 'omega' when unset — treat unset the same as 'omega' (hers to pack).
+  const toPackItems = pendingItems.filter((i: any) => !i.shipSource || i.shipSource === 'omega');
+  const notToPackItems = pendingItems.filter((i: any) => i.shipSource === 'dropship' || i.shipSource === 'vendor');
   const fulfilledItems = packingSlip?.items?.filter((i: any) => i.status === 'fulfilled') ?? [];
   const backorderedItems = packingSlip?.items?.filter((i: any) => i.status === 'backordered' || i.status === 'cancelled') ?? [];
   const pendingByType = pendingItems.reduce<Record<string, number[]>>((acc, item: any) => {
@@ -1171,6 +1178,13 @@ export default function PackingSlipDetail() {
                 ) : (
                   <p className="text-sm text-muted-foreground">No dimensions set</p>
                 )}
+                {/* Insurance — internal only, deliberately never shown on the printable/PDF slip */}
+                {(packingSlip as any).insuranceAmount && (
+                  <div className="mt-2 p-2 bg-gray-100 rounded text-sm print:hidden">
+                    <p className="text-muted-foreground text-xs">Shipping Insurance (internal only)</p>
+                    <p className="font-medium">${parseFloat((packingSlip as any).insuranceAmount).toFixed(2)}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -1335,15 +1349,34 @@ export default function PackingSlipDetail() {
               <div className="col-span-2 print:hidden">Actions</div>
             </div>
 
-            {/* Pending section — always visible */}
-            {pendingItems.length > 0 && (
+            {/* Pending section — items to pack, always visible */}
+            {toPackItems.length > 0 && (
               <div className="mb-3">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100 mb-2">
                   <Clock className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-amber-800">Pending ({pendingItems.length})</span>
+                  <span className="text-sm font-semibold text-amber-800">Pending — pack these ({toPackItems.length})</span>
                 </div>
                 <div className="space-y-2">
-                  {pendingItems.map((item: any) => renderItemRow(item))}
+                  {toPackItems.map((item: any) => renderItemRow(item))}
+                </div>
+              </div>
+            )}
+
+            {/* Not-yours-to-pack section — drop-ship/vendor items, separated so they aren't mistaken for on-hand stock */}
+            {notToPackItems.length > 0 && (
+              <div className="mb-3 print:hidden">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 border border-purple-100 mb-2">
+                  <PackageX className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-purple-800">
+                    Ships separately — not yours to pack ({notToPackItems.length})
+                  </span>
+                </div>
+                <p className="text-xs text-purple-700 px-3 pb-1">
+                  These are drop-shipped or fulfilled by a vendor directly. If one of these actually
+                  ships from your inventory, correct its source below and it'll move up to Pending.
+                </p>
+                <div className="space-y-2">
+                  {notToPackItems.map((item: any) => renderItemRow(item))}
                 </div>
               </div>
             )}
@@ -1721,6 +1754,21 @@ export default function PackingSlipDetail() {
                   placeholder="6"
                 />
               </div>
+            </div>
+            <div className="grid gap-2 border-t pt-4">
+              <Label htmlFor="insuranceAmount">Shipping Insurance ($)</Label>
+              <Input
+                id="insuranceAmount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={dimensionsForm.insuranceAmount}
+                onChange={(e) => setDimensionsForm({ ...dimensionsForm, insuranceAmount: e.target.value })}
+                placeholder="e.g., 50.00"
+              />
+              <p className="text-xs text-muted-foreground">
+                Internal only — never shown on the printable or PDF packing slip.
+              </p>
             </div>
           </div>
           <DialogFooter>

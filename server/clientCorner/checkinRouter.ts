@@ -1036,15 +1036,15 @@ export const checkinRouter = router({
             chatMessage += `\n\n${mediaLabel}: ${input.mediaUrl}`;
           }
           
-          // Stamp the canonical contactId so this coach message joins the
+          // Stamp the canonical personId so this coach message joins the
           // continuous thread (identity-consolidation Phase 3).
-          const [proto] = await database.select({ contactId: clientProtocols.contactId })
+          const [proto] = await database.select({ personId: clientProtocols.personId })
             .from(clientProtocols)
             .where(eq(clientProtocols.id, checkinRecord.clientProtocolId))
             .limit(1);
           await database.insert(protocolComments).values({
             clientProtocolId: checkinRecord.clientProtocolId,
-            contactId: proto?.contactId ?? null,
+            personId: proto?.personId ?? null,
             authorType: 'coach',
             authorName: ctx.user?.name || 'Coach',
             message: chatMessage,

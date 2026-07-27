@@ -9,7 +9,11 @@ interface PackingSlipItem {
   quantity: number;
   status: string;
   notes?: string | null;
+  shipSource?: string | null;
 }
+
+const NOT_YOURS_TO_PACK = (item: { shipSource?: string | null }) =>
+  item.shipSource === 'dropship' || item.shipSource === 'vendor';
 
 export async function generatePackingSlipPdf(packingSlipId: number): Promise<Buffer> {
   const packingSlip = await db.getPackingSlipById(packingSlipId);
@@ -101,19 +105,29 @@ export async function generatePackingSlipPdf(packingSlipId: number): Promise<Buf
       }
 
       // Truncate long item names
-      const itemName = item.itemName.length > 40 ? item.itemName.substring(0, 37) + '...' : item.itemName;
-      
+      const namePrefix = NOT_YOURS_TO_PACK(item) ? '[Ships separately] ' : '';
+      const rawName = namePrefix + item.itemName;
+      const itemName = rawName.length > 40 ? rawName.substring(0, 37) + '...' : rawName;
+
       doc.text(itemName, col1, y, { width: 220 });
       doc.text(item.itemType || 'other', col2, y);
       doc.text(String(item.quantity), col3, y);
-      
+
       // Status with color indication
-      const statusText = item.status === 'fulfilled' ? '✓ Fulfilled' : 
-                        item.status === 'backordered' ? '⚠ Backordered' : 
+      const statusText = item.status === 'fulfilled' ? '✓ Fulfilled' :
+                        item.status === 'backordered' ? '⚠ Backordered' :
                         'Pending';
       doc.text(statusText, col4, y);
 
       y += 20;
+    }
+
+    // Note explaining the marker, only if any item actually needs it
+    if (items.some(NOT_YOURS_TO_PACK)) {
+      doc.moveDown(0.5);
+      doc.fontSize(8).font('Helvetica-Oblique');
+      doc.text('[Ships separately] items are drop-shipped or vendor-fulfilled — no action needed from you.');
+      doc.font('Helvetica');
     }
 
     // Summary
@@ -225,14 +239,16 @@ export async function generateBatchPackingSlipsPdf(packingSlipIds: number[]): Pr
           y = 50;
         }
 
-        const itemName = item.itemName.length > 40 ? item.itemName.substring(0, 37) + '...' : item.itemName;
-        
+        const namePrefix = NOT_YOURS_TO_PACK(item) ? '[Ships separately] ' : '';
+        const rawName = namePrefix + item.itemName;
+        const itemName = rawName.length > 40 ? rawName.substring(0, 37) + '...' : rawName;
+
         doc.text(itemName, col1, y, { width: 220 });
         doc.text(item.itemType || 'other', col2, y);
         doc.text(String(item.quantity), col3, y);
-        
-        const statusText = item.status === 'fulfilled' ? '✓ Fulfilled' : 
-                          item.status === 'backordered' ? '⚠ Backordered' : 
+
+        const statusText = item.status === 'fulfilled' ? '✓ Fulfilled' :
+                          item.status === 'backordered' ? '⚠ Backordered' :
                           'Pending';
         doc.text(statusText, col4, y);
 

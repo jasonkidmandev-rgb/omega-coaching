@@ -1,6 +1,6 @@
 /**
  * Tests for the Unified Contacts Table feature
- * Validates: schema, contactService, creation path wiring, Client 360 contactId merge,
+ * Validates: schema, contactService, creation path wiring, Client 360 personId merge,
  * Edit Contact functionality, and updateContact propagation
  */
 import { describe, it, expect } from "vitest";
@@ -28,66 +28,66 @@ describe("Unified Contacts Table", () => {
       expect(contactsSection).toContain("name");
     });
 
-    it("prospects table has contactId field", () => {
+    it("prospects table has personId field", () => {
       const prospectsSection = schema.substring(
         schema.indexOf("export const prospects = mysqlTable"),
         schema.indexOf(");", schema.indexOf("export const prospects = mysqlTable")) + 2
       );
-      expect(prospectsSection).toContain("contactId");
+      expect(prospectsSection).toContain("personId");
       expect(prospectsSection).toContain("contact_id");
     });
 
-    it("clientProtocols table has contactId field", () => {
+    it("clientProtocols table has personId field", () => {
       const cpSection = schema.substring(
         schema.indexOf("export const clientProtocols = mysqlTable"),
         schema.indexOf(");", schema.indexOf("export const clientProtocols = mysqlTable")) + 2
       );
-      expect(cpSection).toContain("contactId");
+      expect(cpSection).toContain("personId");
       expect(cpSection).toContain("contact_id");
     });
 
-    it("transformationEnrollments table has contactId field", () => {
+    it("transformationEnrollments table has personId field", () => {
       const teSection = schema.substring(
         schema.indexOf("export const transformationEnrollments = mysqlTable"),
         schema.indexOf(");", schema.indexOf("export const transformationEnrollments = mysqlTable")) + 2
       );
-      expect(teSection).toContain("contactId");
+      expect(teSection).toContain("personId");
       expect(teSection).toContain("contact_id");
     });
 
-    it("users table has contactId field", () => {
+    it("users table has personId field", () => {
       const usersSection = schema.substring(
         schema.indexOf("export const users = mysqlTable"),
         schema.indexOf(");", schema.indexOf("export const users = mysqlTable")) + 2
       );
-      expect(usersSection).toContain("contactId");
+      expect(usersSection).toContain("personId");
       expect(usersSection).toContain("contact_id");
     });
 
-    it("clientProjects table has contactId field", () => {
+    it("clientProjects table has personId field", () => {
       const cpSection = schema.substring(
         schema.indexOf("export const clientProjects = mysqlTable"),
         schema.indexOf(");", schema.indexOf("export const clientProjects = mysqlTable")) + 2
       );
-      expect(cpSection).toContain("contactId");
+      expect(cpSection).toContain("personId");
       expect(cpSection).toContain("contact_id");
     });
 
-    it("customOrders table has contactId field", () => {
+    it("customOrders table has personId field", () => {
       const coSection = schema.substring(
         schema.indexOf("export const customOrders = mysqlTable"),
         schema.indexOf(");", schema.indexOf("export const customOrders = mysqlTable")) + 2
       );
-      expect(coSection).toContain("contactId");
+      expect(coSection).toContain("personId");
       expect(coSection).toContain("contact_id");
     });
 
-    it("packingSlips table has contactId field", () => {
+    it("packingSlips table has personId field", () => {
       const psSection = schema.substring(
         schema.indexOf("export const packingSlips = mysqlTable"),
         schema.indexOf(");", schema.indexOf("export const packingSlips = mysqlTable")) + 2
       );
-      expect(psSection).toContain("contactId");
+      expect(psSection).toContain("personId");
       expect(psSection).toContain("contact_id");
     });
   });
@@ -124,7 +124,7 @@ describe("Unified Contacts Table", () => {
     });
 
     it("returns the contact id", () => {
-      expect(contactService).toContain("contactId");
+      expect(contactService).toContain("personId");
     });
   });
 
@@ -135,7 +135,7 @@ describe("Unified Contacts Table", () => {
         "utf-8"
       );
       expect(prospectRouter).toContain("findOrCreateContact");
-      expect(prospectRouter).toContain("contactId");
+      expect(prospectRouter).toContain("personId");
     });
 
     it("onboarding automation calls findOrCreateContact", () => {
@@ -144,13 +144,13 @@ describe("Unified Contacts Table", () => {
         "utf-8"
       );
       expect(onboarding).toContain("findOrCreateContact");
-      expect(onboarding).toContain("contactId");
+      expect(onboarding).toContain("personId");
     });
 
     it("client protocol creation calls findOrCreateContact", () => {
       const db = fs.readFileSync(path.join(projectRoot, "server/db.ts"), "utf-8");
       expect(db).toContain("findOrCreateContact");
-      expect(db).toContain("contactId");
+      expect(db).toContain("personId");
     });
 
     it("user registration calls findOrCreateContact", () => {
@@ -159,7 +159,7 @@ describe("Unified Contacts Table", () => {
         "utf-8"
       );
       expect(authRoutes).toContain("findOrCreateContact");
-      expect(authRoutes).toContain("contactId");
+      expect(authRoutes).toContain("personId");
     });
   });
 
@@ -177,24 +177,24 @@ describe("Unified Contacts Table", () => {
       expect(router).toContain("contactIdIndex");
     });
 
-    it("uses contactId as primary merge key (strongest signal)", () => {
-      const contactIdPos = router.indexOf("Try contactId match");
+    it("uses personId as primary merge key (strongest signal)", () => {
+      const contactIdPos = router.indexOf("Try personId match");
       const emailPos = router.indexOf("Try email match");
       expect(contactIdPos).toBeLessThan(emailPos);
       expect(contactIdPos).toBeGreaterThan(-1);
     });
 
-    it("UnifiedPerson interface includes contactId", () => {
-      expect(router).toContain("contactId: number | null;");
+    it("UnifiedPerson interface includes personId", () => {
+      expect(router).toContain("personId: number | null;");
     });
 
-    it("detail endpoint accepts contactId and personId", () => {
-      expect(router).toContain("contactId: z.number().optional()");
+    it("detail endpoint accepts personId and personId", () => {
+      expect(router).toContain("personId: z.number().optional()");
       expect(router).toContain("personId: z.string().optional()");
     });
 
-    it("detail endpoint looks up by contactId first", () => {
-      expect(router).toContain("input.contactId");
+    it("detail endpoint looks up by personId first", () => {
+      expect(router).toContain("input.personId");
       expect(router).toContain("contacts.id");
     });
 
@@ -218,8 +218,8 @@ describe("Unified Contacts Table", () => {
       expect(router).toContain("updateContact:");
     });
 
-    it("accepts contactId, firstName, lastName, email, phone inputs", () => {
-      expect(router).toContain("contactId: z.number()");
+    it("accepts personId, firstName, lastName, email, phone inputs", () => {
+      expect(router).toContain("personId: z.number()");
       expect(router).toContain("firstName: z.string().optional()");
       expect(router).toContain("lastName: z.string().optional()");
       expect(router).toContain("email: z.string().email().optional()");
@@ -237,37 +237,37 @@ describe("Unified Contacts Table", () => {
 
     it("propagates to prospects table", () => {
       expect(router).toContain("database.update(prospects).set(prospectUpdates)");
-      expect(router).toContain("prospects.contactId");
+      expect(router).toContain("prospects.personId");
     });
 
     it("propagates to clientProtocols table", () => {
       expect(router).toContain("database.update(clientProtocols).set(cpUpdates)");
-      expect(router).toContain("clientProtocols.contactId");
+      expect(router).toContain("clientProtocols.personId");
     });
 
     it("propagates to clientProjects table", () => {
       expect(router).toContain("database.update(clientProjects).set(projUpdates)");
-      expect(router).toContain("clientProjects.contactId");
+      expect(router).toContain("clientProjects.personId");
     });
 
     it("propagates to customOrders table", () => {
       expect(router).toContain("database.update(customOrders).set(coUpdates)");
-      expect(router).toContain("customOrders.contactId");
+      expect(router).toContain("customOrders.personId");
     });
 
     it("propagates to packingSlips table", () => {
       expect(router).toContain("database.update(packingSlips).set(psUpdates)");
-      expect(router).toContain("packingSlips.contactId");
+      expect(router).toContain("packingSlips.personId");
     });
 
     it("propagates to users table (name only)", () => {
       expect(router).toContain("database.update(users).set({ name: fullName })");
-      expect(router).toContain("users.contactId");
+      expect(router).toContain("users.personId");
     });
 
     it("propagates to transformationEnrollments table", () => {
       expect(router).toContain("database.update(transformationEnrollments).set(teUpdates)");
-      expect(router).toContain("transformationEnrollments.contactId");
+      expect(router).toContain("transformationEnrollments.personId");
     });
 
     it("wraps each table update in try/catch for resilience", () => {
@@ -338,19 +338,19 @@ describe("Unified Contacts Table", () => {
       "utf-8"
     );
 
-    it("PersonDetail accepts contactId and personId props", () => {
-      expect(frontend).toContain("contactId?: number");
+    it("PersonDetail accepts personId and personId props", () => {
+      expect(frontend).toContain("personId?: number");
       expect(frontend).toContain("personId?: string");
     });
 
-    it("passes contactId and personId to detail query", () => {
-      expect(frontend).toContain("contactId: propContactId || undefined");
+    it("passes personId and personId to detail query", () => {
+      expect(frontend).toContain("personId: propContactId || undefined");
       expect(frontend).toContain("personId: personId || undefined");
     });
 
-    it("clicking a row passes contactId and personId", () => {
+    it("clicking a row passes personId and personId", () => {
       expect(frontend).toContain("setSelectedPerson");
-      expect(frontend).toContain("contactId:");
+      expect(frontend).toContain("personId:");
       expect(frontend).toContain("personId:");
     });
 

@@ -42,6 +42,7 @@ export const customOrdersRouter = router({
       discountAmount: z.string().default("0"),
       shippingFee: z.string().default("0"),
       adminNotes: z.string().optional(),
+      clientNotes: z.string().optional(),
       ...shippingAddressSchema.shape,
     }))
     .mutation(async ({ input, ctx }) => {
@@ -63,7 +64,7 @@ export const customOrdersRouter = router({
         const orderNumber = await customOrderDb.generateOrderNumber();
 
         // Find or create unified contact record
-        let contactId: number | null = null;
+        let personId: number | null = null;
         try {
           const nameParts = input.clientName.trim().split(/\s+/);
           const firstName = nameParts[0] || "";
@@ -74,13 +75,13 @@ export const customOrdersRouter = router({
             lastName,
             phone: input.clientPhone || undefined,
           });
-          contactId = contact.id;
+          personId = contact.id;
         } catch (e) { console.error('[CustomOrder] Contact link error:', e); }
 
-        // custom_orders.contactId is NOT NULL (identity-consolidation). If the
+        // custom_orders.personId is NOT NULL (identity-consolidation). If the
         // contact link above failed, fail fast with a clear message instead of
         // letting the insert die on a cryptic constraint error.
-        if (contactId === null) {
+        if (personId === null) {
           throw new Error(
             "Could not link this order to a contact record. Please verify the client's email and try again."
           );
@@ -108,9 +109,10 @@ export const customOrdersRouter = router({
           shippingPhone: input.shippingPhone || null,
           shippingMethod: input.shippingMethod || "standard",
           adminNotes: input.adminNotes || null,
+          clientNotes: input.clientNotes || null,
           createdBy: ctx.user.id,
           createdByName: ctx.user.name || ctx.user.email || "Admin",
-          contactId: contactId,
+          personId: personId,
         });
 
         // Create line items
@@ -149,6 +151,7 @@ export const customOrdersRouter = router({
       discountAmount: z.string().optional(),
       shippingFee: z.string().optional(),
       adminNotes: z.string().optional(),
+      clientNotes: z.string().optional(),
       ...shippingAddressSchema.shape,
     }))
     .mutation(async ({ input }) => {
@@ -193,6 +196,7 @@ export const customOrdersRouter = router({
         ...(input.clientPhone !== undefined ? { clientPhone: input.clientPhone } : {}),
         ...(input.paymentMethod ? { paymentMethod: input.paymentMethod } : {}),
         ...(input.adminNotes !== undefined ? { adminNotes: input.adminNotes } : {}),
+        ...(input.clientNotes !== undefined ? { clientNotes: input.clientNotes } : {}),
         ...(input.shippingName !== undefined ? { shippingName: input.shippingName } : {}),
         ...(input.shippingStreet !== undefined ? { shippingStreet: input.shippingStreet } : {}),
         ...(input.shippingCity !== undefined ? { shippingCity: input.shippingCity } : {}),
@@ -211,17 +215,17 @@ export const customOrdersRouter = router({
       const hasContactInfoChange = input.clientName !== undefined || input.clientEmail !== undefined || input.clientPhone !== undefined;
       if (hasContactInfoChange) {
         try {
-          if (order.contactId) {
+          if (order.personId) {
             const { propagateContactChanges } = await import('./contacts/propagateContactChanges');
             await propagateContactChanges({
-              contactId: order.contactId,
+              personId: order.personId,
               ...(input.clientName ? { name: input.clientName } : {}),
               ...(input.clientEmail ? { email: input.clientEmail } : {}),
               ...(input.clientPhone !== undefined ? { phone: input.clientPhone } : {}),
             });
-            console.log(`[customOrders.update] Propagated contact changes for order ${input.id} → contact ${order.contactId}`);
+            console.log(`[customOrders.update] Propagated contact changes for order ${input.id} → contact ${order.personId}`);
           } else {
-            console.warn(`[customOrders.update] Order ${input.id} has no contactId — changes not propagated`);
+            console.warn(`[customOrders.update] Order ${input.id} has no personId — changes not propagated`);
           }
         } catch (propError) {
           console.error('[customOrders.update] Contact propagation error:', propError);
@@ -752,21 +756,49 @@ async function sendInvoiceEmail(
     </div>
   `;
 
+  // Ship-to block: let the client verify where this is going before they pay.
+  // Checkout is Stripe-hosted, so this email is the only place they can catch a wrong address.
+  const escapeHtml = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const shipToSection = order.shippingStreet ? `
+    <div style="background-color: #f8f9fa; padding: 12px; border-radius: 6px; margin: 15px 0;">
+      <p style="margin: 4px 0;"><strong>Shipping to:</strong></p>
+      <p style="margin: 4px 0; color: #555;">
+        ${escapeHtml(order.shippingName || order.clientName || '')}<br>
+        ${escapeHtml(order.shippingStreet || '')}<br>
+        ${escapeHtml(order.shippingCity || '')}, ${escapeHtml(order.shippingState || '')} ${escapeHtml(order.shippingZip || '')}
+      </p>
+      <p style="margin: 8px 0 0; font-size: 12px; color: #888;">
+        Need this sent somewhere else? Just reply to this email before paying and we'll update it for you.
+      </p>
+    </div>
+  ` : '';
+
+  const clientNotesSection = order.clientNotes ? `
+    <div style="background-color: #fffbeb; border-left: 3px solid #f97316; padding: 12px; border-radius: 4px; margin: 15px 0;">
+      <p style="margin: 0; color: #555; white-space: pre-wrap;">${escapeHtml(order.clientNotes)}</p>
+    </div>
+  ` : '';
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
       <div style="background-color: #f97316; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
         <h1 style="color: white; margin: 0; font-size: 22px;">Custom Order Invoice</h1>
       </div>
-      
+
       <div style="padding: 20px; background: #fff; border: 1px solid #eee; border-top: none;">
         <p>Hi ${order.clientName},</p>
         <p>Here's your custom order invoice from Omega Longevity:</p>
-        
+
         <div style="background-color: #f8f9fa; padding: 12px; border-radius: 6px; margin: 15px 0;">
           <p style="margin: 4px 0;"><strong>Order:</strong> ${order.orderNumber}</p>
           <p style="margin: 4px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { timeZone: 'America/Denver' })}</p>
         </div>
-        
+
+        ${clientNotesSection}
+        ${shipToSection}
+
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
           <thead>
             <tr style="background-color: #f8f9fa;">

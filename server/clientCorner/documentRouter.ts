@@ -13,13 +13,13 @@ import { storagePut, storageGet } from "../storage";
  */
 async function documentScope(database: any, clientProtocolId: number) {
   const [p] = await database
-    .select({ contactId: clientProtocols.contactId })
+    .select({ personId: clientProtocols.personId })
     .from(clientProtocols)
     .where(eq(clientProtocols.id, clientProtocolId))
     .limit(1);
-  const contactId = p?.contactId ?? null;
-  return contactId
-    ? eq(documents.contactId, contactId)
+  const personId = p?.personId ?? null;
+  return personId
+    ? eq(documents.personId, personId)
     : eq(documents.clientProtocolId, clientProtocolId);
 }
 
@@ -487,9 +487,9 @@ export const documentRouter = router({
     // so a renewal doesn't reset the library to zero. System folders are auto-created
     // per version, so the same names repeat across versions — we de-duplicate by name
     // for display.
-    const contactId = (protocol as any).contactId ?? null;
-    const folderWhere = contactId
-      ? eq(documentFolders.contactId, contactId)
+    const personId = (protocol as any).personId ?? null;
+    const folderWhere = personId
+      ? eq(documentFolders.personId, personId)
       : eq(documentFolders.clientProtocolId, protocol.id);
 
     let folders = await database
@@ -512,7 +512,7 @@ export const documentRouter = router({
         const folder = SYSTEM_FOLDERS[i];
         await database.insert(documentFolders).values({
           clientProtocolId: protocol.id,
-          contactId, // stamp identity so the folder follows the contact from creation
+          personId, // stamp identity so the folder follows the contact from creation
           name: folder.name,
           isSystem: true,
           systemType: folder.systemType,
@@ -539,8 +539,8 @@ export const documentRouter = router({
     const dedupedFolders = Array.from(repByName.values()).sort((a, b) => a.sortOrder - b.sortOrder);
 
     // Documents for this contact (shared, not deleted).
-    const docScope = contactId
-      ? eq(documents.contactId, contactId)
+    const docScope = personId
+      ? eq(documents.personId, personId)
       : eq(documents.clientProtocolId, protocol.id);
     const docs = await database
       .select()

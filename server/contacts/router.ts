@@ -9,7 +9,7 @@ import { adminProcedure, managerProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
 import {
-  contacts,
+  people,
   prospects,
   clientProtocols,
   transformationEnrollments,
@@ -35,7 +35,7 @@ import { propagateContactChanges } from "./propagateContactChanges";
 // Unified person type combining all data sources
 interface UnifiedPerson {
   id: string; // composite key like "contact:5" or "prospect:5" or "client:12"
-  contactId: number | null;
+  personId: number | null;
   name: string;
   email: string | null;
   phone: string | null;
@@ -146,10 +146,10 @@ export const contactsRouter = router({
       const checkinMap = new Map(checkinCounts.map(c => [c.clientProtocolId, c.count]));
 
       // Build a unified people map with multi-key dedup
-      // Priority: contactId (strongest) → email → phone → name
+      // Priority: personId (strongest) → email → phone → name
       const peopleMap = new Map<string, UnifiedPerson>();
       // Secondary indexes for dedup
-      const contactIdIndex = new Map<number, string>(); // contactId → primary key
+      const contactIdIndex = new Map<number, string>(); // personId → primary key
       const phoneIndex = new Map<string, string>();
       const nameIndex = new Map<string, string>();
 
@@ -160,10 +160,10 @@ export const contactsRouter = router({
         return digits.length >= 7 ? digits : null;
       };
 
-      const findExistingPerson = (email: string | null, name: string, phone: string | null, contactId?: number | null): UnifiedPerson | null => {
-        // 0. Try contactId match (strongest signal — database-level link)
-        if (contactId) {
-          const existingKey = contactIdIndex.get(contactId);
+      const findExistingPerson = (email: string | null, name: string, phone: string | null, personId?: number | null): UnifiedPerson | null => {
+        // 0. Try personId match (strongest signal — database-level link)
+        if (personId) {
+          const existingKey = contactIdIndex.get(personId);
           if (existingKey && peopleMap.has(existingKey)) return peopleMap.get(existingKey)!;
         }
         // 1. Try email match
@@ -186,22 +186,22 @@ export const contactsRouter = router({
         return null;
       };
 
-      const getOrCreate = (email: string | null, name: string, phone: string | null, fallbackKey: string, contactId?: number | null): UnifiedPerson => {
+      const getOrCreate = (email: string | null, name: string, phone: string | null, fallbackKey: string, personId?: number | null): UnifiedPerson => {
         // Try to find an existing person by any identifier
-        const existing = findExistingPerson(email, name, phone, contactId);
+        const existing = findExistingPerson(email, name, phone, personId);
         if (existing) {
           // Merge: fill in missing data
           if (email && !existing.email) existing.email = email;
           if (name && (!existing.name || existing.name === 'Unknown')) existing.name = name;
           if (phone && !existing.phone) existing.phone = phone;
-          if (contactId && !existing.contactId) existing.contactId = contactId;
+          if (personId && !existing.personId) existing.personId = personId;
           // Update all indexes to point to this person's primary key
           const primaryKey = existing.email?.toLowerCase() || existing.id;
           if (email) {
             const eKey = email.toLowerCase();
             if (!peopleMap.has(eKey)) peopleMap.set(eKey, existing);
           }
-          if (contactId) contactIdIndex.set(contactId, primaryKey);
+          if (personId) contactIdIndex.set(personId, primaryKey);
           const normPhone = normalizePhone(phone);
           if (normPhone) phoneIndex.set(normPhone, primaryKey);
           const normName = normalizeName(name);
@@ -213,7 +213,7 @@ export const contactsRouter = router({
         const primaryKey = email?.toLowerCase() || fallbackKey;
         const person: UnifiedPerson = {
           id: fallbackKey,
-          contactId: contactId || null,
+          personId: personId || null,
           name,
           email,
           phone,
@@ -237,7 +237,7 @@ export const contactsRouter = router({
         peopleMap.set(primaryKey, person);
         // Index by all available identifiers
         if (email) peopleMap.set(email.toLowerCase(), person);
-        if (contactId) contactIdIndex.set(contactId, primaryKey);
+        if (personId) contactIdIndex.set(personId, primaryKey);
         const normPhone = normalizePhone(phone);
         if (normPhone) phoneIndex.set(normPhone, primaryKey);
         const normName = normalizeName(name);
@@ -247,7 +247,7 @@ export const contactsRouter = router({
 
       // Merge prospects
       for (const p of allProspects) {
-        const person = getOrCreate(p.email, p.name, p.phone, `prospect:${p.id}`, (p as any).contactId);
+        const person = getOrCreate(p.email, p.name, p.phone, `prospect:${p.id}`, (p as any).personId);
         person.prospectId = p.id;
         person.phone = person.phone || p.phone;
         person.source = p.source;
@@ -272,7 +272,7 @@ export const contactsRouter = router({
       // Merge client protocols
       for (const cp of allProtocols) {
         if (cp.deletedAt || cp.archivedAt) continue;
-        const person = getOrCreate(cp.clientEmail, cp.clientName, cp.clientPhone, `client:${cp.id}`, (cp as any).contactId);
+        const person = getOrCreate(cp.clientEmail, cp.clientName, cp.clientPhone, `client:${cp.id}`, (cp as any).personId);
         person.clientProtocolId = person.clientProtocolId || cp.id;
         person.protocolStatus = cp.status;
         person.totalCheckins = (person.totalCheckins || 0) + (checkinMap.get(cp.id) || 0);
@@ -332,9 +332,9 @@ export const contactsRouter = router({
       // Merge users (for store-only customers)
       for (const u of allUsers) {
         if (u.role !== 'user') continue; // skip admin/staff
-        const uContactId = (u as any).contactId;
+        const uContactId = (u as any).personId;
         const key = u.email?.toLowerCase();
-        // Try to find existing person by contactId first, then email
+        // Try to find existing person by personId first, then email
         let person: UnifiedPerson | undefined;
         if (uContactId) {
           const existingKey = contactIdIndex.get(uContactId);
@@ -346,7 +346,7 @@ export const contactsRouter = router({
         if (person) {
           // Already exists, just add userId
           person.userId = u.id;
-          if (uContactId && !person.contactId) person.contactId = uContactId;
+          if (uContactId && !person.personId) person.personId = uContactId;
           person.totalOrders = orderMap.get(u.id) || 0;
           if (key) person.totalAppointments = apptMap.get(key) || 0;
           if (!person.lastActivity || (u.lastSignedIn && u.lastSignedIn > person.lastActivity)) {
@@ -435,7 +435,7 @@ export const contactsRouter = router({
    */
   updateContact: managerProcedure
     .input(z.object({
-      contactId: z.number(),
+      personId: z.number(),
       firstName: z.string().optional(),
       lastName: z.string().optional(),
       email: z.string().email().optional().nullable(),
@@ -446,12 +446,12 @@ export const contactsRouter = router({
       const database = await getDb();
       if (!database) throw new Error("Database not available");
 
-      const { contactId, ...fields } = input;
+      const { personId, ...fields } = input;
 
       // Build fullName from firstName/lastName
       let fullName: string | undefined;
       if (fields.firstName !== undefined || fields.lastName !== undefined) {
-        const [current] = await database.select().from(contacts).where(eq(contacts.id, contactId));
+        const [current] = await database.select().from(people).where(eq(people.id, personId));
         if (current) {
           const fn = fields.firstName !== undefined ? fields.firstName : current.firstName;
           const ln = fields.lastName !== undefined ? fields.lastName : current.lastName;
@@ -461,7 +461,7 @@ export const contactsRouter = router({
 
       // Update lifecycle stage if provided
       if (fields.lifecycleStage) {
-        await database.update(contacts).set({ lifecycleStage: fields.lifecycleStage }).where(eq(contacts.id, contactId));
+        await database.update(people).set({ lifecycleStage: fields.lifecycleStage }).where(eq(people.id, personId));
       }
 
       // Also update firstName/lastName directly on the contacts table
@@ -471,12 +471,12 @@ export const contactsRouter = router({
       if (fields.firstName !== undefined) directContactUpdates.firstName = fields.firstName;
       if (fields.lastName !== undefined) directContactUpdates.lastName = fields.lastName;
       if (Object.keys(directContactUpdates).length > 0) {
-        await database.update(contacts).set(directContactUpdates).where(eq(contacts.id, contactId));
+        await database.update(people).set(directContactUpdates).where(eq(people.id, personId));
       }
 
       // Use the shared propagation utility to update contacts + all 7 linked tables
       await propagateContactChanges({
-        contactId,
+        personId,
         ...(fullName !== undefined ? { name: fullName } : {}),
         ...(fields.email !== undefined ? { email: fields.email } : {}),
         ...(fields.phone !== undefined ? { phone: fields.phone } : {}),
@@ -490,7 +490,7 @@ export const contactsRouter = router({
    * 1. Orphaned records (linked tables with no matching contact)
    * 2. Data mismatches (name/email/phone differs between contact and linked record)
    * 3. Duplicate contacts (same email or phone pointing to different contact IDs)
-   * 4. Missing contactId links
+   * 4. Missing personId links
    * 5. Overall health score
    */
   dataIntegrityAudit: adminProcedure
@@ -498,7 +498,7 @@ export const contactsRouter = router({
       const database = await getDb();
       if (!database) throw new Error("Database not available");
 
-      const allContacts = await database.select().from(contacts);
+      const allContacts = await database.select().from(people);
       const allProspects = await database.select().from(prospects);
       const allProtocols = await database.select().from(clientProtocols);
       const allProjects = await database.select().from(clientProjects);
@@ -513,7 +513,7 @@ export const contactsRouter = router({
       const mismatches: Array<{
         table: string;
         recordId: number;
-        contactId: number;
+        personId: number;
         field: string;
         contactValue: string | null;
         recordValue: string | null;
@@ -526,147 +526,147 @@ export const contactsRouter = router({
 
       // Check prospects
       for (const p of allProspects) {
-        if (!p.contactId) continue;
-        const c = contactMap.get(p.contactId);
+        if (!p.personId) continue;
+        const c = contactMap.get(p.personId);
         if (!c) continue;
         const contactFullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
         if (p.name && normStr(p.name) !== normStr(contactFullName) && contactFullName) {
-          mismatches.push({ table: 'prospects', recordId: p.id, contactId: p.contactId, field: 'name', contactValue: contactFullName, recordValue: p.name });
+          mismatches.push({ table: 'prospects', recordId: p.id, personId: p.personId, field: 'name', contactValue: contactFullName, recordValue: p.name });
         }
         if (p.email && c.email && normStr(p.email) !== normStr(c.email)) {
-          mismatches.push({ table: 'prospects', recordId: p.id, contactId: p.contactId, field: 'email', contactValue: c.email, recordValue: p.email });
+          mismatches.push({ table: 'prospects', recordId: p.id, personId: p.personId, field: 'email', contactValue: c.email, recordValue: p.email });
         }
         if (p.phone && c.phone && p.phone.replace(/\D/g, '') !== c.phone.replace(/\D/g, '') && p.phone !== 'N/A') {
-          mismatches.push({ table: 'prospects', recordId: p.id, contactId: p.contactId, field: 'phone', contactValue: c.phone, recordValue: p.phone });
+          mismatches.push({ table: 'prospects', recordId: p.id, personId: p.personId, field: 'phone', contactValue: c.phone, recordValue: p.phone });
         }
       }
 
       // Check client protocols
       for (const cp of allProtocols) {
-        if (!cp.contactId) continue;
-        const c = contactMap.get(cp.contactId);
+        if (!cp.personId) continue;
+        const c = contactMap.get(cp.personId);
         if (!c) continue;
         const contactFullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
         if (cp.clientName && normStr(cp.clientName) !== normStr(contactFullName) && contactFullName) {
-          mismatches.push({ table: 'clientProtocols', recordId: cp.id, contactId: cp.contactId, field: 'clientName', contactValue: contactFullName, recordValue: cp.clientName });
+          mismatches.push({ table: 'clientProtocols', recordId: cp.id, personId: cp.personId, field: 'clientName', contactValue: contactFullName, recordValue: cp.clientName });
         }
         if (cp.clientEmail && c.email && normStr(cp.clientEmail) !== normStr(c.email)) {
-          mismatches.push({ table: 'clientProtocols', recordId: cp.id, contactId: cp.contactId, field: 'clientEmail', contactValue: c.email, recordValue: cp.clientEmail });
+          mismatches.push({ table: 'clientProtocols', recordId: cp.id, personId: cp.personId, field: 'clientEmail', contactValue: c.email, recordValue: cp.clientEmail });
         }
       }
 
       // Check client projects
       for (const proj of allProjects) {
-        if (!proj.contactId) continue;
-        const c = contactMap.get(proj.contactId);
+        if (!proj.personId) continue;
+        const c = contactMap.get(proj.personId);
         if (!c) continue;
         const contactFullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
         if (proj.clientName && normStr(proj.clientName) !== normStr(contactFullName) && contactFullName) {
-          mismatches.push({ table: 'clientProjects', recordId: proj.id, contactId: proj.contactId, field: 'clientName', contactValue: contactFullName, recordValue: proj.clientName });
+          mismatches.push({ table: 'clientProjects', recordId: proj.id, personId: proj.personId, field: 'clientName', contactValue: contactFullName, recordValue: proj.clientName });
         }
         if (proj.clientEmail && c.email && normStr(proj.clientEmail) !== normStr(c.email)) {
-          mismatches.push({ table: 'clientProjects', recordId: proj.id, contactId: proj.contactId, field: 'clientEmail', contactValue: c.email, recordValue: proj.clientEmail });
+          mismatches.push({ table: 'clientProjects', recordId: proj.id, personId: proj.personId, field: 'clientEmail', contactValue: c.email, recordValue: proj.clientEmail });
         }
       }
 
       // Check custom orders
       for (const co of allCustomOrders) {
-        if (!co.contactId) continue;
-        const c = contactMap.get(co.contactId);
+        if (!co.personId) continue;
+        const c = contactMap.get(co.personId);
         if (!c) continue;
         const contactFullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
         if (co.clientName && normStr(co.clientName) !== normStr(contactFullName) && contactFullName) {
-          mismatches.push({ table: 'customOrders', recordId: co.id, contactId: co.contactId, field: 'clientName', contactValue: contactFullName, recordValue: co.clientName });
+          mismatches.push({ table: 'customOrders', recordId: co.id, personId: co.personId, field: 'clientName', contactValue: contactFullName, recordValue: co.clientName });
         }
         if (co.clientEmail && c.email && normStr(co.clientEmail) !== normStr(c.email)) {
-          mismatches.push({ table: 'customOrders', recordId: co.id, contactId: co.contactId, field: 'clientEmail', contactValue: c.email, recordValue: co.clientEmail });
+          mismatches.push({ table: 'customOrders', recordId: co.id, personId: co.personId, field: 'clientEmail', contactValue: c.email, recordValue: co.clientEmail });
         }
       }
 
       // Check packing slips
       for (const ps of allPackingSlips) {
-        if (!ps.contactId) continue;
-        const c = contactMap.get(ps.contactId);
+        if (!ps.personId) continue;
+        const c = contactMap.get(ps.personId);
         if (!c) continue;
         const contactFullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
         if (ps.clientName && normStr(ps.clientName) !== normStr(contactFullName) && contactFullName) {
-          mismatches.push({ table: 'packingSlips', recordId: ps.id, contactId: ps.contactId, field: 'clientName', contactValue: contactFullName, recordValue: ps.clientName });
+          mismatches.push({ table: 'packingSlips', recordId: ps.id, personId: ps.personId, field: 'clientName', contactValue: contactFullName, recordValue: ps.clientName });
         }
       }
 
       // Check users
       for (const u of allUsers) {
-        if (!u.contactId) continue;
-        const c = contactMap.get(u.contactId);
+        if (!u.personId) continue;
+        const c = contactMap.get(u.personId);
         if (!c) continue;
         const contactFullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
         if (u.name && normStr(u.name) !== normStr(contactFullName) && contactFullName) {
-          mismatches.push({ table: 'users', recordId: u.id, contactId: u.contactId, field: 'name', contactValue: contactFullName, recordValue: u.name });
+          mismatches.push({ table: 'users', recordId: u.id, personId: u.personId, field: 'name', contactValue: contactFullName, recordValue: u.name });
         }
       }
 
       // Check transformation enrollments
       for (const te of allEnrollments) {
-        if (!te.contactId) continue;
-        const c = contactMap.get(te.contactId);
+        if (!te.personId) continue;
+        const c = contactMap.get(te.personId);
         if (!c) continue;
         const contactFullName = [c.firstName, c.lastName].filter(Boolean).join(' ');
         if (te.clientName && normStr(te.clientName) !== normStr(contactFullName) && contactFullName) {
-          mismatches.push({ table: 'transformationEnrollments', recordId: te.id, contactId: te.contactId, field: 'clientName', contactValue: contactFullName, recordValue: te.clientName });
+          mismatches.push({ table: 'transformationEnrollments', recordId: te.id, personId: te.personId, field: 'clientName', contactValue: contactFullName, recordValue: te.clientName });
         }
         if (te.clientEmail && c.email && normStr(te.clientEmail) !== normStr(c.email)) {
-          mismatches.push({ table: 'transformationEnrollments', recordId: te.id, contactId: te.contactId, field: 'clientEmail', contactValue: c.email, recordValue: te.clientEmail });
+          mismatches.push({ table: 'transformationEnrollments', recordId: te.id, personId: te.personId, field: 'clientEmail', contactValue: c.email, recordValue: te.clientEmail });
         }
       }
 
-      // ─── 2. Missing contactId links ─────────────────────────────────
+      // ─── 2. Missing personId links ─────────────────────────────────
       const missingLinks: Array<{ table: string; recordId: number; name: string | null; email: string | null }> = [];
 
       for (const p of allProspects) {
-        if (!p.contactId) missingLinks.push({ table: 'prospects', recordId: p.id, name: p.name, email: p.email });
+        if (!p.personId) missingLinks.push({ table: 'prospects', recordId: p.id, name: p.name, email: p.email });
       }
       for (const cp of allProtocols) {
-        if (!cp.contactId) missingLinks.push({ table: 'clientProtocols', recordId: cp.id, name: cp.clientName, email: cp.clientEmail });
+        if (!cp.personId) missingLinks.push({ table: 'clientProtocols', recordId: cp.id, name: cp.clientName, email: cp.clientEmail });
       }
       for (const proj of allProjects) {
-        if (!proj.contactId) missingLinks.push({ table: 'clientProjects', recordId: proj.id, name: proj.clientName, email: proj.clientEmail });
+        if (!proj.personId) missingLinks.push({ table: 'clientProjects', recordId: proj.id, name: proj.clientName, email: proj.clientEmail });
       }
       for (const co of allCustomOrders) {
-        if (!co.contactId) missingLinks.push({ table: 'customOrders', recordId: co.id, name: co.clientName, email: co.clientEmail });
+        if (!co.personId) missingLinks.push({ table: 'customOrders', recordId: co.id, name: co.clientName, email: co.clientEmail });
       }
       for (const ps of allPackingSlips) {
-        if (!ps.contactId) missingLinks.push({ table: 'packingSlips', recordId: ps.id, name: ps.clientName, email: ps.clientEmail });
+        if (!ps.personId) missingLinks.push({ table: 'packingSlips', recordId: ps.id, name: ps.clientName, email: ps.clientEmail });
       }
       for (const u of allUsers) {
-        if (!u.contactId) missingLinks.push({ table: 'users', recordId: u.id, name: u.name, email: u.email });
+        if (!u.personId) missingLinks.push({ table: 'users', recordId: u.id, name: u.name, email: u.email });
       }
       for (const te of allEnrollments) {
-        if (!te.contactId) missingLinks.push({ table: 'transformationEnrollments', recordId: te.id, name: te.clientName, email: te.clientEmail });
+        if (!te.personId) missingLinks.push({ table: 'transformationEnrollments', recordId: te.id, name: te.clientName, email: te.clientEmail });
       }
 
       // ─── 3. Orphaned contactIds (point to non-existent contact) ─────
-      const orphanedRecords: Array<{ table: string; recordId: number; contactId: number }> = [];
+      const orphanedRecords: Array<{ table: string; recordId: number; personId: number }> = [];
 
       for (const p of allProspects) {
-        if (p.contactId && !contactMap.has(p.contactId)) orphanedRecords.push({ table: 'prospects', recordId: p.id, contactId: p.contactId });
+        if (p.personId && !contactMap.has(p.personId)) orphanedRecords.push({ table: 'prospects', recordId: p.id, personId: p.personId });
       }
       for (const cp of allProtocols) {
-        if (cp.contactId && !contactMap.has(cp.contactId)) orphanedRecords.push({ table: 'clientProtocols', recordId: cp.id, contactId: cp.contactId });
+        if (cp.personId && !contactMap.has(cp.personId)) orphanedRecords.push({ table: 'clientProtocols', recordId: cp.id, personId: cp.personId });
       }
       for (const proj of allProjects) {
-        if (proj.contactId && !contactMap.has(proj.contactId)) orphanedRecords.push({ table: 'clientProjects', recordId: proj.id, contactId: proj.contactId });
+        if (proj.personId && !contactMap.has(proj.personId)) orphanedRecords.push({ table: 'clientProjects', recordId: proj.id, personId: proj.personId });
       }
       for (const co of allCustomOrders) {
-        if (co.contactId && !contactMap.has(co.contactId)) orphanedRecords.push({ table: 'customOrders', recordId: co.id, contactId: co.contactId });
+        if (co.personId && !contactMap.has(co.personId)) orphanedRecords.push({ table: 'customOrders', recordId: co.id, personId: co.personId });
       }
       for (const ps of allPackingSlips) {
-        if (ps.contactId && !contactMap.has(ps.contactId)) orphanedRecords.push({ table: 'packingSlips', recordId: ps.id, contactId: ps.contactId });
+        if (ps.personId && !contactMap.has(ps.personId)) orphanedRecords.push({ table: 'packingSlips', recordId: ps.id, personId: ps.personId });
       }
       for (const u of allUsers) {
-        if (u.contactId && !contactMap.has(u.contactId)) orphanedRecords.push({ table: 'users', recordId: u.id, contactId: u.contactId });
+        if (u.personId && !contactMap.has(u.personId)) orphanedRecords.push({ table: 'users', recordId: u.id, personId: u.personId });
       }
       for (const te of allEnrollments) {
-        if (te.contactId && !contactMap.has(te.contactId)) orphanedRecords.push({ table: 'transformationEnrollments', recordId: te.id, contactId: te.contactId });
+        if (te.personId && !contactMap.has(te.personId)) orphanedRecords.push({ table: 'transformationEnrollments', recordId: te.id, personId: te.personId });
       }
 
       // ─── 4. Duplicate contacts (same email or phone) ────────────────
@@ -705,13 +705,13 @@ export const contactsRouter = router({
 
       // ─── 5. Summary stats ───────────────────────────────────────────
       const totalLinkedRecords = 
-        allProspects.filter(p => p.contactId).length +
-        allProtocols.filter(p => p.contactId).length +
-        allProjects.filter(p => p.contactId).length +
-        allCustomOrders.filter(p => p.contactId).length +
-        allPackingSlips.filter(p => p.contactId).length +
-        allUsers.filter(p => p.contactId).length +
-        allEnrollments.filter(p => p.contactId).length;
+        allProspects.filter(p => p.personId).length +
+        allProtocols.filter(p => p.personId).length +
+        allProjects.filter(p => p.personId).length +
+        allCustomOrders.filter(p => p.personId).length +
+        allPackingSlips.filter(p => p.personId).length +
+        allUsers.filter(p => p.personId).length +
+        allEnrollments.filter(p => p.personId).length;
 
       const totalRecords = 
         allProspects.length + allProtocols.length + allProjects.length +
@@ -759,26 +759,26 @@ export const contactsRouter = router({
    */
   fixMismatch: adminProcedure
     .input(z.object({
-      contactId: z.number(),
+      personId: z.number(),
     }))
     .mutation(async ({ input }) => {
       const database = await getDb();
       if (!database) throw new Error("Database not available");
 
-      const [contact] = await database.select().from(contacts).where(eq(contacts.id, input.contactId));
+      const [contact] = await database.select().from(people).where(eq(people.id, input.personId));
       if (!contact) throw new Error("Contact not found");
 
       const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ') || null;
 
       // Re-propagate the contact's canonical data to all linked tables
       await propagateContactChanges({
-        contactId: input.contactId,
+        personId: input.personId,
         name: fullName,
         email: contact.email,
         phone: contact.phone,
       });
 
-      return { success: true, contactId: input.contactId, syncedName: fullName, syncedEmail: contact.email };
+      return { success: true, personId: input.personId, syncedName: fullName, syncedEmail: contact.email };
     }),
 
   /**
@@ -789,14 +789,14 @@ export const contactsRouter = router({
       const database = await getDb();
       if (!database) throw new Error("Database not available");
 
-      const allContactsList = await database.select().from(contacts);
+      const allContactsList = await database.select().from(people);
       let fixed = 0;
 
       for (const contact of allContactsList) {
         const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ') || null;
         try {
           await propagateContactChanges({
-            contactId: contact.id,
+            personId: contact.id,
             name: fullName,
             email: contact.email,
             phone: contact.phone,

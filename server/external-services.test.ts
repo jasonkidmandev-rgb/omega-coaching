@@ -276,7 +276,7 @@ describe('GHL (GoHighLevel) Integration', () => {
       const validateWebhook = (payload: {
         type?: string;
         locationId?: string;
-        contactId?: string;
+        personId?: string;
       }): boolean => {
         return !!(payload.type && payload.locationId);
       };
@@ -288,14 +288,14 @@ describe('GHL (GoHighLevel) Integration', () => {
 
     it('should handle contact.created webhook', () => {
       const handleContactCreated = (payload: {
-        contactId: string;
+        personId: string;
         email: string;
         firstName: string;
         lastName: string;
       }) => {
         return {
           action: 'create_user',
-          ghlContactId: payload.contactId,
+          ghlContactId: payload.personId,
           userData: {
             email: payload.email,
             firstName: payload.firstName,
@@ -305,7 +305,7 @@ describe('GHL (GoHighLevel) Integration', () => {
       };
 
       const result = handleContactCreated({
-        contactId: 'ghl-123',
+        personId: 'ghl-123',
         email: 'new@example.com',
         firstName: 'New',
         lastName: 'User'
@@ -317,7 +317,7 @@ describe('GHL (GoHighLevel) Integration', () => {
 
     it('should handle contact.updated webhook', () => {
       const handleContactUpdated = (payload: {
-        contactId: string;
+        personId: string;
         changes: Record<string, any>;
       }) => {
         const allowedFields = ['email', 'firstName', 'lastName', 'phone'];
@@ -331,13 +331,13 @@ describe('GHL (GoHighLevel) Integration', () => {
 
         return {
           action: 'update_user',
-          ghlContactId: payload.contactId,
+          ghlContactId: payload.personId,
           changes: filteredChanges
         };
       };
 
       const result = handleContactUpdated({
-        contactId: 'ghl-123',
+        personId: 'ghl-123',
         changes: {
           email: 'updated@example.com',
           maliciousField: 'ignored'

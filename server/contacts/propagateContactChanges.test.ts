@@ -43,14 +43,14 @@ vi.mock('../db', () => ({
 }));
 
 vi.mock('../../drizzle/schema', () => ({
-  contacts: { id: 'contacts.id', contactId: 'contacts.contactId' },
-  prospects: { contactId: 'prospects.contactId' },
-  clientProtocols: { contactId: 'clientProtocols.contactId' },
-  clientProjects: { contactId: 'clientProjects.contactId' },
-  customOrders: { contactId: 'customOrders.contactId' },
-  packingSlips: { contactId: 'packingSlips.contactId' },
-  users: { contactId: 'users.contactId' },
-  transformationEnrollments: { contactId: 'transformationEnrollments.contactId' },
+  contacts: { id: 'contacts.id', personId: 'contacts.personId' },
+  prospects: { personId: 'prospects.personId' },
+  clientProtocols: { personId: 'clientProtocols.personId' },
+  clientProjects: { personId: 'clientProjects.personId' },
+  customOrders: { personId: 'customOrders.personId' },
+  packingSlips: { personId: 'packingSlips.personId' },
+  users: { personId: 'users.personId' },
+  transformationEnrollments: { personId: 'transformationEnrollments.personId' },
 }));
 
 vi.mock('drizzle-orm', () => ({
@@ -84,14 +84,14 @@ describe('propagateContactChanges', () => {
 
   it('should return early with no tables updated when no fields change', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
-    const result = await propagateContactChanges({ contactId: 1 });
+    const result = await propagateContactChanges({ personId: 1 });
     expect(result.success).toBe(true);
     expect(result.tablesUpdated).toEqual([]);
   });
 
   it('should update contacts table when name changes', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
-    const result = await propagateContactChanges({ contactId: 1, name: 'Jane Doe' });
+    const result = await propagateContactChanges({ personId: 1, name: 'Jane Doe' });
     expect(result.success).toBe(true);
     expect(result.tablesUpdated).toContain('contacts');
     expect(mockUpdate).toHaveBeenCalled();
@@ -99,14 +99,14 @@ describe('propagateContactChanges', () => {
 
   it('should update contacts table when email changes', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
-    const result = await propagateContactChanges({ contactId: 1, email: 'new@email.com' });
+    const result = await propagateContactChanges({ personId: 1, email: 'new@email.com' });
     expect(result.success).toBe(true);
     expect(result.tablesUpdated).toContain('contacts');
   });
 
   it('should update contacts table when phone changes', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
-    const result = await propagateContactChanges({ contactId: 1, phone: '+15559876543' });
+    const result = await propagateContactChanges({ personId: 1, phone: '+15559876543' });
     expect(result.success).toBe(true);
     expect(result.tablesUpdated).toContain('contacts');
   });
@@ -120,7 +120,7 @@ describe('propagateContactChanges', () => {
       return { where: mockWhere };
     });
     
-    await propagateContactChanges({ contactId: 1, name: 'Jane Marie Doe' });
+    await propagateContactChanges({ personId: 1, name: 'Jane Marie Doe' });
     
     expect(capturedSet).toBeDefined();
     // fullName is a MySQL GENERATED column - must NOT be set directly
@@ -138,7 +138,7 @@ describe('propagateContactChanges', () => {
       return { where: mockWhere };
     });
     
-    await propagateContactChanges({ contactId: 1, name: 'Madonna' });
+    await propagateContactChanges({ personId: 1, name: 'Madonna' });
     
     expect(capturedSet.firstName).toBe('Madonna');
     expect(capturedSet.lastName).toBeNull();
@@ -153,28 +153,28 @@ describe('propagateContactChanges', () => {
       return { where: mockWhere };
     });
     
-    await propagateContactChanges({ contactId: 1, email: 'John@Example.COM' });
+    await propagateContactChanges({ personId: 1, email: 'John@Example.COM' });
     
     expect(capturedSet.email).toBe('john@example.com');
   });
 
   // ─── SAFETY GUARD TESTS ─────────────────────────────────────────────
 
-  it('should throw when contactId does not exist', async () => {
+  it('should throw when personId does not exist', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
     
     // Mock select to return empty array (contact not found)
     mockSelectWhere.mockResolvedValue([]);
     
     await expect(
-      propagateContactChanges({ contactId: 999, name: 'Ghost Person' })
+      propagateContactChanges({ personId: 999, name: 'Ghost Person' })
     ).rejects.toThrow('Contact 999 not found');
   });
 
   it('should NOT overwrite non-empty name with blank by default', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
     
-    const result = await propagateContactChanges({ contactId: 1, name: '' });
+    const result = await propagateContactChanges({ personId: 1, name: '' });
     
     // Should skip the name field
     expect(result.fieldsSkipped.length).toBeGreaterThan(0);
@@ -184,7 +184,7 @@ describe('propagateContactChanges', () => {
   it('should NOT overwrite non-empty email with null by default', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
     
-    const result = await propagateContactChanges({ contactId: 1, email: null });
+    const result = await propagateContactChanges({ personId: 1, email: null });
     
     expect(result.fieldsSkipped.length).toBeGreaterThan(0);
     expect(result.fieldsSkipped[0]).toContain('email');
@@ -193,7 +193,7 @@ describe('propagateContactChanges', () => {
   it('should NOT overwrite non-empty phone with blank by default', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
     
-    const result = await propagateContactChanges({ contactId: 1, phone: '' });
+    const result = await propagateContactChanges({ personId: 1, phone: '' });
     
     expect(result.fieldsSkipped.length).toBeGreaterThan(0);
     expect(result.fieldsSkipped[0]).toContain('phone');
@@ -202,7 +202,7 @@ describe('propagateContactChanges', () => {
   it('should ALLOW blank overwrite when forceBlankOverwrite is true', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
     
-    const result = await propagateContactChanges({ contactId: 1, name: '', forceBlankOverwrite: true });
+    const result = await propagateContactChanges({ personId: 1, name: '', forceBlankOverwrite: true });
     
     // Should NOT skip — should proceed with the blank
     expect(result.fieldsSkipped.length).toBe(0);
@@ -212,7 +212,7 @@ describe('propagateContactChanges', () => {
   it('should return previousValues and newValues for audit', async () => {
     const { propagateContactChanges } = await import('./propagateContactChanges');
     
-    const result = await propagateContactChanges({ contactId: 1, name: 'Jane Doe', source: 'test' });
+    const result = await propagateContactChanges({ personId: 1, name: 'Jane Doe', source: 'test' });
     
     expect(result.previousValues).toBeDefined();
     expect(result.previousValues.name).toBe('John Smith');
@@ -229,7 +229,7 @@ describe('propagateContactChanges', () => {
       email: 'john@test.com', phone: null, lifecycleStage: 'active_client',
     }]);
     
-    const result = await propagateContactChanges({ contactId: 1, phone: '+15559876543' });
+    const result = await propagateContactChanges({ personId: 1, phone: '+15559876543' });
     
     expect(result.fieldsSkipped.length).toBe(0);
     expect(result.tablesUpdated).toContain('contacts');
@@ -255,7 +255,7 @@ describe('Prospect update propagation', () => {
     );
     expect(source).toContain('hasContactInfoChange');
     expect(source).toContain('propagateContactChanges');
-    expect(source).toContain('prospect.contactId');
+    expect(source).toContain('prospect.personId');
   });
 });
 
@@ -267,7 +267,7 @@ describe('Client Protocol update propagation', () => {
       'utf-8'
     );
     expect(source).toContain('[clientProtocol.update] Propagated contact changes');
-    expect(source).toContain('protocolForContact?.contactId');
+    expect(source).toContain('protocolForContact?.personId');
   });
 });
 
@@ -296,7 +296,7 @@ describe('Custom Orders update propagation', () => {
       'utf-8'
     );
     expect(source).toContain('propagateContactChanges');
-    expect(source).toContain('order.contactId');
+    expect(source).toContain('order.personId');
     expect(source).toContain('input.clientName');
     expect(source).toContain('input.clientEmail');
     expect(source).toContain('input.clientPhone');
@@ -359,7 +359,7 @@ describe('Safety guards in propagateContactChanges source', () => {
     expect(source).toContain('fieldsSkipped');
     expect(source).toContain('previousValues');
     expect(source).toContain('newValues');
-    expect(source).toContain('Contact ${contactId} not found');
+    expect(source).toContain('Contact ${personId} not found');
   });
 
   it('should NOT set fullName directly on contacts table (GENERATED column)', async () => {

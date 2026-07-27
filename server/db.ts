@@ -64,10 +64,6 @@ import {
   InsertSiteSetting,
   cloneHistory,
   InsertCloneHistory,
-  coupons,
-  couponUsage,
-  InsertCoupon,
-  InsertCouponUsage,
   emailEvents,
   emailBrandingSettings,
   InsertEmailEvent,
@@ -1146,27 +1142,27 @@ export async function clearAllTemplateItems(templateId: number) {
 // column/table are dropped at cutover. Nothing in the app reads or writes `clients`
 // anymore — see the definition-of-done grep gate in cutover/app-contactid-only-plan.md.)
 
-// Protocol versions are grouped by the canonical contactId (identity-consolidation:
-// the legacy clientId is no longer written; contactId is carried forward on every
+// Protocol versions are grouped by the canonical personId (identity-consolidation:
+// the legacy clientId is no longer written; personId is carried forward on every
 // version). These replaced the removed getClientProtocolsByClientId /
 // getActiveProtocolForClient, which read the retired client_protocols.clientId.
-export async function getClientProtocolsByContactId(contactId: number) {
+export async function getClientProtocolsByContactId(personId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(clientProtocols)
     .where(and(
-      eq(clientProtocols.contactId, contactId),
+      eq(clientProtocols.personId, personId),
       isNull(clientProtocols.deletedAt)
     ))
     .orderBy(desc(clientProtocols.version));
 }
 
-export async function getActiveProtocolForContact(contactId: number) {
+export async function getActiveProtocolForContact(personId: number) {
   const db = await getDb();
   if (!db) return null;
   const result = await db.select().from(clientProtocols)
     .where(and(
-      eq(clientProtocols.contactId, contactId),
+      eq(clientProtocols.personId, personId),
       eq(clientProtocols.isActiveVersion, 1),
       isNull(clientProtocols.deletedAt)
     ))
@@ -1176,17 +1172,17 @@ export async function getActiveProtocolForContact(contactId: number) {
 
 // (removed createNewProtocolVersion — the legacy clientId-keyed creation path.
 // It resolved client info from the clients/users tables and wrote client_protocols.clientId.
-// Callers now use createNewProtocolVersionFromProtocol, keyed on the protocol/contactId.)
+// Callers now use createNewProtocolVersionFromProtocol, keyed on the protocol/personId.)
 
 // Create a new protocol version from an existing protocol (works even when clientId is null)
 export async function createNewProtocolVersionFromProtocol(currentProtocol: any, data: Partial<InsertClientProtocol>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   if (!currentProtocol) throw new Error("Current protocol is required");
-  // contactId is NOT NULL on client_protocols and carried onto every version. A
+  // personId is NOT NULL on client_protocols and carried onto every version. A
   // source protocol without one means upstream data is broken — fail fast rather
   // than emit a new version that would die on the NOT NULL constraint.
-  if (!currentProtocol.contactId) throw new Error("Cannot create a new protocol version: the source protocol has no contact link.");
+  if (!currentProtocol.personId) throw new Error("Cannot create a new protocol version: the source protocol has no contact link.");
 
   const currentVersion = currentProtocol.version || 1;
   const previousVersionId = currentProtocol.id;
@@ -1217,23 +1213,23 @@ export async function createNewProtocolVersionFromProtocol(currentProtocol: any,
   
   // Also deactivate and auto-archive any other active versions for the same
   // contact. Identity-consolidation: versions are grouped by the canonical
-  // contactId, not the legacy clientId which is no longer written.
-  if (currentProtocol.contactId) {
+  // personId, not the legacy clientId which is no longer written.
+  if (currentProtocol.personId) {
     await db.update(clientProtocols)
       .set({ isActiveVersion: false, archivedAt: new Date() })
       .where(and(
-        eq(clientProtocols.contactId, currentProtocol.contactId),
+        eq(clientProtocols.personId, currentProtocol.personId),
         eq(clientProtocols.isActiveVersion, true)
       ));
   }
   
-  // Build new protocol data from the current protocol's fields. Carry contactId
+  // Build new protocol data from the current protocol's fields. Carry personId
   // forward so the canonical identity link stays complete (identity-consolidation
   // 2026-06-30).
   const newProtocolData: InsertClientProtocol = {
-    // clientId intentionally not carried forward — identity is keyed on contactId
+    // clientId intentionally not carried forward — identity is keyed on personId
     // (identity-consolidation). The legacy clientId column is being retired.
-    contactId: currentProtocol.contactId,
+    personId: currentProtocol.personId,
     clientName: currentProtocol.clientName,
     clientEmail: currentProtocol.clientEmail || undefined,
     clientPhone: currentProtocol.clientPhone || undefined,
@@ -1370,18 +1366,18 @@ export async function getClientProtocolsByEmail(email: string) {
   return result;
 }
 
-export async function createClientProtocol(data: Omit<InsertClientProtocol, "contactId"> & { contactId?: number }) {
+export async function createClientProtocol(data: Omit<InsertClientProtocol, "personId"> & { personId?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
   // B4 — verified-email-required guard. Creating a protocol promotes a contact to
   // CLIENT, and the canonical client identity is keyed on verified email. So a
   // brand-new client protocol must carry an email. Records already resolved to a
-  // contact (version carry-forward, clones that pass contactId) are exempt — the
+  // contact (version carry-forward, clones that pass personId) are exempt — the
   // identity already exists. Phone/name-only entrants stay pre-client leads until
   // an email is on file. This is the app-layer guard ahead of the cutover
   // UNIQUE(contacts.email) constraint (cutover/identity-constraints.sql).
-  if (!data.contactId && !data.clientEmail) {
+  if (!data.personId && !data.clientEmail) {
     throw new Error(
       "A client email is required to create a protocol — verified email is the " +
       "unique client identity. Capture the client's email first (phone/name-only " +
@@ -1390,7 +1386,7 @@ export async function createClientProtocol(data: Omit<InsertClientProtocol, "con
   }
 
   // Create or find unified contact if not already linked
-  if (!data.contactId && (data.clientEmail || data.clientPhone || data.clientName)) {
+  if (!data.personId && (data.clientEmail || data.clientPhone || data.clientName)) {
     try {
       const { findOrCreateContact } = await import('./contacts/contactService');
       const contact = await findOrCreateContact({
@@ -1399,24 +1395,24 @@ export async function createClientProtocol(data: Omit<InsertClientProtocol, "con
         phone: data.clientPhone || undefined,
         lifecycleStage: 'active_client',
       });
-      data.contactId = contact.id;
+      data.personId = contact.id;
     } catch (e) {
       console.error('[createClientProtocol] Failed to create/find contact:', e);
     }
   }
   
-  // contactId is NOT NULL on client_protocols (identity-consolidation). If contact
+  // personId is NOT NULL on client_protocols (identity-consolidation). If contact
   // resolution above failed (e.g. the findOrCreateContact catch), fail fast with a
   // clear message instead of letting the insert die on a cryptic constraint error.
-  if (!data.contactId) {
+  if (!data.personId) {
     throw new Error(
       "Could not link this protocol to a contact record — a verified client email " +
       "is required. Capture the client's email and try again."
     );
   }
 
-  // data.contactId is guaranteed non-null by the guard above; cast to satisfy the
-  // NOT NULL insert type. (The input type keeps contactId optional so callers that
+  // data.personId is guaranteed non-null by the guard above; cast to satisfy the
+  // NOT NULL insert type. (The input type keeps personId optional so callers that
   // rely on internal contact resolution don't have to pass it.)
   const result = await db.insert(clientProtocols).values(data as InsertClientProtocol);
   return result[0].insertId;
@@ -2237,21 +2233,21 @@ export async function trackAffiliateClick(data: InsertAffiliateClick) {
 // ============ PROTOCOL COMMENTS ============
 // Identity-consolidation Phase 3 (continuous chat / CR-1): a comment thread follows
 // the CONTACT across all their protocol versions, not a single version. Reads,
-// read-state, and unread counts resolve the protocol's contactId and operate on the
+// read-state, and unread counts resolve the protocol's personId and operate on the
 // whole thread; they fall back to per-protocol when the protocol has no contact
 // (legacy / the 19 orphaned comments whose parent protocol was deleted).
 async function contactIdForProtocol(db: any, clientProtocolId: number): Promise<number | null> {
-  const rows = await db.select({ contactId: clientProtocols.contactId })
+  const rows = await db.select({ personId: clientProtocols.personId })
     .from(clientProtocols).where(eq(clientProtocols.id, clientProtocolId)).limit(1);
-  return rows[0]?.contactId ?? null;
+  return rows[0]?.personId ?? null;
 }
 
 export async function getProtocolComments(clientProtocolId: number) {
   const db = await getDb();
   if (!db) return [];
-  const contactId = await contactIdForProtocol(db, clientProtocolId);
-  const scope = contactId
-    ? eq(protocolComments.contactId, contactId)
+  const personId = await contactIdForProtocol(db, clientProtocolId);
+  const scope = personId
+    ? eq(protocolComments.personId, personId)
     : eq(protocolComments.clientProtocolId, clientProtocolId);
   return db.select().from(protocolComments)
     .where(scope)
@@ -2261,12 +2257,12 @@ export async function getProtocolComments(clientProtocolId: number) {
 export async function createProtocolComment(data: InsertProtocolComment) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  // Stamp the canonical contactId so the comment joins the continuous thread.
-  let contactId = (data as any).contactId ?? null;
-  if (!contactId && data.clientProtocolId) {
-    contactId = await contactIdForProtocol(db, data.clientProtocolId);
+  // Stamp the canonical personId so the comment joins the continuous thread.
+  let personId = (data as any).personId ?? null;
+  if (!personId && data.clientProtocolId) {
+    personId = await contactIdForProtocol(db, data.clientProtocolId);
   }
-  const values = { ...data, contactId };
+  const values = { ...data, personId };
   const result = await db.insert(protocolComments).values(values);
   return { id: result[0].insertId, ...values, createdAt: new Date() };
 }
@@ -2286,9 +2282,9 @@ export async function markCommentsAsRead(clientProtocolId: number, authorType: '
   if (!db) throw new Error("Database not available");
   // Mark comments from the OTHER party as read — across the whole contact thread.
   const otherType = authorType === 'coach' ? 'client' : 'coach';
-  const contactId = await contactIdForProtocol(db, clientProtocolId);
-  const scope = contactId
-    ? eq(protocolComments.contactId, contactId)
+  const personId = await contactIdForProtocol(db, clientProtocolId);
+  const scope = personId
+    ? eq(protocolComments.personId, personId)
     : eq(protocolComments.clientProtocolId, clientProtocolId);
   await db.update(protocolComments)
     .set({ isRead: true })
@@ -2300,9 +2296,9 @@ export async function getUnreadCommentCount(clientProtocolId: number, forAuthorT
   if (!db) return 0;
   // Count unread comments from the OTHER party — across the whole contact thread.
   const otherType = forAuthorType === 'coach' ? 'client' : 'coach';
-  const contactId = await contactIdForProtocol(db, clientProtocolId);
-  const scope = contactId
-    ? eq(protocolComments.contactId, contactId)
+  const personId = await contactIdForProtocol(db, clientProtocolId);
+  const scope = personId
+    ? eq(protocolComments.personId, personId)
     : eq(protocolComments.clientProtocolId, clientProtocolId);
   const result = await db.select({
     count: sql<number>`COUNT(*)`.as('count'),
@@ -3360,390 +3356,6 @@ export async function getPartnerClickStats() {
 }
 
 
-// ============ COUPONS ============
-export async function getAllCoupons() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(coupons).orderBy(desc(coupons.createdAt));
-}
-
-export async function getActiveCoupons() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(coupons)
-    .where(eq(coupons.isActive, true))
-    .orderBy(desc(coupons.createdAt));
-}
-
-export async function getCouponById(id: number) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.select().from(coupons).where(eq(coupons.id, id));
-  return result[0] || null;
-}
-
-export async function getCouponByCode(code: string) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.select().from(coupons)
-    .where(eq(coupons.code, code.toUpperCase()));
-  return result[0] || null;
-}
-
-export async function createCoupon(data: InsertCoupon) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  // Ensure code is uppercase
-  const couponData = {
-    ...data,
-    code: data.code.toUpperCase(),
-    // Flag if discount is over 20%
-    isFlagged: parseFloat(data.discountPercent as string) > 20,
-  };
-  
-  const result = await db.insert(coupons).values(couponData);
-  return { id: result[0].insertId, ...couponData };
-}
-
-export async function updateCoupon(id: number, data: Partial<InsertCoupon>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  const updateData: any = { ...data };
-  if (data.code) {
-    updateData.code = data.code.toUpperCase();
-  }
-  if (data.discountPercent !== undefined) {
-    updateData.isFlagged = parseFloat(data.discountPercent as string) > 20;
-  }
-  
-  await db.update(coupons).set(updateData).where(eq(coupons.id, id));
-  return getCouponById(id);
-}
-
-export async function deleteCoupon(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // Also delete usage records
-  await db.delete(couponUsage).where(eq(couponUsage.couponId, id));
-  await db.delete(coupons).where(eq(coupons.id, id));
-}
-
-export async function deactivateCoupon(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(coupons).set({ isActive: false }).where(eq(coupons.id, id));
-}
-
-export async function validateCoupon(code: string, clientProtocolId?: number): Promise<{
-  valid: boolean;
-  coupon?: typeof coupons.$inferSelect;
-  error?: string;
-}> {
-  const db = await getDb();
-  if (!db) return { valid: false, error: "Database not available" };
-  
-  const coupon = await getCouponByCode(code);
-  
-  if (!coupon) {
-    return { valid: false, error: "Invalid coupon code" };
-  }
-  
-  if (!coupon.isActive) {
-    return { valid: false, error: "This coupon is no longer active" };
-  }
-  
-  // Check expiration
-  if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
-    return { valid: false, error: "This coupon has expired" };
-  }
-  
-  // Check usage limits for one-time coupons
-  if (coupon.usageType === 'one_time' && coupon.currentUses >= 1) {
-    return { valid: false, error: "This coupon has already been used" };
-  }
-  
-  // Check max uses limit
-  if (coupon.maxUses !== null && coupon.currentUses >= coupon.maxUses) {
-    return { valid: false, error: "This coupon has reached its usage limit" };
-  }
-  
-  // Check client-specific scope
-  if (coupon.scope === 'client_specific' && coupon.clientProtocolId !== clientProtocolId) {
-    return { valid: false, error: "This coupon is not valid for this protocol" };
-  }
-  
-  return { valid: true, coupon };
-}
-
-export async function applyCoupon(couponId: number, clientProtocolId: number, discountApplied: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  // Record usage
-  await db.insert(couponUsage).values({
-    couponId,
-    clientProtocolId,
-    discountApplied: discountApplied.toString(),
-  });
-  
-  // Increment usage count
-  const coupon = await getCouponById(couponId);
-  if (coupon) {
-    await db.update(coupons)
-      .set({ currentUses: coupon.currentUses + 1 })
-      .where(eq(coupons.id, couponId));
-  }
-  
-  return { success: true };
-}
-
-export async function getCouponUsage(couponId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(couponUsage)
-    .where(eq(couponUsage.couponId, couponId))
-    .orderBy(desc(couponUsage.usedAt));
-}
-
-export async function getFlaggedCoupons() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(coupons)
-    .where(and(eq(coupons.isFlagged, true), eq(coupons.isActive, true)))
-    .orderBy(desc(coupons.createdAt));
-}
-
-export async function getCouponsForClient(clientProtocolId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(coupons)
-    .where(and(
-      eq(coupons.isActive, true),
-      or(
-        eq(coupons.scope, 'universal'),
-        eq(coupons.clientProtocolId, clientProtocolId)
-      )
-    ))
-    .orderBy(desc(coupons.createdAt));
-}
-
-// Coupon Analytics Functions
-export async function getCouponAnalytics() {
-  const db = await getDb();
-  if (!db) return { coupons: [], totalSavings: 0, totalUsages: 0 };
-  
-  // Get all coupons with their usage stats
-  const allCoupons = await db.select().from(coupons).orderBy(desc(coupons.currentUses));
-  
-  // Get all usage records with discount amounts
-  const allUsage = await db.select().from(couponUsage);
-  
-  // Calculate total savings
-  const totalSavings = allUsage.reduce((sum, usage) => sum + parseFloat(usage.discountApplied || '0'), 0);
-  const totalUsages = allUsage.length;
-  
-  // Calculate savings per coupon
-  const couponStats = allCoupons.map(coupon => {
-    const usages = allUsage.filter(u => u.couponId === coupon.id);
-    const savings = usages.reduce((sum, u) => sum + parseFloat(u.discountApplied || '0'), 0);
-    return {
-      ...coupon,
-      totalSavings: savings,
-      usageCount: usages.length,
-    };
-  });
-  
-  return {
-    coupons: couponStats,
-    totalSavings,
-    totalUsages,
-  };
-}
-
-export async function getCouponUsageDetails(couponId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  
-  // Get usage with client protocol details
-  const usage = await db.select({
-    id: couponUsage.id,
-    couponId: couponUsage.couponId,
-    clientProtocolId: couponUsage.clientProtocolId,
-    discountApplied: couponUsage.discountApplied,
-    usedAt: couponUsage.usedAt,
-    clientName: clientProtocols.clientName,
-    clientEmail: clientProtocols.clientEmail,
-  })
-    .from(couponUsage)
-    .leftJoin(clientProtocols, eq(couponUsage.clientProtocolId, clientProtocols.id))
-    .where(eq(couponUsage.couponId, couponId))
-    .orderBy(desc(couponUsage.usedAt));
-  
-  return usage;
-}
-
-// Bulk coupon generation
-export async function bulkCreateCoupons(
-  prefix: string,
-  count: number,
-  settings: {
-    discountPercent: number;
-    usageType: string;
-    maxUses: number | null;
-    scope: string;
-    expiresAt: Date | null;
-    notes: string | null;
-  }
-) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  const createdCoupons = [];
-  
-  for (let i = 0; i < count; i++) {
-    // Generate unique suffix
-    const suffix = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const code = `${prefix}${suffix}`;
-    
-    const isFlagged = settings.discountPercent > 20;
-    
-    const couponData: InsertCoupon = {
-      code,
-      discountPercent: settings.discountPercent.toString(),
-      usageType: settings.usageType as "one_time" | "unlimited",
-      maxUses: settings.maxUses,
-      scope: settings.scope as "universal" | "client_specific",
-      expiresAt: settings.expiresAt,
-      notes: settings.notes,
-      isFlagged,
-      isActive: true,
-      currentUses: 0,
-    };
-    
-    const result = await db.insert(coupons).values(couponData);
-    
-    createdCoupons.push({ id: result[0].insertId, code });
-  }
-  
-  return createdCoupons;
-}
-
-
-// Auto-deactivate expired or maxed-out coupons
-export async function autoDeactivateCoupons() {
-  const db = await getDb();
-  if (!db) return { deactivated: [] };
-  
-  const now = new Date();
-  const deactivated: { id: number; code: string; reason: string }[] = [];
-  
-  // Get all active coupons
-  const activeCoupons = await db.select().from(coupons).where(eq(coupons.isActive, true));
-  
-  for (const coupon of activeCoupons) {
-    let reason: string | null = null;
-    
-    // Check if expired
-    if (coupon.expiresAt && new Date(coupon.expiresAt) < now) {
-      reason = "Expired";
-    }
-    // Check if max uses reached
-    else if (coupon.maxUses && coupon.currentUses >= coupon.maxUses) {
-      reason = "Max uses reached";
-    }
-    
-    if (reason) {
-      await db.update(coupons)
-        .set({ isActive: false, deactivationReason: reason })
-        .where(eq(coupons.id, coupon.id));
-      
-      deactivated.push({ id: coupon.id, code: coupon.code, reason });
-    }
-  }
-  
-  return { deactivated };
-}
-
-// Get coupons expiring soon (within specified days)
-export async function getExpiringCoupons(daysAhead: number = 3) {
-  const db = await getDb();
-  if (!db) return [];
-  
-  const now = new Date();
-  const futureDate = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
-  
-  // Get active coupons with expiration dates within the range
-  const expiringCoupons = await db.select()
-    .from(coupons)
-    .where(
-      and(
-        eq(coupons.isActive, true),
-        isNotNull(coupons.expiresAt),
-        gt(coupons.expiresAt, now),
-        lte(coupons.expiresAt, futureDate)
-      )
-    )
-    .orderBy(coupons.expiresAt);
-  
-  return expiringCoupons;
-}
-
-// Get unique coupon categories
-export async function getCouponCategories() {
-  const db = await getDb();
-  if (!db) return [];
-  
-  const result = await db.selectDistinct({ category: coupons.category })
-    .from(coupons)
-    .where(isNotNull(coupons.category));
-  
-  return result.map(r => r.category).filter(Boolean) as string[];
-}
-
-// Get coupon usage trends (daily usage for past month)
-export async function getCouponUsageTrends(days: number = 30) {
-  const db = await getDb();
-  if (!db) return [];
-  
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
-  
-  // Get all usage records from the past month
-  const usage = await db.select()
-    .from(couponUsage)
-    .where(gte(couponUsage.usedAt, startDate))
-    .orderBy(couponUsage.usedAt);
-  
-  // Group by date
-  const dailyUsage: { [date: string]: { count: number; savings: number } } = {};
-  
-  // Initialize all days with 0
-  for (let i = 0; i < days; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-    const dateStr = date.toISOString().split('T')[0];
-    dailyUsage[dateStr] = { count: 0, savings: 0 };
-  }
-  
-  // Fill in actual usage
-  for (const record of usage) {
-    const dateStr = new Date(record.usedAt).toISOString().split('T')[0];
-    if (dailyUsage[dateStr]) {
-      dailyUsage[dateStr].count++;
-      dailyUsage[dateStr].savings += parseFloat(record.discountApplied || '0');
-    }
-  }
-  
-  // Convert to array
-  return Object.entries(dailyUsage).map(([date, data]) => ({
-    date,
-    count: data.count,
-    savings: data.savings,
-  }));
-}
-
 
 // ============ EMAIL TRACKING FUNCTIONS ============
 
@@ -4030,7 +3642,7 @@ export async function getEmailAnalytics(days: number = 30): Promise<{
 // Create a protocol order
 export async function createProtocolOrder(data: {
   clientProtocolId: number;
-  contactId: number;
+  personId: number;
   clientName: string;
   clientEmail: string;
   stripeSessionId: string;
@@ -4042,7 +3654,7 @@ export async function createProtocolOrder(data: {
 
   const result = await database.insert(protocolOrders).values({
     clientProtocolId: data.clientProtocolId,
-    contactId: data.contactId,
+    personId: data.personId,
     clientName: data.clientName,
     clientEmail: data.clientEmail,
     stripeSessionId: data.stripeSessionId,
@@ -4971,20 +4583,24 @@ export async function updatePackingSlipDimensions(
     packageLength: number | null;
     packageWidth: number | null;
     packageHeight: number | null;
+    insuranceAmount?: number | null;
   }
 ) {
   const database = await getDb();
   if (!database) throw new Error("Database not available");
-  
+
   await database.update(packingSlips)
     .set({
       packageWeight: dimensionsData.packageWeight?.toString() || null,
       packageLength: dimensionsData.packageLength?.toString() || null,
       packageWidth: dimensionsData.packageWidth?.toString() || null,
       packageHeight: dimensionsData.packageHeight?.toString() || null,
+      ...(dimensionsData.insuranceAmount !== undefined && {
+        insuranceAmount: dimensionsData.insuranceAmount?.toString() || null,
+      }),
     })
     .where(eq(packingSlips.id, packingSlipId));
-  
+
   return { success: true };
 }
 
@@ -5573,14 +5189,14 @@ export async function getClientProjectsByTeamMember(teamMemberId: number) {
     .orderBy(desc(clientProjects.createdAt));
 }
 
-// Projects for a person, keyed on the canonical contactId (identity-consolidation:
+// Projects for a person, keyed on the canonical personId (identity-consolidation:
 // find the contact's protocols, then the projects linked to those protocols). This
 // replaced getClientProjects, which grouped by the retired client_protocols.clientId.
-export async function getClientProjectsByContactId(contactId: number) {
+export async function getClientProjectsByContactId(personId: number) {
   const db = await getDb();
   if (!db) return [];
   const protocols = await db.select({ id: clientProtocols.id }).from(clientProtocols)
-    .where(eq(clientProtocols.contactId, contactId));
+    .where(eq(clientProtocols.personId, personId));
   if (protocols.length === 0) return [];
   const protocolIds = protocols.map(p => p.id);
   return db.select().from(clientProjects)
@@ -8150,13 +7766,16 @@ export async function expirePendingVenmoPayments() {
 
 // ============ SAVED ADDRESSES ============
 
-export async function getSavedAddresses(userId: number) {
+// Addresses belong to the PERSON, not to a login. Keying these off userId meant
+// the ~43 people without an account could not own an address at all — including
+// clients imported from peptidecoach.pro. All reads go through personId.
+export async function getSavedAddresses(personId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db
     .select()
     .from(savedAddresses)
-    .where(eq(savedAddresses.userId, userId))
+    .where(eq(savedAddresses.personId, personId))
     .orderBy(desc(savedAddresses.isDefault), asc(savedAddresses.label));
 }
 
@@ -8171,13 +7790,13 @@ export async function getSavedAddressById(id: number) {
   return results[0] || null;
 }
 
-export async function getDefaultAddress(userId: number) {
+export async function getDefaultAddress(personId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const results = await db
     .select()
     .from(savedAddresses)
-    .where(and(eq(savedAddresses.userId, userId), eq(savedAddresses.isDefault, true)))
+    .where(and(eq(savedAddresses.personId, personId), eq(savedAddresses.isDefault, true)))
     .limit(1);
   return results[0] || null;
 }
@@ -8201,13 +7820,13 @@ export async function deleteSavedAddress(id: number) {
   await db.delete(savedAddresses).where(eq(savedAddresses.id, id));
 }
 
-export async function clearDefaultAddress(userId: number) {
+export async function clearDefaultAddress(personId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db
     .update(savedAddresses)
     .set({ isDefault: false })
-    .where(eq(savedAddresses.userId, userId));
+    .where(eq(savedAddresses.personId, personId));
 }
 
 
@@ -8503,14 +8122,14 @@ export async function cleanupExpiredSessions(): Promise<number> {
  * consolidation Phase 3 / continuous chat). The latest message + unread count span
  * the contact's whole thread across every protocol version; the row links to the
  * protocol carrying the latest message. Comments on deleted protocols are excluded
- * (as before); a comment with no contactId (edge/orphan) falls back to keying the
+ * (as before); a comment with no personId (edge/orphan) falls back to keying the
  * conversation on its own protocol.
  */
 export async function getInboxConversations() {
   const db = await getDb();
   if (!db) return [];
 
-  // convKey = contactId when present, else -clientProtocolId (keeps orphan protocols
+  // convKey = personId when present, else -clientProtocolId (keeps orphan protocols
   // in their own bucket without colliding with real contactIds).
   const conversations = await db.execute(sql`
     SELECT
@@ -8528,24 +8147,24 @@ export async function getInboxConversations() {
       COALESCE(ur.unreadCount, 0) as unreadCount,
       u.lastSeenAt as clientLastSeenAt
     FROM (
-      SELECT c.id, c.clientProtocolId, c.contactId, c.message, c.authorType, c.authorName, c.createdAt, c.loomUrl
+      SELECT c.id, c.clientProtocolId, c.personId, c.message, c.authorType, c.authorName, c.createdAt, c.loomUrl
       FROM protocol_comments c
       INNER JOIN (
-        SELECT COALESCE(c2.contactId, -c2.clientProtocolId) AS convKey, MAX(c2.id) AS maxId
+        SELECT COALESCE(c2.personId, -c2.clientProtocolId) AS convKey, MAX(c2.id) AS maxId
         FROM protocol_comments c2
         JOIN client_protocols cp2 ON cp2.id = c2.clientProtocolId AND cp2.deletedAt IS NULL
-        GROUP BY COALESCE(c2.contactId, -c2.clientProtocolId)
+        GROUP BY COALESCE(c2.personId, -c2.clientProtocolId)
       ) k ON c.id = k.maxId
     ) lm
     JOIN client_protocols cp ON cp.id = lm.clientProtocolId
     LEFT JOIN users u ON LOWER(cp.clientEmail) = LOWER(u.email)
     LEFT JOIN (
-      SELECT COALESCE(c3.contactId, -c3.clientProtocolId) AS convKey, COUNT(*) AS unreadCount
+      SELECT COALESCE(c3.personId, -c3.clientProtocolId) AS convKey, COUNT(*) AS unreadCount
       FROM protocol_comments c3
       JOIN client_protocols cp3 ON cp3.id = c3.clientProtocolId AND cp3.deletedAt IS NULL
       WHERE c3.authorType = 'client' AND c3.isRead = 0
-      GROUP BY COALESCE(c3.contactId, -c3.clientProtocolId)
-    ) ur ON ur.convKey = COALESCE(lm.contactId, -lm.clientProtocolId)
+      GROUP BY COALESCE(c3.personId, -c3.clientProtocolId)
+    ) ur ON ur.convKey = COALESCE(lm.personId, -lm.clientProtocolId)
     WHERE cp.deletedAt IS NULL
     ORDER BY lm.createdAt DESC
   `);

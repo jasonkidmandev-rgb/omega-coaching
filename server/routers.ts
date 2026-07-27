@@ -48,6 +48,27 @@ import { users } from "../drizzle/schema";
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
 
+/**
+ * Resolve the PERSON behind the logged-in account.
+ *
+ * `users` is the auth principal; `people` is the human. Anything that belongs to
+ * the human (addresses, protocols, orders) must be keyed by personId so it stays
+ * correct for the ~43 people who have no login at all.
+ *
+ * users.personId is populated for 79/79 rows, so this should never throw — but it
+ * is nullable in the schema, and silently falling back to userId would resurrect
+ * the exact bug we just removed. Fail loudly instead.
+ */
+function requirePersonId(user: { id: number; personId: number | null }): number {
+  if (user.personId == null) {
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'This account is not linked to a person record. Please contact support.',
+    });
+  }
+  return user.personId;
+}
+
 // ============ CATEGORY ROUTER ============
 const categoryRouter = router({
   list: publicProcedure.query(async () => {
@@ -476,13 +497,13 @@ const clientProtocolRouter = router({
       }));
     }),
   // Get all protocol versions for a contact (canonical identity). The live UI
-  // uses getVersionHistoryByProtocolId; this contactId-keyed variant is kept for
-  // admin/API use. Identity-consolidation: versions group by contactId, not the
+  // uses getVersionHistoryByProtocolId; this personId-keyed variant is kept for
+  // admin/API use. Identity-consolidation: versions group by personId, not the
   // retired clientId.
   getVersionHistory: adminProcedure
-    .input(z.object({ contactId: z.number() }))
+    .input(z.object({ personId: z.number() }))
     .query(async ({ input }) => {
-      return db.getClientProtocolsByContactId(input.contactId);
+      return db.getClientProtocolsByContactId(input.personId);
     }),
   // Create a new protocol version from an existing protocol. Identity-consolidation:
   // resolution is keyed on the protocol being viewed (protocolId) rather than the
@@ -729,9 +750,9 @@ const clientProtocolRouter = router({
       }
 
       // Deactivate all other versions for this contact. Identity-consolidation:
-      // versions group by the canonical contactId, not the retired clientId.
-      if (protocol.contactId) {
-        const allVersions = await db.getClientProtocolsByContactId(protocol.contactId);
+      // versions group by the canonical personId, not the retired clientId.
+      if (protocol.personId) {
+        const allVersions = await db.getClientProtocolsByContactId(protocol.personId);
         for (const version of allVersions) {
           if (version.id !== input.protocolId) {
             await db.updateClientProtocol(version.id, { isActiveVersion: false });
@@ -757,12 +778,12 @@ const clientProtocolRouter = router({
       const allProtocols = await db.getAllClientProtocols();
       const relatedVersionIds = new Set<number>();
       
-      // Method 1: If protocol has a contactId, find all protocols with the same
-      // contactId. Identity-consolidation: group by the canonical contactId, not
+      // Method 1: If protocol has a personId, find all protocols with the same
+      // personId. Identity-consolidation: group by the canonical personId, not
       // the retired clientId (which is now null on new protocols).
-      if (protocol.contactId) {
+      if (protocol.personId) {
         allProtocols.forEach(p => {
-          if (p.contactId === protocol.contactId) {
+          if (p.personId === protocol.personId) {
             relatedVersionIds.add(p.id);
           }
         });
@@ -824,7 +845,7 @@ const clientProtocolRouter = router({
       
       // Create a new version based on the current (source) protocol. Identity-
       // consolidation: use the protocol-keyed creation path so it works without a
-      // clientId and carries contactId forward.
+      // clientId and carries personId forward.
       const newProtocolId = await db.createNewProtocolVersionFromProtocol(
         sourceProtocol,
         {
@@ -859,7 +880,7 @@ const clientProtocolRouter = router({
       }
       
       // Copy other protocol details. clientId intentionally omitted — identity is
-      // keyed on contactId, already carried forward by the creation path above.
+      // keyed on personId, already carried forward by the creation path above.
       await db.updateClientProtocol(newProtocolId, {
         clientName: sourceProtocol.clientName,
         clientEmail: sourceProtocol.clientEmail,
@@ -1082,7 +1103,7 @@ const clientProtocolRouter = router({
             const updateData: Record<string, unknown> = {};
             if (cleanData.programId && !recentProtocol.programId) updateData.programId = cleanData.programId;
             if (cleanData.durationMonths && !recentProtocol.durationMonths) updateData.durationMonths = cleanData.durationMonths;
-            if (cleanData.contactId && !recentProtocol.contactId) updateData.contactId = cleanData.contactId;
+            if (cleanData.personId && !recentProtocol.personId) updateData.personId = cleanData.personId;
             if (Object.keys(updateData).length > 0) {
               await db.updateClientProtocol(recentProtocol.id, updateData);
             }
@@ -1092,14 +1113,14 @@ const clientProtocolRouter = router({
           
           console.log(`[ClientProtocol.create] Client ${input.clientEmail} already has ${activeProtocols.length} active protocol(s). Creating as new version.`);
           // Auto-set as a new version grouped with the existing client's protocols.
-          // Identity-consolidation: carry the canonical contactId forward (clientId
-          // is retired). createClientProtocol also resolves contactId from the email
+          // Identity-consolidation: carry the canonical personId forward (clientId
+          // is retired). createClientProtocol also resolves personId from the email
           // as a backstop, so this keeps versions grouped even for pre-contact rows.
           const latestProtocol = activeProtocols[activeProtocols.length - 1];
           const maxVersion = Math.max(...existingProtocols.map((p: any) => p.version || 1));
           cleanData.version = maxVersion + 1;
-          if (latestProtocol.contactId) {
-            cleanData.contactId = latestProtocol.contactId;
+          if (latestProtocol.personId) {
+            cleanData.personId = latestProtocol.personId;
           }
           // Mark previous active versions as inactive
           for (const p of activeProtocols) {
@@ -1180,11 +1201,11 @@ const clientProtocolRouter = router({
         
         // NOTE (2026-07-02): auto-creation of a Client Project on admin
         // protocol-create was removed here — it was dead code, gated on the legacy
-        // `clientId` which is never set on this path (protocols use `contactId`).
+        // `clientId` which is never set on this path (protocols use `personId`).
         // Enrolled clients still get a project via the onboarding flow. Whether
         // admin-built protocols SHOULD auto-create a project is a pending decision
         // for Jason (docs/change-requests/note-to-jason-remaining-removals.md); if
-        // yes, re-add it deliberately keyed on contactId with proper dedup.
+        // yes, re-add it deliberately keyed on personId with proper dedup.
 
         return { id, accessToken: protocol?.accessToken };
       } else {
@@ -1306,17 +1327,17 @@ const clientProtocolRouter = router({
         if (hasContactInfoChange) {
           try {
             const protocolForContact = protocol || await db.getClientProtocolById(id);
-            if (protocolForContact?.contactId) {
+            if (protocolForContact?.personId) {
               const { propagateContactChanges } = await import('./contacts/propagateContactChanges');
               await propagateContactChanges({
-                contactId: protocolForContact.contactId,
+                personId: protocolForContact.personId,
                 ...(input.clientName !== undefined ? { name: input.clientName } : {}),
                 ...(input.clientEmail !== undefined ? { email: input.clientEmail } : {}),
                 ...(input.clientPhone !== undefined ? { phone: input.clientPhone } : {}),
               });
-              console.log(`[clientProtocol.update] Propagated contact changes for protocol ${id} → contact ${protocolForContact.contactId}`);
+              console.log(`[clientProtocol.update] Propagated contact changes for protocol ${id} → contact ${protocolForContact.personId}`);
             } else {
-              console.warn(`[clientProtocol.update] Protocol ${id} has no contactId — changes not propagated`);
+              console.warn(`[clientProtocol.update] Protocol ${id} has no personId — changes not propagated`);
             }
           } catch (propError) {
             console.error('[clientProtocol.update] Contact propagation error:', propError);
@@ -4794,201 +4815,6 @@ const affiliatePartnersRouter = router({
     }),
 });
 
-// ============ COUPON ROUTER ============
-const couponRouter = router({
-  list: adminProcedure.query(async () => {
-    return db.getAllCoupons();
-  }),
-  active: adminProcedure.query(async () => {
-    return db.getActiveCoupons();
-  }),
-  flagged: adminProcedure.query(async () => {
-    return db.getFlaggedCoupons();
-  }),
-  byId: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
-      return db.getCouponById(input.id);
-    }),
-  create: adminProcedure
-    .input(
-      z.object({
-        code: z.string().min(3).max(50),
-        discountPercent: z.string().refine((val) => {
-          const num = parseFloat(val);
-          return num > 0 && num <= 35;
-        }, { message: "Discount must be between 0 and 35%" }),
-        usageType: z.enum(["one_time", "unlimited"]),
-        scope: z.enum(["universal", "client_specific"]),
-        clientProtocolId: z.number().optional().nullable(),
-        expiresAt: z.string().optional().nullable(),
-        maxUses: z.number().optional().nullable(),
-        notes: z.string().optional().nullable(),
-        category: z.string().optional().nullable(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      const couponData = {
-        ...input,
-        expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
-        createdBy: ctx.user?.id,
-      };
-      return db.createCoupon(couponData);
-    }),
-  update: adminProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        code: z.string().min(3).max(50).optional(),
-        discountPercent: z.string().refine((val) => {
-          const num = parseFloat(val);
-          return num > 0 && num <= 35;
-        }, { message: "Discount must be between 0 and 35%" }).optional(),
-        usageType: z.enum(["one_time", "unlimited"]).optional(),
-        scope: z.enum(["universal", "client_specific"]).optional(),
-        clientProtocolId: z.number().optional().nullable(),
-        expiresAt: z.string().optional().nullable(),
-        maxUses: z.number().optional().nullable(),
-        isActive: z.boolean().optional(),
-        notes: z.string().optional().nullable(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      const { id, ...data } = input;
-      const updateData: any = { ...data };
-      if (data.expiresAt !== undefined) {
-        updateData.expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
-      }
-      return db.updateCoupon(id, updateData);
-    }),
-  delete: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      await db.deleteCoupon(input.id);
-      return { success: true };
-    }),
-  bulkDelete: adminProcedure
-    .input(z.object({ ids: z.array(z.number()) }))
-    .mutation(async ({ input }) => {
-      for (const id of input.ids) {
-        await db.deleteCoupon(id);
-      }
-      return { success: true, count: input.ids.length };
-    }),
-  deactivate: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      await db.deactivateCoupon(input.id);
-      return { success: true };
-    }),
-  validate: publicProcedure
-    .input(
-      z.object({
-        code: z.string(),
-        clientProtocolId: z.number().optional(),
-      })
-    )
-    .query(async ({ input }) => {
-      return db.validateCoupon(input.code, input.clientProtocolId);
-    }),
-  applyCoupon: publicProcedure
-    .input(
-      z.object({
-        couponId: z.number(),
-        clientProtocolId: z.number(),
-        discountApplied: z.number(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      // Get coupon details to check if it's a high-discount coupon
-      const coupon = await db.getCouponById(input.couponId);
-      const protocol = await db.getClientProtocolById(input.clientProtocolId);
-      
-      // Apply the coupon
-      const result = await db.applyCoupon(input.couponId, input.clientProtocolId, input.discountApplied);
-      
-      // Send notification if discount > 20%
-      if (coupon && protocol && parseFloat(coupon.discountPercent) > 20) {
-        const { sendHighDiscountCouponNotification } = await import("./emailService");
-        
-        // Get admin emails (users with receiveNotifications enabled)
-        const admins = await db.getUsersWithNotificationsEnabled();
-        const adminEmails = admins.map((a: { email: string | null }) => a.email).filter((e: string | null): e is string => !!e);
-        
-        // Send notification asynchronously (don't block the response)
-        sendHighDiscountCouponNotification({
-          adminEmails,
-          couponCode: coupon.code,
-          discountPercent: parseFloat(coupon.discountPercent),
-          clientName: protocol.clientName,
-          clientEmail: protocol.clientEmail,
-          protocolId: protocol.id,
-          discountAmount: input.discountApplied,
-        }).catch(err => console.error("Failed to send high-discount notification:", err));
-      }
-      
-      return result;
-    }),
-  usage: adminProcedure
-    .input(z.object({ couponId: z.number() }))
-    .query(async ({ input }) => {
-      return db.getCouponUsage(input.couponId);
-    }),
-  forClient: publicProcedure
-    .input(z.object({ clientProtocolId: z.number() }))
-    .query(async ({ input }) => {
-      return db.getCouponsForClient(input.clientProtocolId);
-    }),
-  analytics: adminProcedure.query(async () => {
-    return db.getCouponAnalytics();
-  }),
-  usageDetails: adminProcedure
-    .input(z.object({ couponId: z.number() }))
-    .query(async ({ input }) => {
-      return db.getCouponUsageDetails(input.couponId);
-    }),
-  bulkCreate: adminProcedure
-    .input(
-      z.object({
-        prefix: z.string().min(2).max(20),
-        count: z.number().min(1).max(100),
-        discountPercent: z.number().min(1).max(35),
-        usageType: z.enum(["one_time", "unlimited"]),
-        scope: z.enum(["universal", "client_specific"]),
-        maxUses: z.number().optional().nullable(),
-        expiresAt: z.string().optional().nullable(),
-        notes: z.string().optional().nullable(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      const settings = {
-        discountPercent: input.discountPercent,
-        usageType: input.usageType,
-        maxUses: input.maxUses ?? null,
-        scope: input.scope,
-        expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
-        notes: input.notes ?? null,
-      };
-      return db.bulkCreateCoupons(input.prefix, input.count, settings);
-    }),
-  categories: adminProcedure.query(async () => {
-    return db.getCouponCategories();
-  }),
-  autoDeactivate: adminProcedure.mutation(async () => {
-    return db.autoDeactivateCoupons();
-  }),
-  expiringSoon: adminProcedure
-    .input(z.object({ days: z.number().default(3) }).optional())
-    .query(async ({ input }) => {
-      return db.getExpiringCoupons(input?.days ?? 3);
-    }),
-  usageTrends: adminProcedure
-    .input(z.object({ days: z.number().default(30) }).optional())
-    .query(async ({ input }) => {
-      return db.getCouponUsageTrends(input?.days ?? 30);
-    }),
-});
-
 // ============ EMAIL TRACKING ROUTER ============
 const emailTrackingRouter = router({
   // Get email status for a protocol
@@ -5781,6 +5607,7 @@ const packingSlipRouter = router({
       packageLength: z.number().nullable(),
       packageWidth: z.number().nullable(),
       packageHeight: z.number().nullable(),
+      insuranceAmount: z.number().nullable().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const { packingSlipId, ...dimensionsData } = input;
@@ -6334,9 +6161,9 @@ const packingSlipRouter = router({
         // Find the client project linked to this packing slip's protocol
         if (packingSlip.clientProtocolId) {
           const protocol = await db.getClientProtocolById(packingSlip.clientProtocolId);
-          if (protocol?.contactId) {
-            // Find the client's active project (keyed on the canonical contactId)
-            const projects = await db.getClientProjectsByContactId(protocol.contactId);
+          if (protocol?.personId) {
+            // Find the client's active project (keyed on the canonical personId)
+            const projects = await db.getClientProjectsByContactId(protocol.personId);
             const activeProject = projects.find((p: any) => p.status === 'active') || projects[0];
             if (activeProject) {
               await db.createProjectTask({
@@ -7098,7 +6925,6 @@ export const appRouter = router({
   clientPaymentPortal: clientPaymentPortalRouter,
   bulkProfileReminder: bulkProfileReminderRouter,
   affiliatePartners: affiliatePartnersRouter,
-  coupon: couponRouter,
   emailTracking: emailTrackingRouter,
   packingSlip: packingSlipRouter,
   onboarding: onboardingRouter,
@@ -7544,7 +7370,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         // Find or create unified contact record
-        let contactId: number | null = null;
+        let personId: number | null = null;
         try {
           const { findOrCreateContact } = await import('./contacts/contactService');
           const nameParts = input.clientName.trim().split(/\s+/);
@@ -7555,11 +7381,11 @@ export const appRouter = router({
             firstName,
             lastName,
           });
-          contactId = contact.id;
+          personId = contact.id;
         } catch (e) { console.error('[ClientProject] Contact link error:', e); }
 
         // If no lifecycle stage specified, default to Intake
-        let projectData: any = { ...input, contactId };
+        let projectData: any = { ...input, personId };
         if (!projectData.currentLifecycleStageId) {
           const lifecycleStages = await db.getAllLifecycleStages();
           const intakeStage = lifecycleStages.find(s => s.name === 'Intake');
@@ -7626,16 +7452,16 @@ export const appRouter = router({
         if (hasContactInfoChange) {
           try {
             const project = oldProject || await db.getClientProjectById(id);
-            if (project?.contactId) {
+            if (project?.personId) {
               const { propagateContactChanges } = await import('./contacts/propagateContactChanges');
               await propagateContactChanges({
-                contactId: project.contactId,
+                personId: project.personId,
                 ...(input.clientName !== undefined ? { name: input.clientName } : {}),
                 ...(input.clientEmail !== undefined ? { email: input.clientEmail } : {}),
               });
-              console.log(`[clientProject.update] Propagated contact changes for project ${id} \u2192 contact ${project.contactId}`);
+              console.log(`[clientProject.update] Propagated contact changes for project ${id} \u2192 contact ${project.personId}`);
             } else {
-              console.warn(`[clientProject.update] Project ${id} has no contactId \u2014 changes not propagated`);
+              console.warn(`[clientProject.update] Project ${id} has no personId \u2014 changes not propagated`);
             }
           } catch (propError) {
             console.error('[clientProject.update] Contact propagation error:', propError);
@@ -7652,7 +7478,7 @@ export const appRouter = router({
       }),
     // (removed syncClientsToProjects — a legacy one-time backfill that iterated the
     // retired `clients` table to create/link client projects. Superseded by
-    // per-protocol project creation at onboarding (keyed on contactId). If a
+    // per-protocol project creation at onboarding (keyed on personId). If a
     // "backfill missing projects" ops tool is wanted, rebuild it keyed on protocols
     // that lack a project — see Jason's removals note.)
     applyTemplate: adminProcedure
@@ -8709,17 +8535,19 @@ export const appRouter = router({
   }),
   // Saved Addresses for faster checkout
   savedAddresses: router({
-    // Get all saved addresses for current user
+    // Addresses belong to the PERSON, not the login — see requirePersonId.
+    // Get all saved addresses for the current person
     list: protectedProcedure.query(async ({ ctx }) => {
-      return db.getSavedAddresses(ctx.user.id);
+      return db.getSavedAddresses(requirePersonId(ctx.user));
     }),
-    
+
     // Get a single address by ID
     get: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ ctx, input }) => {
+        const personId = requirePersonId(ctx.user);
         const address = await db.getSavedAddressById(input.id);
-        if (!address || address.userId !== ctx.user.id) {
+        if (!address || address.personId !== personId) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Address not found' });
         }
         return address;
@@ -8742,13 +8570,15 @@ export const appRouter = router({
         isVerified: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        const personId = requirePersonId(ctx.user);
         // If setting as default, clear other defaults first
         if (input.isDefault) {
-          await db.clearDefaultAddress(ctx.user.id);
+          await db.clearDefaultAddress(personId);
         }
-        
+
         const id = await db.createSavedAddress({
-          userId: ctx.user.id,
+          personId,
+          userId: ctx.user.id, // legacy column, still NOT NULL
           ...input,
         });
         return { id };
@@ -8773,18 +8603,19 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const { id, ...data } = input;
-        
+        const personId = requirePersonId(ctx.user);
+
         // Verify ownership
         const address = await db.getSavedAddressById(id);
-        if (!address || address.userId !== ctx.user.id) {
+        if (!address || address.personId !== personId) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Address not found' });
         }
-        
+
         // If setting as default, clear other defaults first
         if (data.isDefault) {
-          await db.clearDefaultAddress(ctx.user.id);
+          await db.clearDefaultAddress(personId);
         }
-        
+
         await db.updateSavedAddress(id, data);
         return { success: true };
       }),
@@ -8793,12 +8624,13 @@ export const appRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
+        const personId = requirePersonId(ctx.user);
         // Verify ownership
         const address = await db.getSavedAddressById(input.id);
-        if (!address || address.userId !== ctx.user.id) {
+        if (!address || address.personId !== personId) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Address not found' });
         }
-        
+
         await db.deleteSavedAddress(input.id);
         return { success: true };
       }),
@@ -8807,24 +8639,34 @@ export const appRouter = router({
     setDefault: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
+        const personId = requirePersonId(ctx.user);
         // Verify ownership
         const address = await db.getSavedAddressById(input.id);
-        if (!address || address.userId !== ctx.user.id) {
+        if (!address || address.personId !== personId) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Address not found' });
         }
-        
-        // Clear all defaults for this user
-        await db.clearDefaultAddress(ctx.user.id);
-        
+
+        // Clear all defaults for this person
+        await db.clearDefaultAddress(personId);
+
         // Set the new default
         await db.updateSavedAddress(input.id, { isDefault: true });
         return { success: true };
       }),
-    
-    // Get the default address for current user
+
+    // Get the default address for the current person
     getDefault: protectedProcedure.query(async ({ ctx }) => {
-      return db.getDefaultAddress(ctx.user.id);
+      return db.getDefaultAddress(requirePersonId(ctx.user));
     }),
+
+    // Admin: look up ANOTHER person's address book (e.g. when building a custom
+    // order for a client). Deliberately admin-only — the procedures above are
+    // scoped to the caller's own person.
+    listForPerson: adminProcedure
+      .input(z.object({ personId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getSavedAddresses(input.personId);
+      }),
   }),
   // ============ EMAIL REPLY BRIDGE ============
   customOrders: customOrdersRouter,

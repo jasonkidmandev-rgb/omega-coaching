@@ -8,7 +8,7 @@
  * SAFETY GUARDS:
  * 1. Will NOT overwrite a non-empty value with blank/null unless explicitly forced
  * 2. Logs every change with before/after values for audit trail
- * 3. Validates contactId exists before propagating
+ * 3. Validates personId exists before propagating
  * 4. Normalizes email to lowercase and trims whitespace
  * 5. Does NOT set full_name directly (it's a MySQL GENERATED column)
  * 6. Handles unique email constraint conflicts gracefully
@@ -17,7 +17,7 @@
  */
 import { getDb } from "../db";
 import {
-  contacts,
+  people,
   prospects,
   clientProtocols,
   clientProjects,
@@ -29,7 +29,7 @@ import {
 import { eq } from "drizzle-orm";
 
 interface PropagateInput {
-  contactId: number;
+  personId: number;
   name?: string | null;       // full name (e.g. "John Smith")
   email?: string | null;
   phone?: string | null;
@@ -52,18 +52,18 @@ interface PropagateResult {
  * to all 7 linked tables. This is the single function that ALL edit paths
  * should call when contact info changes.
  * 
- * IMPORTANT: The contacts.full_name column is a MySQL GENERATED column
+ * IMPORTANT: The people.full_name column is a MySQL GENERATED column
  * (computed from first_name + last_name). We must NEVER set it directly.
  * We only set first_name and last_name, and MySQL auto-generates full_name.
  * 
- * @param input - contactId plus the fields that changed
+ * @param input - personId plus the fields that changed
  * @returns PropagateResult with details of what was updated and what was skipped
  */
 export async function propagateContactChanges(input: PropagateInput): Promise<PropagateResult> {
   const database = await getDb();
   if (!database) throw new Error("Database not available");
 
-  const { contactId, name, email, phone, forceBlankOverwrite = false, source = 'unknown' } = input;
+  const { personId, name, email, phone, forceBlankOverwrite = false, source = 'unknown' } = input;
   const tablesUpdated: string[] = [];
   const fieldsSkipped: string[] = [];
 
@@ -77,10 +77,10 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
   }
 
   // ─── SAFETY GUARD 1: Validate contact exists ─────────────────────────
-  const [existingContact] = await database.select().from(contacts).where(eq(contacts.id, contactId));
+  const [existingContact] = await database.select().from(people).where(eq(people.id, personId));
   if (!existingContact) {
-    console.error(`[propagateContactChanges] BLOCKED: contactId=${contactId} does not exist (source: ${source})`);
-    throw new Error(`Contact ${contactId} not found — cannot propagate changes to a non-existent contact`);
+    console.error(`[propagateContactChanges] BLOCKED: personId=${personId} does not exist (source: ${source})`);
+    throw new Error(`Contact ${personId} not found — cannot propagate changes to a non-existent contact`);
   }
 
   const previousValues: PropagateResult['previousValues'] = {
@@ -99,7 +99,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
     const isBlankingName = !normalizedName && previousValues.name;
     if (isBlankingName && !forceBlankOverwrite) {
       fieldsSkipped.push('name (would blank existing value)');
-      console.warn(`[propagateContactChanges] SKIPPED name change for contactId=${contactId}: would overwrite "${previousValues.name}" with blank (source: ${source})`);
+      console.warn(`[propagateContactChanges] SKIPPED name change for personId=${personId}: would overwrite "${previousValues.name}" with blank (source: ${source})`);
     } else {
       // IMPORTANT: Do NOT set fullName — it's a MySQL GENERATED column.
       // Only set firstName and lastName; MySQL auto-computes full_name.
@@ -118,7 +118,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
     const isBlankingEmail = !normalizedEmail && previousValues.email;
     if (isBlankingEmail && !forceBlankOverwrite) {
       fieldsSkipped.push('email (would blank existing value)');
-      console.warn(`[propagateContactChanges] SKIPPED email change for contactId=${contactId}: would overwrite "${previousValues.email}" with blank (source: ${source})`);
+      console.warn(`[propagateContactChanges] SKIPPED email change for personId=${personId}: would overwrite "${previousValues.email}" with blank (source: ${source})`);
     } else {
       contactUpdates.email = normalizedEmail;
     }
@@ -128,7 +128,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
     const isBlankingPhone = !normalizedPhone && previousValues.phone;
     if (isBlankingPhone && !forceBlankOverwrite) {
       fieldsSkipped.push('phone (would blank existing value)');
-      console.warn(`[propagateContactChanges] SKIPPED phone change for contactId=${contactId}: would overwrite "${previousValues.phone}" with blank (source: ${source})`);
+      console.warn(`[propagateContactChanges] SKIPPED phone change for personId=${personId}: would overwrite "${previousValues.phone}" with blank (source: ${source})`);
     } else {
       contactUpdates.phone = normalizedPhone;
     }
@@ -150,13 +150,13 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
   // 0. Update the master contacts record (skip fullName — it's GENERATED)
   if (Object.keys(contactUpdates).length > 0) {
     try {
-      await database.update(contacts).set(contactUpdates).where(eq(contacts.id, contactId));
+      await database.update(people).set(contactUpdates).where(eq(people.id, personId));
       tablesUpdated.push('contacts');
     } catch (e: any) {
       // Handle unique email constraint violation gracefully
       if (e?.message?.includes('Duplicate') || e?.cause?.code === 'ER_DUP_ENTRY') {
         console.error(`[propagateContactChanges] BLOCKED: email "${normalizedEmail}" already exists for another contact (source: ${source})`);
-        throw new Error(`Cannot update contact ${contactId}: email "${normalizedEmail}" is already used by another contact`);
+        throw new Error(`Cannot update contact ${personId}: email "${normalizedEmail}" is already used by another contact`);
       }
       throw e;
     }
@@ -173,7 +173,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
   const hasEffectivePhoneChange = phoneToPropagate !== undefined;
 
   if (!hasEffectiveNameChange && !hasEffectiveEmailChange && !hasEffectivePhoneChange) {
-    console.log(`[propagateContactChanges] contactId=${contactId} — all changes skipped by safety guards (source: ${source})`);
+    console.log(`[propagateContactChanges] personId=${personId} — all changes skipped by safety guards (source: ${source})`);
     return { success: true, tablesUpdated, fieldsSkipped, previousValues, newValues };
   }
 
@@ -184,7 +184,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
     if (hasEffectiveEmailChange) prospectUpdates.email = emailToPropagate;
     if (hasEffectivePhoneChange) prospectUpdates.phone = phoneToPropagate;
     if (Object.keys(prospectUpdates).length > 0) {
-      await database.update(prospects).set(prospectUpdates).where(eq(prospects.contactId, contactId));
+      await database.update(prospects).set(prospectUpdates).where(eq(prospects.personId, personId));
       tablesUpdated.push('prospects');
     }
   } catch (e) { console.error('[propagateContactChanges] prospects sync error', e); }
@@ -196,7 +196,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
     if (hasEffectiveEmailChange) cpUpdates.clientEmail = emailToPropagate;
     if (hasEffectivePhoneChange) cpUpdates.clientPhone = phoneToPropagate;
     if (Object.keys(cpUpdates).length > 0) {
-      await database.update(clientProtocols).set(cpUpdates).where(eq(clientProtocols.contactId, contactId));
+      await database.update(clientProtocols).set(cpUpdates).where(eq(clientProtocols.personId, personId));
       tablesUpdated.push('clientProtocols');
     }
   } catch (e) { console.error('[propagateContactChanges] clientProtocols sync error', e); }
@@ -207,7 +207,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
     if (hasEffectiveNameChange) projUpdates.clientName = nameToPropagate;
     if (hasEffectiveEmailChange) projUpdates.clientEmail = emailToPropagate;
     if (Object.keys(projUpdates).length > 0) {
-      await database.update(clientProjects).set(projUpdates).where(eq(clientProjects.contactId, contactId));
+      await database.update(clientProjects).set(projUpdates).where(eq(clientProjects.personId, personId));
       tablesUpdated.push('clientProjects');
     }
   } catch (e) { console.error('[propagateContactChanges] clientProjects sync error', e); }
@@ -219,7 +219,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
     if (hasEffectiveEmailChange) coUpdates.clientEmail = emailToPropagate;
     if (hasEffectivePhoneChange) coUpdates.clientPhone = phoneToPropagate;
     if (Object.keys(coUpdates).length > 0) {
-      await database.update(customOrders).set(coUpdates).where(eq(customOrders.contactId, contactId));
+      await database.update(customOrders).set(coUpdates).where(eq(customOrders.personId, personId));
       tablesUpdated.push('customOrders');
     }
   } catch (e) { console.error('[propagateContactChanges] customOrders sync error', e); }
@@ -230,7 +230,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
     if (hasEffectiveNameChange) psUpdates.clientName = nameToPropagate;
     if (hasEffectiveEmailChange) psUpdates.clientEmail = emailToPropagate;
     if (Object.keys(psUpdates).length > 0) {
-      await database.update(packingSlips).set(psUpdates).where(eq(packingSlips.contactId, contactId));
+      await database.update(packingSlips).set(psUpdates).where(eq(packingSlips.personId, personId));
       tablesUpdated.push('packingSlips');
     }
   } catch (e) { console.error('[propagateContactChanges] packingSlips sync error', e); }
@@ -238,7 +238,7 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
   // 6. Users (name only — email change for users requires separate auth flow)
   try {
     if (hasEffectiveNameChange) {
-      await database.update(users).set({ name: nameToPropagate }).where(eq(users.contactId, contactId));
+      await database.update(users).set({ name: nameToPropagate }).where(eq(users.personId, personId));
       tablesUpdated.push('users');
     }
   } catch (e) { console.error('[propagateContactChanges] users sync error', e); }
@@ -249,13 +249,13 @@ export async function propagateContactChanges(input: PropagateInput): Promise<Pr
     if (hasEffectiveNameChange) teUpdates.clientName = nameToPropagate;
     if (hasEffectiveEmailChange) teUpdates.clientEmail = emailToPropagate;
     if (Object.keys(teUpdates).length > 0) {
-      await database.update(transformationEnrollments).set(teUpdates).where(eq(transformationEnrollments.contactId, contactId));
+      await database.update(transformationEnrollments).set(teUpdates).where(eq(transformationEnrollments.personId, personId));
       tablesUpdated.push('transformationEnrollments');
     }
   } catch (e) { console.error('[propagateContactChanges] transformationEnrollments sync error', e); }
 
   // ─── AUDIT LOG ────────────────────────────────────────────────────────
-  console.log(`[propagateContactChanges] contactId=${contactId} source=${source} updated: ${tablesUpdated.join(', ')}${fieldsSkipped.length > 0 ? ` | skipped: ${fieldsSkipped.join(', ')}` : ''}`);
+  console.log(`[propagateContactChanges] personId=${personId} source=${source} updated: ${tablesUpdated.join(', ')}${fieldsSkipped.length > 0 ? ` | skipped: ${fieldsSkipped.join(', ')}` : ''}`);
   if (previousValues.name !== newValues.name) console.log(`  name: "${previousValues.name}" → "${newValues.name}"`);
   if (previousValues.email !== newValues.email) console.log(`  email: "${previousValues.email}" → "${newValues.email}"`);
   if (previousValues.phone !== newValues.phone) console.log(`  phone: "${previousValues.phone}" → "${newValues.phone}"`);

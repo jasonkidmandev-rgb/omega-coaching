@@ -96,14 +96,6 @@ export default function ClientProtocol() {
   const [loomUrl, setLoomUrl] = useState("");
   const [showLoomInput, setShowLoomInput] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{
-    id: number;
-    code: string;
-    discountPercent: string;
-  } | null>(null);
-  const [couponError, setCouponError] = useState("");
-  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   // const [isCheckingOut, setIsCheckingOut] = useState(false); // Removed - Stripe checkout removed
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showShippingEdit, setShowShippingEdit] = useState(false);
@@ -501,37 +493,6 @@ export default function ClientProtocol() {
     setNewComment('');
   };
 
-  const validateCouponQuery = trpc.coupon.validate.useQuery(
-    { code: couponCode, clientProtocolId: protocol?.id },
-    { enabled: false }
-  );
-
-  const handleApplyCoupon = async () => {
-    if (!couponCode || !protocol?.id) return;
-    
-    setIsValidatingCoupon(true);
-    setCouponError("");
-    
-    try {
-      const result = await validateCouponQuery.refetch();
-      if (result.data?.valid && result.data.coupon) {
-        setAppliedCoupon({
-          id: result.data.coupon.id,
-          code: result.data.coupon.code,
-          discountPercent: result.data.coupon.discountPercent,
-        });
-        setCouponCode("");
-        toast.success(`Coupon applied! ${result.data.coupon.discountPercent}% discount`);
-      } else {
-        setCouponError(result.data?.error || "Invalid coupon code");
-      }
-    } catch (error) {
-      setCouponError("Failed to validate coupon");
-    } finally {
-      setIsValidatingCoupon(false);
-    }
-  };
-
   const approveMutation = trpc.clientProtocol.approve.useMutation({
     onSuccess: () => {
       toast.success("Protocol approved! Thank you.");
@@ -687,28 +648,24 @@ export default function ClientProtocol() {
       }
     });
     
-    // Use coupon discount if applied, otherwise use protocol default discount
-    const baseDiscountPercent = parseFloat(protocol.discountPercent || "0");
-    const couponDiscountPercent = appliedCoupon ? parseFloat(appliedCoupon.discountPercent) : 0;
-    const effectiveDiscountPercent = couponDiscountPercent > 0 ? couponDiscountPercent : baseDiscountPercent;
-    
+    const effectiveDiscountPercent = parseFloat(protocol.discountPercent || "0");
+
     // Discount only applies to discountable items
     const discount = (discountableSubtotal * effectiveDiscountPercent) / 100;
     const coaching = parseFloat(protocol.coachingPrice || "0");
     const total = subtotal - discount + coaching;
     const ccFee = total * 0.035;
-    
-    return { 
-      subtotal, 
-      discountableSubtotal, 
-      nonDiscountableSubtotal, 
+
+    return {
+      subtotal,
+      discountableSubtotal,
+      nonDiscountableSubtotal,
       clientBuysTotal,
       discount,
       discountPercent: effectiveDiscountPercent,
-      isCouponApplied: couponDiscountPercent > 0,
-      coaching, 
-      total, 
-      ccFee 
+      coaching,
+      total,
+      ccFee
     };
   };
 
@@ -1433,70 +1390,11 @@ export default function ClientProtocol() {
                     {totals.discount > 0 && (
                       <div className="flex justify-between text-green-600">
                         <span className="flex items-center gap-1">
-                          {totals.isCouponApplied && <Ticket className="h-3 w-3" />}
                           Discount ({totals.discountPercent}% on ${totals.discountableSubtotal.toFixed(2)})
-                          {totals.isCouponApplied && appliedCoupon && (
-                            <Badge variant="secondary" className="ml-1 text-xs">
-                              {appliedCoupon.code}
-                            </Badge>
-                          )}
                         </span>
                         <span>-${totals.discount.toFixed(2)}</span>
                       </div>
                      )}
-
-                    {/* Coupon Code Input */}
-                    {!appliedCoupon ? (
-                      <div className="pt-2">
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Have a coupon code?"
-                              value={couponCode}
-                              onChange={(e) => {
-                                setCouponCode(e.target.value.toUpperCase());
-                                setCouponError("");
-                              }}
-                              className="pl-9 uppercase"
-                            />
-                          </div>
-                          <Button
-                            variant="outline"
-                            onClick={handleApplyCoupon}
-                            disabled={!couponCode || isValidatingCoupon}
-                          >
-                            {isValidatingCoupon ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              "Apply"
-                            )}
-                          </Button>
-                        </div>
-                        {couponError && (
-                          <p className="text-sm text-red-600 mt-1">{couponError}</p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="pt-2 flex items-center justify-between bg-green-50 dark:bg-green-950/20 p-2 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Ticket className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-medium text-green-700">
-                            Coupon {appliedCoupon.code} applied ({appliedCoupon.discountPercent}% off)
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setAppliedCoupon(null);
-                            setCouponCode("");
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
                   </>
                 )}
 

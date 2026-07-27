@@ -1,12 +1,12 @@
 /**
  * Unified Contact Service
  * 
- * Single source of truth for finding or creating contacts.
+ * Single source of truth for finding or creating people.
  * All creation paths (prospect, client protocol, enrollment, user registration)
  * should call findOrCreateContact() to ensure deduplication.
  */
 import { getDb } from "../db";
-import { contacts } from "../../drizzle/schema";
+import { people } from "../../drizzle/schema";
 import { eq, or, and, isNotNull, sql } from "drizzle-orm";
 
 async function db() {
@@ -99,7 +99,7 @@ export async function findOrCreateContact(input: FindOrCreateContactInput): Prom
 
   // Match by email — the single auto-link signal (canonical, verifiable, stable).
   if (normEmail) {
-    const [found] = await d.select().from(contacts).where(eq(contacts.email, normEmail)).limit(1);
+    const [found] = await d.select().from(people).where(eq(people.email, normEmail)).limit(1);
     if (found) existing = found;
   }
 
@@ -107,7 +107,7 @@ export async function findOrCreateContact(input: FindOrCreateContactInput): Prom
   // human review (merge tool), then fall through to creating a distinct contact.
   if (!existing && (normPhone || (fullNameNorm && fullNameNorm.includes(' ')))) {
     try {
-      const candidates = await d.select().from(contacts);
+      const candidates = await d.select().from(people);
       const suspect = candidates.find((c: any) => {
         const cPhone = normalizePhone(c.phone);
         const cName = normalizeName(`${c.firstName || ''} ${c.lastName || ''}`);
@@ -140,7 +140,7 @@ export async function findOrCreateContact(input: FindOrCreateContactInput): Prom
     }
     
     if (Object.keys(updates).length > 0) {
-      await d.update(contacts).set(updates).where(eq(contacts.id, existing.id));
+      await d.update(people).set(updates).where(eq(people.id, existing.id));
     }
     
     return {
@@ -155,7 +155,7 @@ export async function findOrCreateContact(input: FindOrCreateContactInput): Prom
   }
 
   // Create new contact
-  const [result] = await d.insert(contacts).values({
+  const [result] = await d.insert(people).values({
     firstName,
     lastName,
     email: normEmail,
@@ -178,23 +178,23 @@ export async function findOrCreateContact(input: FindOrCreateContactInput): Prom
 /**
  * Update a contact's lifecycle stage (only upgrades, never downgrades)
  */
-export async function upgradeContactLifecycle(contactId: number, newStage: LifecycleStage): Promise<void> {
+export async function upgradeContactLifecycle(personId: number, newStage: LifecycleStage): Promise<void> {
   const d = await db();
-  const [existing] = await d.select().from(contacts).where(eq(contacts.id, contactId)).limit(1);
+  const [existing] = await d.select().from(people).where(eq(people.id, personId)).limit(1);
   if (!existing) return;
   
   const currentPriority = LIFECYCLE_PRIORITY[existing.lifecycleStage as LifecycleStage] || 0;
   const newPriority = LIFECYCLE_PRIORITY[newStage] || 0;
   
   if (newPriority > currentPriority) {
-    await d.update(contacts).set({ lifecycleStage: newStage }).where(eq(contacts.id, contactId));
+    await d.update(people).set({ lifecycleStage: newStage }).where(eq(people.id, personId));
   }
 }
 
 /**
  * Update a contact's info (email, phone, name)
  */
-export async function updateContactInfo(contactId: number, updates: {
+export async function updateContactInfo(personId: number, updates: {
   firstName?: string | null;
   lastName?: string | null;
   email?: string | null;
@@ -208,6 +208,6 @@ export async function updateContactInfo(contactId: number, updates: {
   
   const d = await db();
   if (Object.keys(cleanUpdates).length > 0) {
-    await d.update(contacts).set(cleanUpdates).where(eq(contacts.id, contactId));
+    await d.update(people).set(cleanUpdates).where(eq(people.id, personId));
   }
 }

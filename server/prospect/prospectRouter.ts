@@ -62,8 +62,8 @@ export const prospectRouter = router({
         
         // Get linked contact (canonical identity — identity-consolidation retired
         // the clients table).
-        if (r.contactId) {
-          const [contact] = await d.execute(sql`SELECT id, full_name AS name, email, phone FROM contacts WHERE id = ${r.contactId}`);
+        if (r.personId) {
+          const [contact] = await d.execute(sql`SELECT id, full_name AS name, email, phone FROM contacts WHERE id = ${r.personId}`);
           if (contact) clientData = contact;
         }
 
@@ -71,9 +71,9 @@ export const prospectRouter = router({
         if (r.enrollmentId) {
           const [enrollment] = await d.execute(sql`SELECT id, tier, status, coachingFeePaid, coachingFeeAmount, enrolledAt FROM transformation_enrollments WHERE id = ${r.enrollmentId}`);
           if (enrollment) enrollmentData = enrollment;
-        } else if (r.contactId) {
+        } else if (r.personId) {
           // Fall back to the contact's most recent enrollment
-          const enrollments = await d.execute(sql`SELECT id, tier, status, coachingFeePaid, coachingFeeAmount, enrolledAt FROM transformation_enrollments WHERE contactId = ${r.contactId} ORDER BY createdAt DESC LIMIT 1`);
+          const enrollments = await d.execute(sql`SELECT id, tier, status, coachingFeePaid, coachingFeeAmount, enrolledAt FROM transformation_enrollments WHERE personId = ${r.personId} ORDER BY createdAt DESC LIMIT 1`);
           if (enrollments.length > 0) enrollmentData = enrollments[0];
         }
 
@@ -196,7 +196,7 @@ export const prospectRouter = router({
         notes: input.notes || null,
         trackingToken,
         assignedTo: SHANNON_TEAM_ID,
-        contactId: contact.id,
+        personId: contact.id,
       });
       
       // Create a follow-up notification for Shannon
@@ -240,18 +240,18 @@ export const prospectRouter = router({
       // Propagate name/email/phone changes to master contact and all linked records
       const hasContactInfoChange = updates.name !== undefined || updates.email !== undefined || updates.phone !== undefined;
       if (hasContactInfoChange) {
-        // Find the contactId for this prospect
+        // Find the personId for this prospect
         const [prospect] = await d.select().from(prospects).where(eq(prospects.id, id));
-        if (prospect?.contactId) {
+        if (prospect?.personId) {
           await propagateContactChanges({
-            contactId: prospect.contactId,
+            personId: prospect.personId,
             ...(updates.name !== undefined ? { name: updates.name } : {}),
             ...(updates.email !== undefined ? { email: updates.email } : {}),
             ...(updates.phone !== undefined ? { phone: updates.phone } : {}),
           });
-          console.log(`[prospect.update] Propagated contact changes for prospect ${id} → contact ${prospect.contactId}`);
+          console.log(`[prospect.update] Propagated contact changes for prospect ${id} → contact ${prospect.personId}`);
         } else {
-          console.warn(`[prospect.update] Prospect ${id} has no contactId — changes not propagated to other tables`);
+          console.warn(`[prospect.update] Prospect ${id} has no personId — changes not propagated to other tables`);
         }
       }
       
@@ -739,7 +739,7 @@ export const prospectRouter = router({
       if (!keep.userId && remove.userId) updates.userId = remove.userId;
       // Carry the canonical contact forward (identity-consolidation); the legacy
       // clientId is kept too until the clients table is dropped at cutover.
-      if (!keep.contactId && remove.contactId) updates.contactId = remove.contactId;
+      if (!keep.personId && remove.personId) updates.personId = remove.personId;
       if (!keep.clientId && (remove as any).clientId) updates.clientId = (remove as any).clientId;
       if (remove.notes) {
         updates.notes = keep.notes ? `${keep.notes}\n\n[Merged from #${remove.id}] ${remove.notes}` : remove.notes;

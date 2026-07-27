@@ -191,11 +191,11 @@ export const appointments = mysqlTable("appointments", {
 	sms24hSent: timestamp({ mode: 'string' }),
 	sms1hSent: timestamp({ mode: 'string' }),
 	smsOptIn: tinyint().default(1).notNull(),
-	contactId: int(),
+	personId: int("contactId"),
 },
 (table) => [
 	index("appointment_coach_idx").on(table.coachId),
-	index("appointment_contact_idx").on(table.contactId),
+	index("appointment_contact_idx").on(table.personId),
 	index("appointment_client_idx").on(table.clientEmail),
 	index("appointment_status_idx").on(table.status),
 	index("appointment_start_idx").on(table.startTime),
@@ -234,18 +234,6 @@ export const auditLogs = mysqlTable("audit_logs", {
 	index("audit_logs_action_idx").on(table.action),
 	index("audit_logs_created_at_idx").on(table.createdAt),
 ]);
-
-export const automatedFollowUpSequences = mysqlTable("automated_follow_up_sequences", {
-	id: int().autoincrement().notNull(),
-	name: varchar({ length: 255 }).notNull(),
-	description: text(),
-	triggerEvent: mysqlEnum("trigger_event", ['checkin_submitted','checkin_missed','low_score','payment_received','protocol_sent','onboarding_complete','inventory_low','custom']).notNull(),
-	triggerConditions: json("trigger_conditions"),
-	isActive: tinyint("is_active").default(1).notNull(),
-	createdBy: int("created_by"),
-	createdAt: timestamp("created_at", { mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
 
 export const automationEvents = mysqlTable("automation_events", {
 	id: int().autoincrement().notNull(),
@@ -507,31 +495,6 @@ export const clientAchievements = mysqlTable("client_achievements", {
 	index("client_achievements_type_idx").on(table.achievementType),
 ]);
 
-export const clientActivityScores = mysqlTable("client_activity_scores", {
-	id: int().autoincrement().notNull(),
-	clientProtocolId: int("client_protocol_id").notNull(),
-	checkinScore: int("checkin_score").default(0).notNull(),
-	documentScore: int("document_score").default(0).notNull(),
-	purchaseScore: int("purchase_score").default(0).notNull(),
-	engagementScore: int("engagement_score").default(0).notNull(),
-	totalScore: int("total_score").default(0).notNull(),
-	lastActivityAt: timestamp("last_activity_at", { mode: 'string' }),
-	checkinsCompleted: int("checkins_completed").default(0).notNull(),
-	checkinsMissed: int("checkins_missed").default(0).notNull(),
-	documentsUploaded: int("documents_uploaded").default(0).notNull(),
-	purchasesMade: int("purchases_made").default(0).notNull(),
-	commentsMade: int("comments_made").default(0).notNull(),
-	calculatedAt: timestamp("calculated_at", { mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("client_protocol_id").on(table.clientProtocolId),
-	index("total_score").on(table.totalScore),
-	index("last_activity_at").on(table.lastActivityAt),
-	index("client_protocol_id_2").on(table.clientProtocolId),
-]);
-
 export const clientInventory = mysqlTable("client_inventory", {
 	id: int().autoincrement().notNull(),
 	clientProtocolId: int().notNull(),
@@ -625,23 +588,6 @@ export const clientNotificationPreferences = mysqlTable("client_notification_pre
 	index("clientProtocolId").on(table.clientProtocolId),
 ]);
 
-export const clientOnboardingChecklist = mysqlTable("client_onboarding_checklist", {
-	id: int().autoincrement().notNull(),
-	clientProtocolId: int("client_protocol_id").notNull(),
-	stepKey: varchar("step_key", { length: 50 }).notNull(),
-	stepName: varchar("step_name", { length: 100 }).notNull(),
-	stepDescription: text("step_description"),
-	isCompleted: tinyint("is_completed").default(0).notNull(),
-	completedAt: timestamp("completed_at", { mode: 'string' }),
-	sortOrder: int("sort_order").default(0).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("idx_client_protocol").on(table.clientProtocolId),
-	index("unique_client_step").on(table.clientProtocolId, table.stepKey),
-]);
-
 export const clientPackages = mysqlTable("client_packages", {
 	id: int().autoincrement().notNull(),
 	clientEmail: varchar({ length: 320 }).notNull(),
@@ -653,10 +599,10 @@ export const clientPackages = mysqlTable("client_packages", {
 	status: mysqlEnum(['active','expired','exhausted']).default('active').notNull(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	contactId: int(),
+	personId: int("contactId"),
 },
 (table) => [
-	index("client_package_contact_idx").on(table.contactId),
+	index("client_package_contact_idx").on(table.personId),
 	index("client_package_client_idx").on(table.clientEmail),
 	index("client_package_status_idx").on(table.status),
 ]);
@@ -676,10 +622,10 @@ export const clientProjects = mysqlTable("client_projects", {
 	assignedTeamMemberId: int(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	contactId: int(),
+	personId: int("contactId"),
 },
 (table) => [
-	index("client_project_contact_idx").on(table.contactId),
+	index("client_project_contact_idx").on(table.personId),
 ]);
 
 export const clientProtocolItems = mysqlTable("client_protocol_items", {
@@ -776,11 +722,11 @@ export const clientProtocols = mysqlTable("client_protocols", {
 	startDate: timestamp({ mode: 'string' }),
 	endDate: timestamp({ mode: 'string' }),
 	inventoryDeductedAt: timestamp({ mode: 'string' }),
-	contactId: int().notNull(),
+	personId: int("contactId").notNull(),
 },
 (table) => [
 	index("client_protocols_accessToken_unique").on(table.accessToken),
-	index("client_protocols_contact_idx").on(table.contactId),
+	index("client_protocols_contact_idx").on(table.personId),
 	index("client_protocols_email_idx").on(table.clientEmail),
 	index("client_protocols_status_idx").on(table.status),
 	index("client_protocols_template_idx").on(table.templateId),
@@ -851,7 +797,24 @@ export const coachingSessionNotes = mysqlTable("coaching_session_notes", {
 	index("idx_session_type").on(table.sessionType),
 ]);
 
-export const contacts = mysqlTable("contacts", {
+/**
+ * PEOPLE — one row per human. The canonical identity in this app.
+ *
+ * Holds ONLY facts that are true about a person regardless of their relationship
+ * to the business: name, email, phone. Not a "sales contact" — this table holds
+ * staff, clients, leads and prospects alike.
+ *
+ * "What is this person to us?" is answered by which RELATIONSHIP rows exist,
+ * never by a label here:
+ *   team_members row     → staff        (role in team_roles)
+ *   prospects row        → lead         (stage in prospects.status)
+ *   client_protocols row → client       (stage via client_projects → lifecycle_stages)
+ * A person may have several at once — Jason is staff AND has a test protocol.
+ *
+ * NOTE: the physical DB table is still named `contacts`; the rename is queued for
+ * the cutover window (see cutover/). The code name is authoritative going forward.
+ */
+export const people = mysqlTable("contacts", {
 	id: int().autoincrement().notNull(),
 	firstName: varchar("first_name", { length: 255 }),
 	lastName: varchar("last_name", { length: 255 }),
@@ -861,7 +824,12 @@ export const contacts = mysqlTable("contacts", {
 	secondaryEmail: varchar("secondary_email", { length: 320 }),
 	secondaryPhone: varchar("secondary_phone", { length: 50 }),
 	preferredContactMethod: mysqlEnum("preferred_contact_method", ['email', 'phone', 'sms']).default('email'),
-	lifecycleStage: mysqlEnum("lifecycle_stage", ['lead', 'prospect', 'enrolled', 'active_client', 'past_client', 'store_customer']).default('lead').notNull(),
+	// NULL = not a customer (staff, or not applicable). Nullable on purpose: this
+	// column previously forced every human to carry a customer label, which is why
+	// admins showed up as 'lead'.
+	// REDUNDANT — the real state lives in prospects.status (lead journey) and
+	// client_protocols (client journey). Slated for removal; do not add new reads.
+	lifecycleStage: mysqlEnum("lifecycle_stage", ['lead', 'prospect', 'enrolled', 'active_client', 'past_client', 'store_customer']),
 	source: varchar({ length: 100 }),
 	notes: text(),
 	createdAt: timestamp("created_at", { mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
@@ -898,37 +866,6 @@ export const consultationNotes = mysqlTable("consultation_notes", {
 	index("consultation_notes_enrollment_idx").on(table.enrollmentId),
 	index("consultation_notes_author_idx").on(table.authorId),
 	index("consultation_notes_consult_date_idx").on(table.consultDate),
-]);
-
-export const couponUsage = mysqlTable("coupon_usage", {
-	id: int().autoincrement().notNull(),
-	couponId: int().notNull(),
-	clientProtocolId: int().notNull(),
-	discountApplied: decimal({ precision: 5, scale: 2 }).notNull(),
-	usedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-});
-
-export const coupons = mysqlTable("coupons", {
-	id: int().autoincrement().notNull(),
-	code: varchar({ length: 50 }).notNull(),
-	discountPercent: decimal({ precision: 5, scale: 2 }).notNull(),
-	usageType: mysqlEnum(['one_time','unlimited']).default('unlimited').notNull(),
-	scope: mysqlEnum(['universal','client_specific']).default('universal').notNull(),
-	clientProtocolId: int(),
-	expiresAt: timestamp({ mode: 'string' }),
-	maxUses: int(),
-	currentUses: int().default(0).notNull(),
-	isActive: tinyint().default(1).notNull(),
-	isFlagged: tinyint().default(0).notNull(),
-	notes: text(),
-	createdBy: int(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	category: varchar({ length: 100 }),
-	deactivationReason: varchar({ length: 100 }),
-},
-(table) => [
-	index("coupons_code_unique").on(table.code),
 ]);
 
 export const cronRuns = mysqlTable("cron_runs", {
@@ -1020,6 +957,7 @@ export const customOrders = mysqlTable("custom_orders", {
 	trackingNumber: varchar({ length: 255 }),
 	trackingCarrier: varchar({ length: 100 }),
 	adminNotes: text(),
+	clientNotes: text(),
 	createdBy: int().notNull(),
 	createdByName: varchar({ length: 255 }),
 	paypalFeeAmount: decimal({ precision: 10, scale: 2 }),
@@ -1030,10 +968,10 @@ export const customOrders = mysqlTable("custom_orders", {
 	shippedAt: timestamp({ mode: 'string' }),
 	deliveredAt: timestamp({ mode: 'string' }),
 	cancelledAt: timestamp({ mode: 'string' }),
-	contactId: int().notNull(),
+	personId: int("contactId").notNull(),
 },
 (table) => [
-	index("custom_order_contact_idx").on(table.contactId),
+	index("custom_order_contact_idx").on(table.personId),
 	index("custom_order_user_idx").on(table.userId),
 	index("custom_order_status_idx").on(table.status),
 	index("custom_order_number_idx").on(table.orderNumber),
@@ -1076,7 +1014,7 @@ export const documentFolders = mysqlTable("document_folders", {
 	// Canonical identity (Phase 3b): folders follow the contact across versions, so a
 	// renewed client keeps one document library. Because system folders are auto-created
 	// per version, reads de-duplicate by name. Applied to Railway 2026-07-19.
-	contactId: int(),
+	personId: int("contactId"),
 	name: varchar({ length: 255 }).notNull(),
 	parentId: int(),
 	isSystem: tinyint().default(0).notNull(),
@@ -1119,7 +1057,7 @@ export const documents = mysqlTable("documents", {
 	// client's uploaded labs/waivers don't vanish on renewal. Nullable for the few
 	// documents whose parent protocol was deleted. Applied to Railway 2026-07-19;
 	// re-runs at cutover via cutover/phase3b-documents-rekey.sql.
-	contactId: int(),
+	personId: int("contactId"),
 	folderId: int().notNull(),
 	name: varchar({ length: 500 }).notNull(),
 	description: text(),
@@ -1287,25 +1225,6 @@ export const emailTrackingClicks = mysqlTable("email_tracking_clicks", {
 	index("email_clicks_clicked_at_idx").on(table.clickedAt),
 ]);
 
-export const embedTokens = mysqlTable("embed_tokens", {
-	id: int().autoincrement().notNull(),
-	token: varchar({ length: 64 }).notNull(),
-	userId: int(),
-	email: varchar({ length: 255 }),
-	name: varchar({ length: 255 }),
-	source: varchar({ length: 50 }).default('ghl'),
-	permissions: json(),
-	expiresAt: timestamp({ mode: 'string' }),
-	lastUsedAt: timestamp({ mode: 'string' }),
-	usageCount: int().default(0).notNull(),
-	isActive: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("embed_tokens_token_unique").on(table.token),
-]);
-
 export const encryptionKeys = mysqlTable("encryption_keys", {
 	id: int().autoincrement().notNull(),
 	keyIdentifier: varchar({ length: 255 }).notNull(),
@@ -1353,46 +1272,6 @@ export const enrollmentActivityLog = mysqlTable("enrollment_activity_log", {
 	index("activity_log_created_idx").on(table.createdAt),
 ]);
 
-export const followUpExecutions = mysqlTable("follow_up_executions", {
-	id: int().autoincrement().notNull(),
-	sequenceId: int("sequence_id").notNull(),
-	clientProtocolId: int("client_protocol_id").notNull(),
-	triggerEvent: varchar("trigger_event", { length: 100 }).notNull(),
-	currentStep: int("current_step").default(1).notNull(),
-	status: mysqlEnum(['pending','in_progress','completed','cancelled','failed']).default('pending').notNull(),
-	startedAt: timestamp("started_at", { mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	completedAt: timestamp("completed_at", { mode: 'string' }),
-	nextStepAt: timestamp("next_step_at", { mode: 'string' }),
-	errorMessage: text("error_message"),
-	createdAt: timestamp("created_at", { mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("sequence_id").on(table.sequenceId),
-	index("client_protocol_id").on(table.clientProtocolId),
-	index("status").on(table.status),
-	index("next_step_at").on(table.nextStepAt),
-]);
-
-export const followUpSequenceSteps = mysqlTable("follow_up_sequence_steps", {
-	id: int().autoincrement().notNull(),
-	sequenceId: int("sequence_id").notNull(),
-	stepOrder: int("step_order").notNull(),
-	delayHours: int("delay_hours").default(0).notNull(),
-	actionType: mysqlEnum("action_type", ['email','task','notification','sms']).notNull(),
-	emailSubject: varchar("email_subject", { length: 500 }),
-	emailTemplate: text("email_template"),
-	taskTitle: varchar("task_title", { length: 255 }),
-	taskDescription: text("task_description"),
-	isActive: tinyint("is_active").default(1).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("sequence_id").on(table.sequenceId),
-	index("step_order").on(table.stepOrder),
-]);
-
 export const healthieInvoices = mysqlTable("healthie_invoices", {
 	id: int().autoincrement().notNull(),
 	clientProtocolId: int(),
@@ -1417,28 +1296,6 @@ export const hubLinks = mysqlTable("hub_links", {
 	sortOrder: int().default(0).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 });
-
-export const incomingSms = mysqlTable("incoming_sms", {
-	id: int().autoincrement().notNull(),
-	conversationId: int().notNull(),
-	phone: varchar({ length: 20 }).notNull(),
-	message: text().notNull(),
-	ghlMessageId: varchar({ length: 100 }),
-	ghlContactId: varchar({ length: 100 }),
-	ghlConversationId: varchar({ length: 100 }),
-	direction: mysqlEnum(['inbound','outbound']).notNull(),
-	status: mysqlEnum(['received','read']).default('received').notNull(),
-	clientName: varchar({ length: 255 }),
-	receivedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	readAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-},
-(table) => [
-	index("incoming_sms_conv_idx").on(table.conversationId),
-	index("incoming_sms_phone_idx").on(table.phone),
-	index("incoming_sms_direction_idx").on(table.direction),
-	index("incoming_sms_received_idx").on(table.receivedAt),
-]);
 
 export const intakeFormConfig = mysqlTable("intake_form_config", {
 	id: int().autoincrement().notNull(),
@@ -1890,6 +1747,7 @@ export const packingSlips = mysqlTable("packing_slips", {
 	packageLength: decimal({ precision: 10, scale: 2 }),
 	packageWidth: decimal({ precision: 10, scale: 2 }),
 	packageHeight: decimal({ precision: 10, scale: 2 }),
+	insuranceAmount: decimal({ precision: 10, scale: 2 }),
 	archivedAt: timestamp({ mode: 'string' }),
 	archivedBy: int(),
 	deliveryStatus: mysqlEnum(['pending','shipped','in_transit','delivered','exception']).default('pending').notNull(),
@@ -1902,10 +1760,10 @@ export const packingSlips = mysqlTable("packing_slips", {
 	storeOrderId: int(),
 	source: mysqlEnum(['protocol','store','custom']).default('protocol').notNull(),
 	customOrderId: int(),
-	contactId: int(),
+	personId: int("contactId"),
 },
 (table) => [
-	index("packing_slip_contact_idx").on(table.contactId),
+	index("packing_slip_contact_idx").on(table.personId),
 ]);
 
 export const pageViews = mysqlTable("page_views", {
@@ -2376,11 +2234,11 @@ export const prospects = mysqlTable("prospects", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	customStatus: varchar({ length: 100 }),
 	thingsToKnow: text(),
-	contactId: int(),
+	personId: int("contactId"),
 },
 (table) => [
 	index("prospects_status_idx").on(table.status),
-	index("prospects_contact_idx").on(table.contactId),
+	index("prospects_contact_idx").on(table.personId),
 	index("prospects_email_idx").on(table.email),
 	index("prospects_phone_idx").on(table.phone),
 	index("prospects_tracking_token_idx").on(table.trackingToken),
@@ -2393,7 +2251,7 @@ export const protocolComments = mysqlTable("protocol_comments", {
 	// Canonical identity (identity-consolidation Phase 3): a comment thread follows
 	// the contact across all their protocol versions, not just one version. Nullable
 	// for the few comments whose parent protocol was deleted.
-	contactId: int(),
+	personId: int("contactId"),
 	authorType: mysqlEnum(['coach','client']).notNull(),
 	authorName: varchar({ length: 255 }),
 	message: text().notNull(),
@@ -2404,7 +2262,7 @@ export const protocolComments = mysqlTable("protocol_comments", {
 },
 (table) => [
 	index("protocol_comments_protocol_idx").on(table.clientProtocolId),
-	index("protocol_comments_contact_idx").on(table.contactId),
+	index("protocol_comments_contact_idx").on(table.personId),
 	index("protocol_comments_email_uid_idx").on(table.emailUid),
 ]);
 
@@ -2456,10 +2314,10 @@ export const protocolOrders = mysqlTable("protocol_orders", {
 	itemsSummary: text(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	completedAt: timestamp({ mode: 'string' }),
-	contactId: int().notNull(),
+	personId: int("contactId").notNull(),
 },
 (table) => [
-	index("protocol_orders_contact_idx").on(table.contactId),
+	index("protocol_orders_contact_idx").on(table.personId),
 	index("protocol_orders_stripeSessionId_unique").on(table.stripeSessionId),
 ]);
 
@@ -2534,56 +2392,6 @@ export const purchases = mysqlTable("purchases", {
 	completedAt: timestamp({ mode: 'string' }),
 });
 
-export const pushNotificationLogs = mysqlTable("push_notification_logs", {
-	id: int().autoincrement().notNull(),
-	subscriptionId: int().references(() => pushSubscriptions.id),
-	title: varchar({ length: 255 }).notNull(),
-	body: text(),
-	icon: varchar({ length: 500 }),
-	url: varchar({ length: 500 }),
-	notificationType: mysqlEnum(['protocol_updated','payment_due','payment_received','checkin_available','checkin_reminder','announcement','custom']).notNull(),
-	clientProtocolId: int(),
-	userId: int(),
-	status: mysqlEnum(['pending','sent','delivered','failed','clicked']).default('pending').notNull(),
-	errorMessage: text(),
-	sentAt: timestamp({ mode: 'string' }),
-	deliveredAt: timestamp({ mode: 'string' }),
-	clickedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-},
-(table) => [
-	index("push_logs_subscription_idx").on(table.subscriptionId),
-	index("push_logs_type_idx").on(table.notificationType),
-	index("push_logs_status_idx").on(table.status),
-	index("push_logs_created_at_idx").on(table.createdAt),
-]);
-
-export const pushSubscriptions = mysqlTable("push_subscriptions", {
-	id: int().autoincrement().notNull(),
-	userId: int(),
-	endpoint: text().notNull(),
-	p256Dh: varchar({ length: 255 }).notNull(),
-	auth: varchar({ length: 255 }).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	clientId: int(),
-	userAgent: text(),
-	deviceType: mysqlEnum(['mobile','tablet','desktop']).default('desktop'),
-	isActive: tinyint().default(1).notNull(),
-	lastUsedAt: timestamp({ mode: 'string' }),
-	failureCount: int().default(0).notNull(),
-	notifyProtocolUpdates: tinyint().default(1).notNull(),
-	notifyPaymentDue: tinyint().default(1).notNull(),
-	notifyPaymentReceived: tinyint().default(1).notNull(),
-	notifyCheckins: tinyint().default(1).notNull(),
-	notifyAnnouncements: tinyint().default(1).notNull(),
-},
-(table) => [
-	index("push_sub_user_idx").on(table.userId),
-	index("push_subscriptions_client_idx").on(table.clientId),
-	index("push_subscriptions_active_idx").on(table.isActive),
-]);
-
 export const recipientTracking = mysqlTable("recipient_tracking", {
 	id: int().autoincrement().notNull(),
 	announcementId: int().notNull(),
@@ -2639,23 +2447,13 @@ export const refundRequests = mysqlTable("refund_requests", {
 	index("refund_status_idx").on(table.status),
 ]);
 
-export const revenueGoals = mysqlTable("revenue_goals", {
-	id: int().autoincrement().notNull(),
-	year: int().notNull(),
-	month: int().notNull(),
-	targetAmount: decimal({ precision: 10, scale: 2 }).notNull(),
-	notes: text(),
-	createdBy: int(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("revenue_goals_year_month_idx").on(table.year, table.month),
-]);
-
 export const savedAddresses = mysqlTable("saved_addresses", {
 	id: int().autoincrement().notNull(),
+	// userId is legacy: it keys the address book to a LOGIN, but only 79 of 122
+	// people have one. contactId is the real key — it works for everyone,
+	// including imported clients who never had an account.
 	userId: int().notNull(),
+	personId: int("contactId"),
 	label: varchar({ length: 100 }).notNull(),
 	isDefault: tinyint().default(0).notNull(),
 	name: varchar({ length: 255 }).notNull(),
@@ -2674,6 +2472,7 @@ export const savedAddresses = mysqlTable("saved_addresses", {
 (table) => [
 	index("saved_addresses_user_idx").on(table.userId),
 	index("saved_addresses_user_default_idx").on(table.userId, table.isDefault),
+	index("saved_addresses_contact_idx").on(table.personId),
 ]);
 
 export const securityEvents = mysqlTable("security_events", {
@@ -2705,27 +2504,6 @@ export const siteSettings = mysqlTable("site_settings", {
 },
 (table) => [
 	index("site_settings_key_unique").on(table.key),
-]);
-
-export const smsConversations = mysqlTable("sms_conversations", {
-	id: int().autoincrement().notNull(),
-	phone: varchar({ length: 20 }).notNull(),
-	ghlContactId: varchar({ length: 100 }),
-	ghlConversationId: varchar({ length: 100 }),
-	clientName: varchar({ length: 255 }),
-	clientEmail: varchar({ length: 320 }),
-	lastMessageAt: timestamp({ mode: 'string' }),
-	lastMessagePreview: varchar({ length: 160 }),
-	unreadCount: int().default(0).notNull(),
-	isArchived: tinyint().default(0).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("sms_conversations_phone_unique").on(table.phone),
-	index("sms_conv_phone_idx").on(table.phone),
-	index("sms_conv_last_msg_idx").on(table.lastMessageAt),
-	index("sms_conv_unread_idx").on(table.unreadCount),
 ]);
 
 export const smsMessageLog = mysqlTable("sms_message_log", {
@@ -2778,19 +2556,6 @@ export const smsMessages = mysqlTable("sms_messages", {
 	index("sms_messages_twilio_sid_idx").on(table.twilioSid),
 	index("sms_messages_status_idx").on(table.status),
 	index("sms_messages_created_at_idx").on(table.createdAt),
-]);
-
-export const smsSettings = mysqlTable("sms_settings", {
-	id: int().autoincrement().notNull(),
-	settingKey: varchar({ length: 100 }).notNull(),
-	settingValue: text().notNull(),
-	description: text(),
-	updatedBy: int(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("sms_settings_settingKey_unique").on(table.settingKey),
 ]);
 
 export const smsTemplates = mysqlTable("sms_templates", {
@@ -3077,13 +2842,13 @@ export const transformationEnrollments = mysqlTable("transformation_enrollments"
 	profileCompletedAt: datetime({ mode: 'string'}),
 	intakeReminder24HSentAt: datetime({ mode: 'string'}),
 	intakeReminder72HSentAt: datetime({ mode: 'string'}),
-	contactId: int(),
+	personId: int("contactId"),
 	vipConcierge: tinyint().default(0).notNull(),
 	vipConciergeFee: decimal({ precision: 10, scale: 2 }),
 },
 (table) => [
 	index("transformation_enroll_user_idx").on(table.userId),
-	index("transformation_enroll_contact_idx").on(table.contactId),
+	index("transformation_enroll_contact_idx").on(table.personId),
 	index("transformation_enroll_client_idx").on(table.clientId),
 	index("transformation_enroll_status_idx").on(table.status),
 	index("transformation_enroll_protocol_idx").on(table.clientProtocolId),
@@ -3215,11 +2980,11 @@ export const users = mysqlTable("users", {
 	lastSeenAt: timestamp({ mode: 'string' }),
 	passwordHash: varchar({ length: 255 }),
 	emailVerified: tinyint().default(0).notNull(),
-	contactId: int(),
+	personId: int("contactId"),
 },
 (table) => [
 	index("users_openId_unique").on(table.openId),
-	index("users_contact_idx").on(table.contactId),
+	index("users_contact_idx").on(table.personId),
 	index("users_email_idx").on(table.email),
 	index("users_role_idx").on(table.role),
 	index("users_referral_code_idx").on(table.referralCode),

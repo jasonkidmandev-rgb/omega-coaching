@@ -2,7 +2,7 @@
  * CHARACTERIZATION test — findOrCreateContact (the REAL, wired identity function).
  *
  * Runs the actual code against the real `contacts` table in the test-db container.
- * It documents CURRENT behavior so the contactId-only refactor (which collapses the
+ * It documents CURRENT behavior so the personId-only refactor (which collapses the
  * two findOrCreateContact impls into one service) can prove it didn't change what we
  * meant to keep. If a case here changes, that's a behavior change — decide on purpose.
  *

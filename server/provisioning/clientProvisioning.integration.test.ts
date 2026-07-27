@@ -1,9 +1,9 @@
 /**
- * BEHAVIOR — autoCreateOrLinkClient after S2 (contactId-only).
+ * BEHAVIOR — autoCreateOrLinkClient after S2 (personId-only).
  *
  * Post-refactor: no `clients` row is written and no `client_protocols.clientId` is
  * set. Identity is the `contacts` row (verified email); the protocol gets
- * `contactId`; the enrollment is linked by `contactId` + `clientProtocolId`; and
+ * `personId`; the enrollment is linked by `personId` + `clientProtocolId`; and
  * shipping lands on the protocol (the fulfillment record), not `clients`.
  * (Was previously the [REMOVED-BY-S2]/[INVARIANT] characterization of the legacy
  * behavior — flipped when S2 executed.)
@@ -35,7 +35,7 @@ async function one(sql: string, params: any[] = []): Promise<any> {
 }
 const count = async (t: string) => (await one(`SELECT COUNT(*) n FROM ${t}`)).n as number;
 
-describe("autoCreateOrLinkClient — contactId-only (post-S2)", () => {
+describe("autoCreateOrLinkClient — personId-only (post-S2)", () => {
   beforeEach(async () => {
     await truncate("transformation_enrollments", "client_protocols", "clients", "contacts");
   });
@@ -43,7 +43,7 @@ describe("autoCreateOrLinkClient — contactId-only (post-S2)", () => {
     await closePool();
   });
 
-  it("creates a contact, sets the protocol's contactId, links the enrollment — writes NO clients row", async () => {
+  it("creates a contact, sets the protocol's personId, links the enrollment — writes NO clients row", async () => {
     const email = "foo@bar.com";
     const enrollmentId = await seedEnrollment(email, "Foo Bar");
     const protocolId = await seedProtocol(email, "Foo Bar");
@@ -52,18 +52,18 @@ describe("autoCreateOrLinkClient — contactId-only (post-S2)", () => {
     const res = await autoCreateOrLinkClient(db, enrollmentId, email, "Foo Bar");
 
     expect(res.action).toBe("created");
-    expect(res.contactId).toBeGreaterThan(0);
+    expect(res.personId).toBeGreaterThan(0);
     expect(res.clientProtocolId).toBe(protocolId);
 
     expect(await count("contacts")).toBe(1);
     expect(await count("clients")).toBe(0); // legacy table no longer written
 
-    const proto = await one("SELECT contactId, clientId FROM client_protocols WHERE id=?", [protocolId]);
-    expect(proto.contactId).toBe(res.contactId);
+    const proto = await one("SELECT personId, clientId FROM client_protocols WHERE id=?", [protocolId]);
+    expect(proto.personId).toBe(res.personId);
     expect(proto.clientId).toBeNull(); // clientId no longer set
 
-    const enr = await one("SELECT contactId, clientProtocolId FROM transformation_enrollments WHERE id=?", [enrollmentId]);
-    expect(enr.contactId).toBe(res.contactId);
+    const enr = await one("SELECT personId, clientProtocolId FROM transformation_enrollments WHERE id=?", [enrollmentId]);
+    expect(enr.personId).toBe(res.personId);
     expect(enr.clientProtocolId).toBe(protocolId);
   });
 
@@ -77,7 +77,7 @@ describe("autoCreateOrLinkClient — contactId-only (post-S2)", () => {
     const res = await autoCreateOrLinkClient(db, enrollmentId, email, "Jane Doe");
 
     expect(res.action).toBe("linked");
-    expect(res.contactId).toBe(existingContactId);
+    expect(res.personId).toBe(existingContactId);
     expect(await count("contacts")).toBe(1); // no duplicate contact
     expect(await count("clients")).toBe(0);
   });

@@ -268,7 +268,7 @@ export function registerAuthRoutes(app: Express) {
       const openId = `local:${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
       // Create or find unified contact
-      let contactId: number | undefined;
+      let personId: number | undefined;
       try {
         const { findOrCreateContact } = await import('../contacts/contactService');
         const contact = await findOrCreateContact({
@@ -276,7 +276,7 @@ export function registerAuthRoutes(app: Express) {
           email: normalizedEmail,
           lifecycleStage: 'lead',
         });
-        contactId = contact.id;
+        personId = contact.id;
       } catch (e) {
         console.error('[Register] Failed to create/find contact:', e);
       }
@@ -291,7 +291,7 @@ export function registerAuthRoutes(app: Express) {
         loginMethod: "password",
         role: "user",
         lastSignedIn: new Date(),
-        contactId: contactId || null,
+        personId: personId || null,
       });
 
       const userId = result[0].insertId;

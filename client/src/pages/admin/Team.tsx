@@ -248,7 +248,14 @@ export default function AdminTeam() {
     user: 4,
   };
 
-  const sortedUsers = [...(users || [])].sort((a, b) => {
+  // The Team page is for STAFF only. `users` is the auth table — it holds every
+  // login, and the large majority are clients (role 'user'). Listing them here
+  // put ~71 clients one dropdown away from being granted admin, which Jason
+  // flagged as a security risk. Staff-ness is a role, not a login.
+  const STAFF_ROLES = ["admin", "manager", "viewer", "finance"];
+  const staffUsers = (users || []).filter(u => STAFF_ROLES.includes(u.role));
+
+  const sortedUsers = [...staffUsers].sort((a, b) => {
     const orderA = roleOrder[a.role] ?? 99;
     const orderB = roleOrder[b.role] ?? 99;
     return orderA - orderB;
@@ -263,7 +270,6 @@ export default function AdminTeam() {
   const managers = sortedUsers.filter((u) => u.role === "manager") || [];
   const viewers = sortedUsers.filter((u) => u.role === "viewer") || [];
   const finance = sortedUsers.filter((u) => u.role === "finance") || [];
-  const regularUsers = sortedUsers.filter((u) => u.role === "user") || [];
   const usersWithNotifications = sortedUsers.filter((u) => u.receiveNotifications) || [];
   
   // Helper to check if user has a client protocol
@@ -440,7 +446,7 @@ export default function AdminTeam() {
             onClick={() => setSelectedRole(null)}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -575,7 +581,7 @@ export default function AdminTeam() {
               {selectedRole ? `${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} Users` : 'All Users'}
             </CardTitle>
             <CardDescription>
-              {selectedRole ? `Showing ${filteredUsers.length} ${selectedRole} user(s)` : `Showing all ${filteredUsers.length} user(s)`}
+              {selectedRole ? `Showing ${filteredUsers.length} ${selectedRole} user(s)` : `Showing all ${filteredUsers.length} staff member(s)`}
             </CardDescription>
           </CardHeader>
           <CardContent>

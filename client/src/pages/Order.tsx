@@ -218,9 +218,16 @@ export default function Order() {
     setCart(prev => prev.filter(item => item.id !== itemId));
   };
 
-  // Fetch user's default address for checkout
+  // Fetch the person's address book for checkout
   const { data: savedAddresses } = trpc.savedAddresses.list.useQuery(undefined, {
     enabled: !!waiverStatus?.hasSignedWaiver,
+  });
+  const utils = trpc.useUtils();
+  const createAddress = trpc.savedAddresses.create.useMutation({
+    onSuccess: () => utils.savedAddresses.list.invalidate(),
+  });
+  const setDefaultAddress = trpc.savedAddresses.setDefault.useMutation({
+    onSuccess: () => utils.savedAddresses.list.invalidate(),
   });
   
   // Fetch client profile for address fallback
@@ -248,18 +255,20 @@ export default function Order() {
         isVerified: defaultAddress.isVerified,
       });
     } else if (clientProfile) {
-      // Fallback to client profile address
+      // No saved address. Prefill the name only and let them type the address.
+      // (This branch used to read profile.address/city/state/zip — no such
+      // columns exist on the person or user record, so it always produced
+      // blanks. Removed rather than left looking functional.)
       const profile = clientProfile as any;
-      // Use waiver name if profile name is incomplete (missing last name)
       const profileName = profile.name || '';
       const waiverName = waiverStatus?.waiver ? `${(waiverStatus.waiver as any).firstName || ''} ${(waiverStatus.waiver as any).lastName || ''}`.trim() : '';
       const bestName = (profileName.includes(' ') ? profileName : waiverName) || profileName;
       setConfirmedAddress({
         name: bestName,
-        street: profile.address || '',
-        city: profile.city || '',
-        state: profile.state || '',
-        zip: profile.zip || '',
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
         country: 'United States',
         countryCode: 'US',
         phone: profile.phone || undefined,
@@ -288,6 +297,35 @@ export default function Order() {
     setConfirmedAddress(address);
     setShowAddressConfirmation(false);
     setShowPaymentModal(true);
+
+    // Persist what they confirmed back to their address book, so a correction
+    // made here survives the order instead of only living on this one shipment.
+    // Best-effort: never block checkout on it.
+    if (!address.street) return;
+    const existing = savedAddresses?.find(
+      a => a.street?.trim().toLowerCase() === address.street.trim().toLowerCase()
+        && a.zip?.trim() === address.zip?.trim()
+    );
+    try {
+      if (existing) {
+        if (!existing.isDefault) setDefaultAddress.mutate({ id: existing.id });
+      } else {
+        createAddress.mutate({
+          label: savedAddresses?.length ? "Updated at checkout" : "Home",
+          name: address.name || "",
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zip: address.zip,
+          country: address.country || undefined,
+          countryCode: address.countryCode || undefined,
+          phone: address.phone || undefined,
+          isDefault: true,
+        });
+      }
+    } catch {
+      /* address book is a convenience — a failure here must not stop the order */
+    }
   };
 
   const handlePaymentSuccess = (method: "paypal" | "venmo", orderId?: string) => {

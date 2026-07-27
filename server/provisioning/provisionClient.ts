@@ -47,7 +47,7 @@ export interface ProvisionPurchaseInput {
 
 export interface ProvisionPurchaseResult {
   enrollmentId: number;
-  contactId: number;
+  personId: number;
   clientProtocolId: number | null;
   packingSlipId: number | null;
   createdNewEnrollment: boolean;
@@ -130,7 +130,7 @@ export async function provisionPurchase(input: ProvisionPurchaseInput): Promise<
   }
 
   // 3. Ensure the contact + client_protocol exist and link the enrollment to both.
-  const { contactId } = await autoCreateOrLinkClient(database, enrollmentId, email, name, {
+  const { personId } = await autoCreateOrLinkClient(database, enrollmentId, email, name, {
     phone: input.phone ?? null,
     shippingStreet: input.shipping?.street ?? null,
     shippingCity: input.shipping?.city ?? null,
@@ -146,9 +146,9 @@ export async function provisionPurchase(input: ProvisionPurchaseInput): Promise<
       SET clientProtocolId = ${mappedProtocolId}, updatedAt = NOW()
       WHERE id = ${enrollmentId}
     `);
-    if (contactId > 0) {
+    if (personId > 0) {
       await database.execute(sql`
-        UPDATE client_protocols SET contactId = ${contactId} WHERE id = ${mappedProtocolId} AND contactId IS NULL
+        UPDATE client_protocols SET personId = ${personId} WHERE id = ${mappedProtocolId} AND personId IS NULL
       `);
     }
   }
@@ -223,7 +223,7 @@ export async function provisionPurchase(input: ProvisionPurchaseInput): Promise<
 
   return {
     enrollmentId,
-    contactId,
+    personId,
     clientProtocolId: mappedProtocolId,
     packingSlipId,
     createdNewEnrollment,

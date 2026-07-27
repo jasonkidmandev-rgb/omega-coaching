@@ -789,7 +789,7 @@ export const transformationRouter = router({
                COALESCE(u.email, e.email) as userEmail
         FROM transformation_enrollments e
         LEFT JOIN users u ON e.userId = u.id
-        LEFT JOIN contacts ct ON e.contactId = ct.id
+        LEFT JOIN contacts ct ON e.personId = ct.id
         WHERE e.status = ${status}
         ORDER BY e.createdAt DESC
         LIMIT ${limit} OFFSET ${offset}
@@ -803,7 +803,7 @@ export const transformationRouter = router({
                COALESCE(u.email, e.email) as userEmail
         FROM transformation_enrollments e
         LEFT JOIN users u ON e.userId = u.id
-        LEFT JOIN contacts ct ON e.contactId = ct.id
+        LEFT JOIN contacts ct ON e.personId = ct.id
         ORDER BY e.createdAt DESC
         LIMIT ${limit} OFFSET ${offset}
       `);
@@ -2263,10 +2263,10 @@ export const transformationRouter = router({
         // canonical record, not the retired clients table). updated_at auto-bumps.
         try {
           const enrollLookup = await database.execute(sql`
-            SELECT contactId FROM transformation_enrollments WHERE id = ${enrollmentId} LIMIT 1
+            SELECT personId FROM transformation_enrollments WHERE id = ${enrollmentId} LIMIT 1
           `);
           const enrollRows = (enrollLookup[0] as unknown) as any[];
-          const linkedContactId = enrollRows?.[0]?.contactId;
+          const linkedContactId = enrollRows?.[0]?.personId;
           if (linkedContactId && linkedContactId > 0) {
             await database.execute(sql`
               UPDATE contacts SET phone = COALESCE(NULLIF(phone, ''), ${fd.phone})
@@ -2376,12 +2376,12 @@ export const transformationRouter = router({
           const enrollEmail = fd.email || null;
           const enrollNameForClient = fd.fullName || null;
           if (enrollEmail) {
-            const { contactId: newContactId } = await autoCreateOrLinkClient(
+            const { personId: newContactId } = await autoCreateOrLinkClient(
               database, enrollmentId, enrollEmail, enrollNameForClient,
               { phone: fd.phone, shippingStreet: fd.streetAddress, shippingCity: fd.city, shippingState: fd.stateProvince, shippingZip: fd.zipCode }
             );
             if (newContactId > 0) {
-              console.log('[submitIntakeForm] Ensured contact + protocol on intake completion:', { enrollmentId, contactId: newContactId });
+              console.log('[submitIntakeForm] Ensured contact + protocol on intake completion:', { enrollmentId, personId: newContactId });
             }
           }
         }
@@ -4045,7 +4045,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       if (!enrollment.email) throw new Error('Enrollment has no email address');
       
       // Use the shared helper which ensures the contact + client_protocol
-      const { contactId, clientProtocolId, action } = await autoCreateOrLinkClient(
+      const { personId, clientProtocolId, action } = await autoCreateOrLinkClient(
         database,
         input.enrollmentId,
         enrollment.email,
@@ -4069,7 +4069,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
 
       return {
         success: true,
-        contactId,
+        personId,
         clientProtocolId,
         action,
         message: action === 'created' ? 'New contact and protocol created' : action === 'linked' ? 'Linked to existing contact and protocol' : 'Already linked',
@@ -4078,7 +4078,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
 
   // Backfill contacts + protocols for existing enrollments that have completed
   // profiles but aren't linked to a contact yet. Identity-consolidation: routes
-  // through the shared autoCreateOrLinkClient helper (contactId) — the same path as
+  // through the shared autoCreateOrLinkClient helper (personId) — the same path as
   // syncSingleEnrollmentClient — instead of the retired clients table.
   syncEnrollmentClients: adminProcedure
     .mutation(async ({ ctx }) => {
@@ -4089,7 +4089,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
         SELECT id, clientName, email, phone, shippingStreet, shippingCity, shippingState, shippingZip
         FROM transformation_enrollments
         WHERE profileCompleted = 1
-          AND (contactId IS NULL OR contactId = 0)
+          AND (personId IS NULL OR personId = 0)
           AND email IS NOT NULL AND email != ''
         ORDER BY createdAt DESC
       `);
@@ -4105,8 +4105,8 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
 
       for (const enrollment of enrollments) {
         try {
-          // Ensure the contact + client_protocol and link the enrollment (contactId).
-          const { contactId, clientProtocolId, action } = await autoCreateOrLinkClient(
+          // Ensure the contact + client_protocol and link the enrollment (personId).
+          const { personId, clientProtocolId, action } = await autoCreateOrLinkClient(
             database,
             enrollment.id,
             enrollment.email,

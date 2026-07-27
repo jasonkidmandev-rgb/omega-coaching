@@ -22,7 +22,7 @@ export interface RetentionWatchItem {
   name: string;
   reason: string; // short badge text, e.g. "Renewal — 2 wks" / "Monthly call"
   detail: string; // one-line context, e.g. "Program ends Jul 28"
-  contactId: number | null;
+  personId: number | null;
   protocolId: number | null;
   urgency: number; // lower = more urgent (for sorting)
 }
@@ -61,7 +61,7 @@ export async function gatherRetentionWatch(): Promise<RetentionWatchItem[]> {
   if (!database) throw new Error("Database not available");
 
   const [rows] = (await database.execute(sql`
-    SELECT id, clientName, contactId, endDate, startDate, programStartDate, createdAt, durationMonths, engagementLevel
+    SELECT id, clientName, personId, endDate, startDate, programStartDate, createdAt, durationMonths, engagementLevel
     FROM client_protocols
     WHERE status = 'active' AND archivedAt IS NULL AND isActiveVersion = 1
   `)) as any;
@@ -71,7 +71,7 @@ export async function gatherRetentionWatch(): Promise<RetentionWatchItem[]> {
 
   for (const r of (rows || []) as any[]) {
     const name = r.clientName || `Client #${r.id}`;
-    const contactId = r.contactId ?? null;
+    const personId = r.personId ?? null;
     const protocolId = r.id ?? null;
     // Program start anchor, used for both the derived end date and the monthly call.
     const anchorRaw = r.programStartDate || r.startDate || r.createdAt;
@@ -96,7 +96,7 @@ export async function gatherRetentionWatch(): Promise<RetentionWatchItem[]> {
           name,
           reason: urgent ? "Renewal — 2 wks" : "Renewal — 4 wks",
           detail: `Program ends ${fmtDate(end)} (${daysLeft}d left)`,
-          contactId,
+          personId,
           protocolId,
           urgency: daysLeft, // sooner end = more urgent
         });
@@ -118,7 +118,7 @@ export async function gatherRetentionWatch(): Promise<RetentionWatchItem[]> {
               name,
               reason: "Monthly call",
               detail: "Monthly relations check-in due",
-              contactId,
+              personId,
               protocolId,
               urgency: 100 + daysSinceAnniv, // after all renewals
             });

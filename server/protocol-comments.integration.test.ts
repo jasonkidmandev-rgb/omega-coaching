@@ -20,16 +20,16 @@ import {
 import { truncate, rawPool, closePool, seedContact } from "../test-harness/dbHelpers";
 
 let tok = 0;
-async function seedProtocol(contactId: number | null, version: number): Promise<number> {
+async function seedProtocol(personId: number | null, version: number): Promise<number> {
   const [r] = await rawPool().query(
-    `INSERT INTO client_protocols (clientName, accessToken, status, contactId, version, isActiveVersion)
+    `INSERT INTO client_protocols (clientName, accessToken, status, personId, version, isActiveVersion)
      VALUES (?,?,?,?,?,?)`,
-    ["Client", "tok-" + ++tok + Math.random().toString(36).slice(2), "active", contactId, version, version]
+    ["Client", "tok-" + ++tok + Math.random().toString(36).slice(2), "active", personId, version, version]
   );
   return (r as any).insertId;
 }
 
-describe("continuous chat thread (Phase 3 — keyed on contactId)", () => {
+describe("continuous chat thread (Phase 3 — keyed on personId)", () => {
   beforeEach(async () => {
     await truncate("protocol_comments", "client_protocols", "contacts");
   });
@@ -38,11 +38,11 @@ describe("continuous chat thread (Phase 3 — keyed on contactId)", () => {
   });
 
   it("a thread carries across protocol versions for the same contact", async () => {
-    const contactId = await seedContact({ firstName: "Chat", lastName: "Client", email: "chat@x.com" });
-    const v1 = await seedProtocol(contactId, 1);
-    const v2 = await seedProtocol(contactId, 2);
+    const personId = await seedContact({ firstName: "Chat", lastName: "Client", email: "chat@x.com" });
+    const v1 = await seedProtocol(personId, 1);
+    const v2 = await seedProtocol(personId, 2);
 
-    // comment on v1, then v2 — createProtocolComment must stamp the same contactId
+    // comment on v1, then v2 — createProtocolComment must stamp the same personId
     await createProtocolComment({ clientProtocolId: v1, authorType: "client", message: "msg on v1" } as any);
     await createProtocolComment({ clientProtocolId: v2, authorType: "coach", message: "reply on v2" } as any);
 
@@ -51,7 +51,7 @@ describe("continuous chat thread (Phase 3 — keyed on contactId)", () => {
     const fromV2 = await getProtocolComments(v2);
     expect(fromV1.map((c: any) => c.message)).toEqual(["msg on v1", "reply on v2"]);
     expect(fromV2.map((c: any) => c.message)).toEqual(["msg on v1", "reply on v2"]);
-    expect(fromV1.every((c: any) => c.contactId === contactId)).toBe(true);
+    expect(fromV1.every((c: any) => c.personId === personId)).toBe(true);
 
     // a different contact's message must not leak in
     const other = await seedContact({ firstName: "Other", email: "other@x.com" });
@@ -61,9 +61,9 @@ describe("continuous chat thread (Phase 3 — keyed on contactId)", () => {
   });
 
   it("unread count + mark-read span the whole contact thread, not one version", async () => {
-    const contactId = await seedContact({ firstName: "Unread", email: "unread@x.com" });
-    const v1 = await seedProtocol(contactId, 1);
-    const v2 = await seedProtocol(contactId, 2);
+    const personId = await seedContact({ firstName: "Unread", email: "unread@x.com" });
+    const v1 = await seedProtocol(personId, 1);
+    const v2 = await seedProtocol(personId, 2);
     await createProtocolComment({ clientProtocolId: v1, authorType: "client", message: "old unread" } as any);
     await createProtocolComment({ clientProtocolId: v2, authorType: "client", message: "new unread" } as any);
 
@@ -81,30 +81,30 @@ describe("continuous chat thread (Phase 3 — keyed on contactId)", () => {
     await createProtocolComment({ clientProtocolId: orphanProto, authorType: "client", message: "orphan msg" } as any);
     const comments = await getProtocolComments(orphanProto);
     expect(comments.map((c: any) => c.message)).toEqual(["orphan msg"]);
-    expect(comments[0].contactId).toBeNull();
+    expect(comments[0].personId).toBeNull();
   });
 });
 
 async function seedProtocolFull(opts: {
-  contactId: number | null; version: number; name?: string; email?: string; deleted?: boolean;
+  personId: number | null; version: number; name?: string; email?: string; deleted?: boolean;
 }): Promise<number> {
   const [r] = await rawPool().query(
     `INSERT INTO client_protocols
-       (clientName, clientEmail, accessToken, status, contactId, version, isActiveVersion, deletedAt)
+       (clientName, clientEmail, accessToken, status, personId, version, isActiveVersion, deletedAt)
      VALUES (?,?,?,?,?,?,?,?)`,
     [
       opts.name ?? "Client", opts.email ?? null,
       "tok-" + ++tok + Math.random().toString(36).slice(2), "active",
-      opts.contactId, opts.version, 1, opts.deleted ? new Date() : null,
+      opts.personId, opts.version, 1, opts.deleted ? new Date() : null,
     ]
   );
   return (r as any).insertId;
 }
-async function seedComment(protocolId: number, contactId: number | null, authorType: "coach" | "client", message: string, isRead = false) {
+async function seedComment(protocolId: number, personId: number | null, authorType: "coach" | "client", message: string, isRead = false) {
   await rawPool().query(
-    `INSERT INTO protocol_comments (clientProtocolId, contactId, authorType, authorName, message, isRead)
+    `INSERT INTO protocol_comments (clientProtocolId, personId, authorType, authorName, message, isRead)
      VALUES (?,?,?,?,?,?)`,
-    [protocolId, contactId, authorType, authorType === "coach" ? "Coach" : "Client", message, isRead ? 1 : 0]
+    [protocolId, personId, authorType, authorType === "coach" ? "Coach" : "Client", message, isRead ? 1 : 0]
   );
 }
 async function seedUser(email: string) {
@@ -126,16 +126,16 @@ describe("coach inbox — one row per contact (Phase 3 grouping)", () => {
     // Contact A: two live versions (v1, v2) + a DELETED v3 with the newest message.
     const a = await seedContact({ firstName: "Aaa", lastName: "Client", email: "a@x.com" });
     await seedUser("a@x.com");
-    const av1 = await seedProtocolFull({ contactId: a, version: 1, name: "Aaa Client", email: "a@x.com" });
-    const av2 = await seedProtocolFull({ contactId: a, version: 2, name: "Aaa Client", email: "a@x.com" });
-    const av3 = await seedProtocolFull({ contactId: a, version: 3, name: "Aaa Client", email: "a@x.com", deleted: true });
+    const av1 = await seedProtocolFull({ personId: a, version: 1, name: "Aaa Client", email: "a@x.com" });
+    const av2 = await seedProtocolFull({ personId: a, version: 2, name: "Aaa Client", email: "a@x.com" });
+    const av3 = await seedProtocolFull({ personId: a, version: 3, name: "Aaa Client", email: "a@x.com", deleted: true });
     await seedComment(av1, a, "client", "a-old");
     await seedComment(av2, a, "client", "a-new");          // newest LIVE message
     await seedComment(av3, a, "client", "a-deleted-newest"); // on a deleted protocol → ignored
 
     // Contact B: one version, a coach message (not a client-unread).
     const b = await seedContact({ firstName: "Bbb", email: "b@x.com" });
-    const bv1 = await seedProtocolFull({ contactId: b, version: 1, name: "Bbb", email: "b@x.com" });
+    const bv1 = await seedProtocolFull({ personId: b, version: 1, name: "Bbb", email: "b@x.com" });
     await seedComment(bv1, b, "coach", "b-hi");
 
     const rows = (await getInboxConversations()) as any[];

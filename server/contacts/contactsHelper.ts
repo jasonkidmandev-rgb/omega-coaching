@@ -13,17 +13,17 @@
  */
 
 import { db } from "../db";
-import { contacts } from "../../drizzle/schema";
+import { people } from "../../drizzle/schema";
 import { eq, or, and, isNotNull, sql } from "drizzle-orm";
 
 // ============================================================
-// READ: Get contact info by contactId
+// READ: Get contact info by personId
 // ============================================================
-export async function getContactById(contactId: number) {
+export async function getContactById(personId: number) {
   const [contact] = await db
     .select()
-    .from(contacts)
-    .where(eq(contacts.id, contactId))
+    .from(people)
+    .where(eq(people.id, personId))
     .limit(1);
   return contact || null;
 }
@@ -35,37 +35,37 @@ export async function getContactByEmail(email: string) {
   if (!email) return null;
   const [contact] = await db
     .select()
-    .from(contacts)
-    .where(eq(contacts.email, email.toLowerCase().trim()))
+    .from(people)
+    .where(eq(people.email, email.toLowerCase().trim()))
     .limit(1);
   return contact || null;
 }
 
 // ============================================================
-// READ: Get contact display name (from contactId)
+// READ: Get contact display name (from personId)
 // Returns the full_name from contacts table
 // ============================================================
-export async function getContactName(contactId: number | null | undefined): Promise<string> {
-  if (!contactId) return "Unknown";
-  const contact = await getContactById(contactId);
+export async function getContactName(personId: number | null | undefined): Promise<string> {
+  if (!personId) return "Unknown";
+  const contact = await getContactById(personId);
   return contact?.fullName || contact?.firstName || "Unknown";
 }
 
 // ============================================================
-// READ: Get contact email (from contactId)
+// READ: Get contact email (from personId)
 // ============================================================
-export async function getContactEmail(contactId: number | null | undefined): Promise<string> {
-  if (!contactId) return "";
-  const contact = await getContactById(contactId);
+export async function getContactEmail(personId: number | null | undefined): Promise<string> {
+  if (!personId) return "";
+  const contact = await getContactById(personId);
   return contact?.email || "";
 }
 
 // ============================================================
-// READ: Get contact phone (from contactId)
+// READ: Get contact phone (from personId)
 // ============================================================
-export async function getContactPhone(contactId: number | null | undefined): Promise<string> {
-  if (!contactId) return "";
-  const contact = await getContactById(contactId);
+export async function getContactPhone(personId: number | null | undefined): Promise<string> {
+  if (!personId) return "";
+  const contact = await getContactById(personId);
   return contact?.phone || "";
 }
 
@@ -75,7 +75,7 @@ export async function getContactPhone(contactId: number | null | undefined): Pro
 // All forms should call this instead of updating local tables.
 // ============================================================
 export async function updateContact(
-  contactId: number,
+  personId: number,
   data: {
     firstName?: string;
     lastName?: string;
@@ -99,15 +99,15 @@ export async function updateContact(
   if (Object.keys(updateData).length === 0) return null;
   
   await db
-    .update(contacts)
+    .update(people)
     .set(updateData)
-    .where(eq(contacts.id, contactId));
+    .where(eq(people.id, personId));
   
   // Also update the legacy columns in related tables so existing queries don't break
   // This is a transitional measure — eventually these columns will be removed
-  const contact = await getContactById(contactId);
+  const contact = await getContactById(personId);
   if (contact) {
-    await syncLegacyColumns(contactId, contact);
+    await syncLegacyColumns(personId, contact);
   }
   
   return contact;
@@ -132,7 +132,7 @@ export async function findOrCreateContact(data: {
   }
   
   // Create new contact
-  const [result] = await db.insert(contacts).values({
+  const [result] = await db.insert(people).values({
     firstName: data.firstName,
     lastName: data.lastName || null,
     email: data.email?.toLowerCase().trim() || null,
@@ -149,7 +149,7 @@ export async function findOrCreateContact(data: {
 // This keeps old columns in sync during the transition period.
 // Eventually these columns will be deprecated.
 // ============================================================
-async function syncLegacyColumns(contactId: number, contact: any) {
+async function syncLegacyColumns(personId: number, contact: any) {
   const fullName = contact.fullName || `${contact.firstName || ""} ${contact.lastName || ""}`.trim();
   const email = contact.email || "";
   const phone = contact.phone || "";
@@ -157,29 +157,29 @@ async function syncLegacyColumns(contactId: number, contact: any) {
   // Use raw SQL for bulk updates across multiple tables
   const queries = [
     // client_protocols
-    `UPDATE client_protocols SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE contactId = ?`,
+    `UPDATE client_protocols SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE personId = ?`,
     // prospects
-    `UPDATE prospects SET name = ?, email = ?, phone = ? WHERE contactId = ?`,
+    `UPDATE prospects SET name = ?, email = ?, phone = ? WHERE personId = ?`,
     // client_projects
-    `UPDATE client_projects SET clientName = ?, clientEmail = ? WHERE contactId = ?`,
+    `UPDATE client_projects SET clientName = ?, clientEmail = ? WHERE personId = ?`,
     // custom_orders
-    `UPDATE custom_orders SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE contactId = ?`,
+    `UPDATE custom_orders SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE personId = ?`,
     // packing_slips
-    `UPDATE packing_slips SET clientName = ?, clientEmail = ? WHERE contactId = ?`,
+    `UPDATE packing_slips SET clientName = ?, clientEmail = ? WHERE personId = ?`,
     // appointments
-    `UPDATE appointments SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE contactId = ?`,
+    `UPDATE appointments SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE personId = ?`,
   ];
   
   // Execute updates with parameterized queries — never interpolate user data into raw SQL
   try {
-    await db.execute(sql`UPDATE client_protocols SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
-    await db.execute(sql`UPDATE prospects SET name = ${fullName}, email = ${email} WHERE contactId = ${contactId}`);
-    await db.execute(sql`UPDATE client_projects SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
-    await db.execute(sql`UPDATE custom_orders SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
-    await db.execute(sql`UPDATE packing_slips SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
-    await db.execute(sql`UPDATE appointments SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${contactId}`);
+    await db.execute(sql`UPDATE client_protocols SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
+    await db.execute(sql`UPDATE prospects SET name = ${fullName}, email = ${email} WHERE personId = ${personId}`);
+    await db.execute(sql`UPDATE client_projects SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
+    await db.execute(sql`UPDATE custom_orders SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
+    await db.execute(sql`UPDATE packing_slips SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
+    await db.execute(sql`UPDATE appointments SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
   } catch (err) {
-    console.error("[ContactsHelper] Error syncing legacy columns for contact", contactId, err);
+    console.error("[ContactsHelper] Error syncing legacy columns for contact", personId, err);
   }
 }
 
@@ -188,7 +188,7 @@ async function syncLegacyColumns(contactId: number, contact: any) {
 // Use this in SELECT queries instead of reading local columns
 // ============================================================
 export const contactsJoinFragment = {
-  contactName: sql<string>`COALESCE(contacts.full_name, contacts.first_name, 'Unknown')`.as('contactName'),
-  contactEmail: sql<string>`COALESCE(contacts.email, '')`.as('contactEmail'),
-  contactPhone: sql<string>`COALESCE(contacts.phone, '')`.as('contactPhone'),
+  contactName: sql<string>`COALESCE(people.full_name, people.first_name, 'Unknown')`.as('contactName'),
+  contactEmail: sql<string>`COALESCE(people.email, '')`.as('contactEmail'),
+  contactPhone: sql<string>`COALESCE(people.phone, '')`.as('contactPhone'),
 };

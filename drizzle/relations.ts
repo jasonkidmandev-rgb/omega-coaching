@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { users, checkinScheduleAuditLog, dashboardPreferences, emailTemplateCustomizations, paymentEvents, clientProtocols, paymentReminderLogs, pushSubscriptions, pushNotificationLogs } from "./schema";
+import { users, checkinScheduleAuditLog, dashboardPreferences, emailTemplateCustomizations, paymentEvents, clientProtocols, paymentReminderLogs } from "./schema";
 
 export const checkinScheduleAuditLogRelations = relations(checkinScheduleAuditLog, ({one}) => ({
 	user: one(users, {
@@ -47,13 +47,3 @@ export const clientProtocolsRelations = relations(clientProtocols, ({many}) => (
 	paymentReminderLogs: many(paymentReminderLogs),
 }));
 
-export const pushNotificationLogsRelations = relations(pushNotificationLogs, ({one}) => ({
-	pushSubscription: one(pushSubscriptions, {
-		fields: [pushNotificationLogs.subscriptionId],
-		references: [pushSubscriptions.id]
-	}),
-}));
-
-export const pushSubscriptionsRelations = relations(pushSubscriptions, ({many}) => ({
-	pushNotificationLogs: many(pushNotificationLogs),
-}));

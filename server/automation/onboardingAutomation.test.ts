@@ -120,9 +120,9 @@ describe('Onboarding Automation', () => {
       });
       
       // Verify result structure. Identity-consolidation: OnboardingResult is keyed
-      // on the canonical contactId (was clientId).
+      // on the canonical personId (was clientId).
       expect(result).toHaveProperty('success');
-      expect(result).toHaveProperty('contactId');
+      expect(result).toHaveProperty('personId');
       expect(result).toHaveProperty('clientProtocolId');
       expect(result).toHaveProperty('clientProjectId');
       expect(result).toHaveProperty('errors');

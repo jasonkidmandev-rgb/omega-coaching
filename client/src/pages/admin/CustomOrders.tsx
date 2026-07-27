@@ -79,17 +79,26 @@ function CreateOrderDialog({ open, onOpenChange, onCreated }: {
   const { data: inventoryData } = trpc.inventory.getWithProtocolPrices.useQuery();
   const [clientSearch, setClientSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState<{
-    id?: number; userId?: number; name: string; email: string; phone?: string;
+    id?: number; userId?: number; personId?: number; name: string; email: string; phone?: string;
     shippingName?: string; shippingStreet?: string; shippingCity?: string;
     shippingState?: string; shippingZip?: string; shippingCountry?: string;
     shippingPhone?: string;
   } | null>(null);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [addressSource, setAddressSource] = useState<"book" | "protocol" | null>(null);
+
+  // The client's address BOOK (saved_addresses, keyed to the person). Preferred
+  // over the protocol's frozen shipping snapshot, which can be months stale.
+  const { data: clientAddresses } = trpc.savedAddresses.listForPerson.useQuery(
+    { personId: selectedClient?.personId ?? 0 },
+    { enabled: !!selectedClient?.personId }
+  );
 
   // Order form
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "manual">("manual");
   const [shippingMethod, setShippingMethod] = useState<"standard" | "expedited" | "overnight" | "pickup">("standard");
   const [adminNotes, setAdminNotes] = useState("");
+  const [clientNotes, setClientNotes] = useState("");
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [discountAmount, setDiscountAmount] = useState("0");
   const [discountType, setDiscountType] = useState<"dollar" | "percent">("dollar");
@@ -133,6 +142,7 @@ function CreateOrderDialog({ open, onOpenChange, onCreated }: {
     setPaymentMethod("manual");
     setShippingMethod("standard");
     setAdminNotes("");
+    setClientNotes("");
     setLineItems([]);
     setDiscountAmount("0");
     setDiscountType("dollar");
@@ -166,6 +176,7 @@ function CreateOrderDialog({ open, onOpenChange, onCreated }: {
     setSelectedClient({
       id: client.id,
       userId: client.userId,
+      personId: client.personId,
       name: client.clientName,
       email: client.clientEmail || "",
       phone: client.clientPhone || "",
@@ -177,6 +188,9 @@ function CreateOrderDialog({ open, onOpenChange, onCreated }: {
       shippingCountry: client.shippingCountry || "United States",
       shippingPhone: client.shippingPhone || client.clientPhone || "",
     });
+    // Seed from the protocol snapshot; the effect below upgrades this to the
+    // client's saved address book once it loads (book wins — it's maintained,
+    // the snapshot is frozen at whenever the protocol was created).
     setShippingName(client.shippingName || client.clientName || "");
     setShippingStreet(client.shippingStreet || "");
     setShippingCity(client.shippingCity || "");
@@ -184,9 +198,25 @@ function CreateOrderDialog({ open, onOpenChange, onCreated }: {
     setShippingZip(client.shippingZip || "");
     setShippingCountry(client.shippingCountry || "United States");
     setShippingPhone(client.shippingPhone || client.clientPhone || "");
+    setAddressSource(client.shippingStreet ? "protocol" : null);
     setClientSearch("");
     setShowClientDropdown(false);
   };
+
+  // Prefer the address book over the protocol snapshot once it arrives.
+  useEffect(() => {
+    if (!clientAddresses?.length) return;
+    const preferred = clientAddresses.find((a: any) => a.isDefault) ?? clientAddresses[0];
+    if (!preferred?.street) return;
+    setShippingName(preferred.name || selectedClient?.name || "");
+    setShippingStreet(preferred.street || "");
+    setShippingCity(preferred.city || "");
+    setShippingState(preferred.state || "");
+    setShippingZip(preferred.zip || "");
+    setShippingCountry(preferred.country || "United States");
+    setShippingPhone(preferred.phone || selectedClient?.phone || "");
+    setAddressSource("book");
+  }, [clientAddresses]);
 
   // Add product from catalog
   const addProductFromCatalog = (item: any) => {
@@ -296,6 +326,7 @@ function CreateOrderDialog({ open, onOpenChange, onCreated }: {
       shippingPhone: shippingPhone || undefined,
       shippingMethod: shippingMethod,
       adminNotes: adminNotes || undefined,
+      clientNotes: clientNotes || undefined,
     });
   };
 
@@ -561,7 +592,19 @@ function CreateOrderDialog({ open, onOpenChange, onCreated }: {
 
           {/* Shipping Address */}
           <div className="space-y-3">
-            <Label className="text-sm font-semibold">Shipping Address</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold">Shipping Address</Label>
+              {addressSource === "book" && (
+                <span className="text-xs text-green-600">
+                  From client's saved address{clientAddresses && clientAddresses.length > 1 ? ` (${clientAddresses.length} on file)` : ""}
+                </span>
+              )}
+              {addressSource === "protocol" && (
+                <span className="text-xs text-amber-600">
+                  From their protocol — no saved address on file, verify before sending
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <Input placeholder="Full Name" value={shippingName} onChange={e => setShippingName(e.target.value)} />
               <Input placeholder="Phone" value={shippingPhone} onChange={e => setShippingPhone(e.target.value)} />
@@ -616,6 +659,17 @@ function CreateOrderDialog({ open, onOpenChange, onCreated }: {
               rows={2}
             />
           </div>
+
+          {/* Client-Facing Notes */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold">Note to Client (shown on their invoice)</Label>
+            <Textarea
+              placeholder="A message the client will see on their invoice email..."
+              value={clientNotes}
+              onChange={e => setClientNotes(e.target.value)}
+              rows={2}
+            />
+          </div>
         </div>
 
         <DialogFooter>
@@ -661,8 +715,18 @@ function CreateOrderDialog({ open, onOpenChange, onCreated }: {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {p.categoryName} · Stock: {p.quantity}
-                        {p.priceSource === "protocol" && <span className="text-green-600"> · Protocol Price</span>}
+                        {p.priceSource === "protocol"
+                          ? <span className="text-green-600"> · Protocol price</span>
+                          : <span> · Inventory price</span>}
                       </p>
+                      {/* Where the price came from. Protocol-mapped items silently override the
+                          inventory price — surface the difference instead of hiding it. */}
+                      {p.priceSource === "protocol" && p.inventoryPrice
+                        && parseFloat(p.inventoryPrice) !== parseFloat(p.price) && (
+                        <p className="text-[11px] text-amber-600">
+                          Inventory has ${parseFloat(p.inventoryPrice).toFixed(2)} — protocol price used
+                        </p>
+                      )}
                     </div>
                     <span className="text-sm font-medium">${p.price || "0.00"}</span>
                   </button>
@@ -760,6 +824,7 @@ function OrderDetailDialog({ orderId, open, onOpenChange, onUpdated }: {
   const [editPaymentMethod, setEditPaymentMethod] = useState<"stripe" | "manual">("manual");
   const [editShippingMethod, setEditShippingMethod] = useState<"standard" | "expedited" | "overnight" | "pickup">("standard");
   const [editAdminNotes, setEditAdminNotes] = useState("");
+  const [editClientNotes, setEditClientNotes] = useState("");
   const [editLineItems, setEditLineItems] = useState<LineItem[]>([]);
   const [editDiscountAmount, setEditDiscountAmount] = useState("0");
   const [editDiscountType, setEditDiscountType] = useState<"dollar" | "percent">("dollar");
@@ -796,6 +861,7 @@ function OrderDetailDialog({ orderId, open, onOpenChange, onUpdated }: {
     setEditPaymentMethod((o.paymentMethod as "stripe" | "manual") || "manual");
     setEditShippingMethod((o.shippingMethod as any) || "standard");
     setEditAdminNotes(o.adminNotes || "");
+    setEditClientNotes((o as any).clientNotes || "");
     setEditDiscountAmount(o.discountAmount?.toString() || "0");
     setEditShippingFee(o.shippingFee?.toString() || "0");
     setEditShippingName(o.shippingName || "");
@@ -857,6 +923,7 @@ function OrderDetailDialog({ orderId, open, onOpenChange, onUpdated }: {
       shippingPhone: editShippingPhone || undefined,
       shippingMethod: editShippingMethod,
       adminNotes: editAdminNotes || undefined,
+      clientNotes: editClientNotes || undefined,
     });
   };
 
@@ -979,7 +1046,15 @@ function OrderDetailDialog({ orderId, open, onOpenChange, onUpdated }: {
                 {o.clientPhone && <p className="text-sm text-muted-foreground">{o.clientPhone}</p>}
               </div>
               <div>
-                <h4 className="text-sm font-semibold mb-1">Shipping Address</h4>
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-sm font-semibold">Shipping Address</h4>
+                  {EDITABLE_STATUSES.includes(o.status) && (
+                    <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={enterEditMode}>
+                      <Pencil className="h-3 w-3 mr-1" />
+                      {o.shippingStreet ? "Change" : "Add"}
+                    </Button>
+                  )}
+                </div>
                 {o.shippingStreet ? (
                   <div className="text-sm text-muted-foreground">
                     <p>{o.shippingName}</p>
@@ -1292,6 +1367,10 @@ function OrderDetailDialog({ orderId, open, onOpenChange, onUpdated }: {
                 <Label className="text-sm font-semibold">Admin Notes (internal only)</Label>
                 <Textarea placeholder="Internal notes..." value={editAdminNotes} onChange={e => setEditAdminNotes(e.target.value)} rows={2} />
               </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Note to Client (shown on their invoice)</Label>
+                <Textarea placeholder="A message the client will see on their invoice email..." value={editClientNotes} onChange={e => setEditClientNotes(e.target.value)} rows={2} />
+              </div>
             </div>
           ) : (
             <div>
@@ -1435,8 +1514,17 @@ function OrderDetailDialog({ orderId, open, onOpenChange, onUpdated }: {
           {o.adminNotes && (
             <div>
               <Separator />
-              <h4 className="text-sm font-semibold mt-3 mb-1">Admin Notes</h4>
-              <p className="text-sm text-muted-foreground">{o.adminNotes}</p>
+              <h4 className="text-sm font-semibold mt-3 mb-1">Admin Notes (internal only)</h4>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{o.adminNotes}</p>
+            </div>
+          )}
+
+          {/* Client-Facing Notes */}
+          {(o as any).clientNotes && (
+            <div>
+              <Separator />
+              <h4 className="text-sm font-semibold mt-3 mb-1">Note to Client (on their invoice)</h4>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{(o as any).clientNotes}</p>
             </div>
           )}
 
