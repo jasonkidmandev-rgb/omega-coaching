@@ -86,6 +86,7 @@ import {
   LayoutGrid,
   CalendarClock,
   ListTodo,
+  Contact,
   AlertTriangle,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState, useMemo } from "react";
@@ -139,6 +140,9 @@ const menuCategories: MenuCategory[] = [
     defaultOpen: true,
     items: [
       { icon: Users, label: "Clients", path: "/admin/clients", roles: ['admin', 'manager', 'viewer'] },
+      // Everyone on record, including people with no protocol (store customers,
+      // registered users, stalled leads) who appear on no other admin screen.
+      { icon: Contact, label: "All People", path: "/admin/people", roles: ['admin', 'manager'] },
       { icon: ClipboardCheck, label: "Client Protocols", path: "/admin/client-protocols", roles: ['admin', 'manager', 'viewer'] },
       { icon: FolderKanban, label: "Client Projects", path: "/admin/projects", roles: ['admin', 'manager', 'viewer'] },
       { icon: CalendarClock, label: "Upcoming Appointments", path: "/admin/upcoming-appointments", roles: ['admin', 'manager'] },

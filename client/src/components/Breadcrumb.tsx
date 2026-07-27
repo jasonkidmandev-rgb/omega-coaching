@@ -25,6 +25,7 @@ const routeLabels: Record<string, string> = {
   "affiliate-partners": "Affiliate Partners",
   "email-branding": "Email Branding",
   "store-orders": "Store Orders",
+  "people": "All People",
   "packing-slips": "All Packing Slips",
   "fulfillment-queue": "Fulfillment Queue",
   backorders: "Backorders",

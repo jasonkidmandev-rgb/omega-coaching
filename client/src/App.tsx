@@ -23,6 +23,7 @@ import AgeRestricted from "./pages/AgeRestricted";
 // Lazy loaded admin pages (code splitting)
 const AdminDashboard = lazyWithRetry(() => import("./pages/admin/Dashboard"));
 const AdminClients = lazyWithRetry(() => import("./pages/admin/Clients"));
+const AdminPeople = lazyWithRetry(() => import("./pages/admin/People"));
 const AdminClientProtocols = lazyWithRetry(() => import("./pages/admin/ClientProtocols"));
 const AdminClientEdit = lazyWithRetry(() => import("./pages/admin/ClientEdit"));
 const AdminTemplates = lazyWithRetry(() => import("./pages/admin/Templates"));
@@ -173,6 +174,7 @@ function Router() {
         <Route path={"/admin/clients/new"} component={AdminClientEdit} />
         <Route path={"/admin/clients/:id"} component={AdminClientEdit} />
         <Route path={"/admin/clients"} component={AdminClients} />
+        <Route path={"/admin/people"} component={AdminPeople} />
         <Route path={"/admin/client-protocols"} component={AdminClientProtocols} />
         <Route path={"/admin/templates/new"} component={AdminTemplateEdit} />
         <Route path={"/admin/templates/:id"} component={AdminTemplateEdit} />
