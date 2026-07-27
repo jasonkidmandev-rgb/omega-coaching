@@ -19,7 +19,8 @@
     "testdb:logs": "docker compose -f test-harness/docker-compose.yml logs -f",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "db:push": "drizzle-kit generate && drizzle-kit migrate"
+    "db:push": "drizzle-kit generate && drizzle-kit migrate",
+    "test:probes": "vitest run --config vitest.probes.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",

@@ -17,6 +17,16 @@ export default defineConfig({
     include: ["server/**/*.test.ts", "server/**/*.spec.ts"],
     // Integration tests (`*.integration.test.ts`) need the test-db container and
     // run via `pnpm test:integration` — keep the default unit run DB-free.
-    exclude: [...configDefaults.exclude, "server/**/*.integration.test.ts"],
+    //
+    // Connectivity probes (`*.probe.test.ts`) are NOT tests — they call live
+    // third-party APIs (Calendly, Google Places, SMTP, IMAP) with real
+    // credentials and fail on any machine without production secrets. They are
+    // useful for diagnosing an integration, so they are kept and runnable via
+    // `pnpm test:probes`, but they must not make a normal test run red.
+    exclude: [
+      ...configDefaults.exclude,
+      "server/**/*.integration.test.ts",
+      "server/**/*.probe.test.ts",
+    ],
   },
 });
