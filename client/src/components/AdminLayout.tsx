@@ -57,7 +57,6 @@ import {
   Mail,
   ShoppingCart,
   ClipboardList,
-  Sparkles,
   FolderKanban,
   FolderOpen,
   History,
@@ -86,9 +85,7 @@ import {
   Sun,
   LayoutGrid,
   CalendarClock,
-  UserCog,
   ListTodo,
-  ShieldCheck,
   AlertTriangle,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState, useMemo } from "react";
@@ -127,6 +124,9 @@ const pinnedItems: MenuItem[] = [
   { icon: ListTodo, label: "My Action Items", path: "/admin/my-action-items", roles: ['admin', 'manager', 'viewer'] },
   { icon: BarChart3, label: "KPI Dashboard", path: "/admin/kpi-dashboard", roles: ['admin', 'manager'] },
   { icon: Inbox, label: "Message Inbox", path: "/admin/inbox", roles: ['admin', 'manager', 'viewer'], badge: 'inbox' },
+  // Pinned (not buried in Fulfillment & Operations) because this is the actual daily
+  // work tool for processing orders — Slip Management below is the admin/search/archive tool.
+  { icon: Package, label: "Fulfillment Queue", path: "/admin/fulfillment-queue", roles: ['admin', 'manager'] },
 ];
 
 // Organized menu structure with parent categories
@@ -165,9 +165,8 @@ const menuCategories: MenuCategory[] = [
     label: "Fulfillment & Operations",
     roles: ['admin', 'manager', 'finance'],
     items: [
-      { icon: ClipboardList, label: "Slip Management", path: "/admin/packing-slips", roles: ['admin', 'manager'] },
+      { icon: ClipboardList, label: "All Packing Slips (Admin)", path: "/admin/packing-slips", roles: ['admin', 'manager'] },
       { icon: FilePen, label: "Custom Orders", path: "/admin/custom-orders", roles: ['admin', 'manager', 'finance'] },
-      { icon: Package, label: "Fulfillment Queue", path: "/admin/fulfillment-queue", roles: ['admin', 'manager'] },
       { icon: AlertTriangle, label: "Backorders", path: "/admin/backorders", roles: ['admin', 'manager'] },
       { icon: Warehouse, label: "Inventory", path: "/admin/inventory", roles: ['admin', 'manager'] },
     ],
@@ -241,16 +240,11 @@ const menuCategories: MenuCategory[] = [
       // Email & Notifications
       { icon: Mail, label: "Email Branding", path: "/admin/email-branding", roles: ['admin'] },
       { icon: Eye, label: "Email Preview", path: "/admin/email-preview", roles: ['admin'] },
-      { icon: Activity, label: "Email Engagement", path: "/admin/email-engagement", roles: ['admin'] },
       { icon: Bell, label: "Notification Analysis", path: "/admin/notification-analysis", roles: ['admin'] },
       { icon: History, label: "Notification History", path: "/admin/notification-history", roles: ['admin'] },
       { icon: Bell, label: "Team Email Preferences", path: "/admin/notification-preferences", roles: ['admin', 'manager'] },
       // Data & Admin Tools
-      { icon: UserCog, label: "Contact Admin", path: "/admin/contact-admin", roles: ['admin'] },
-      { icon: ShieldCheck, label: "Data Integrity Audit", path: "/admin/data-integrity", roles: ['admin'] },
-      { icon: History, label: "Audit Logs", path: "/admin/audit-logs", roles: ['admin'] },
       { icon: ListTodo, label: "Workflow Templates", path: "/admin/workflow-templates", roles: ['admin', 'manager'] },
-      { icon: Sparkles, label: "Onboarding Wizard", path: "/admin/onboarding", roles: ['admin'] },
     ],
   },
 ];

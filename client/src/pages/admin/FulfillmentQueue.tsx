@@ -497,14 +497,14 @@ export default function FulfillmentQueue() {
             </div>
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-xs text-muted-foreground">Your daily work queue</span>
+                <ChevronRight className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
                 <button
                   onClick={() => navigate("/admin/packing-slips")}
                   className="text-xs text-muted-foreground hover:text-blue-600 hover:underline"
                 >
-                  Slip Management
+                  Looking to search or archive old slips? Go to All Packing Slips →
                 </button>
-                <ChevronRight className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
-                <span className="text-xs text-muted-foreground">Fulfillment Queue</span>
               </div>
               <h1 className="text-2xl font-bold">Fulfillment Queue</h1>
               <p className="text-sm text-muted-foreground">

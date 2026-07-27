@@ -30,7 +30,6 @@ const AdminTemplateEdit = lazyWithRetry(() => import("./pages/admin/TemplateEdit
 const AdminItems = lazyWithRetry(() => import("./pages/admin/Items"));
 // Supplements page removed - consolidated into Protocol Items
 const AdminTeam = lazyWithRetry(() => import("./pages/admin/Team"));
-const AdminAuditLogs = lazyWithRetry(() => import("./pages/admin/AuditLogs"));
 const AdminPrograms = lazyWithRetry(() => import("./pages/admin/Programs"));
 const AdminLaunchpadSettings = lazyWithRetry(() => import("./pages/admin/LaunchpadSettings"));
 const AdminInventory = lazyWithRetry(() => import("./pages/admin/Inventory"));
@@ -41,7 +40,6 @@ const AdminEmailPreview = lazyWithRetry(() => import("./pages/admin/EmailPreview
 const AdminOrderHistory = lazyWithRetry(() => import("./pages/admin/OrderHistory"));
 const AdminPackingSlips = lazyWithRetry(() => import("./pages/admin/PackingSlips"));
 const AdminPackingSlipDetail = lazyWithRetry(() => import("./pages/admin/PackingSlipDetail"));
-const AdminOnboardingManager = lazyWithRetry(() => import("./pages/admin/OnboardingManager"));
 const AdminProjectList = lazyWithRetry(() => import("./pages/admin/projects/ProjectList"));
 const AdminProjectDetail = lazyWithRetry(() => import("./pages/admin/projects/ProjectDetail"));
 const AdminWorkflowTemplates = lazyWithRetry(() => import("./pages/admin/projects/WorkflowTemplates"));
@@ -61,7 +59,6 @@ const AdminNotificationTemplates = lazyWithRetry(() => import("./pages/admin/Not
 const AdminProtocolPresets = lazyWithRetry(() => import("./pages/admin/ProtocolPresets"));
 const AdminIntegrationSettings = lazyWithRetry(() => import("./pages/admin/IntegrationSettings"));
 const AdminEmailReportSettings = lazyWithRetry(() => import("./pages/admin/EmailReportSettings"));
-const AdminEmailEngagement = lazyWithRetry(() => import("./pages/admin/EmailEngagement"));
 // Access codes removed
 const AdminPromoCodes = lazyWithRetry(() => import("./pages/admin/PromoCodes"));
 const AdminPromoCodeAnalytics = lazyWithRetry(() => import("./pages/admin/PromoCodeAnalytics"));
@@ -85,8 +82,6 @@ const AdminConversionTracking = lazyWithRetry(() => import("./pages/admin/Conver
 const AdminAcquisitionDashboard = lazyWithRetry(() => import("./pages/admin/AcquisitionDashboard"));
 const AdminUpcomingAppointments = lazyWithRetry(() => import("./pages/admin/UpcomingAppointments"));
 const AdminCalendlySettings = lazyWithRetry(() => import("./pages/admin/CalendlySettings"));
-const AdminContactAdmin = lazyWithRetry(() => import("./pages/admin/ContactAdmin"));
-const AdminDataIntegrityAudit = lazyWithRetry(() => import("./pages/admin/DataIntegrityAudit"));
 const TransformationEntry = lazyWithRetry(() => import("./pages/TransformationEntry"));
 // TransformationJourney removed - page deprecated, route redirects to /transformation
 const TransformationVerify = lazyWithRetry(() => import("./pages/TransformationVerify"));
@@ -185,7 +180,6 @@ function Router() {
         <Route path={"/admin/items"} component={AdminItems} />
         {/* Supplements route removed - use /admin/items with filter tabs */}
         <Route path={"/admin/team"} component={AdminTeam} />
-        <Route path={"/admin/audit-logs"} component={AdminAuditLogs} />
         <Route path={"/admin/programs"} component={AdminPrograms} />
         <Route path={"/admin/launchpad-settings"} component={AdminLaunchpadSettings} />
         <Route path={"/admin/inventory"} component={AdminInventory} />
@@ -193,7 +187,6 @@ function Router() {
         <Route path={"/admin/notification-report"} component={AdminNotificationReport} />
         <Route path={"/admin/email-templates"} component={AdminEmailTemplatePreview} />
         <Route path={"/admin/email-report-settings"} component={AdminEmailReportSettings} />
-        <Route path={"/admin/email-engagement"} component={AdminEmailEngagement} />
         <Route path={"/admin/notification-settings"} component={AdminNotificationSettings} />
         <Route path={"/admin/payment-history"} component={AdminPaymentHistory} />
         <Route path={"/admin/job-health"} component={AdminJobHealth} />
@@ -204,7 +197,6 @@ function Router() {
         <Route path={"/admin/store-waivers"} component={AdminStoreWaivers} />
         <Route path={"/admin/packing-slips/:id"} component={AdminPackingSlipDetail} />
         <Route path={"/admin/packing-slips"} component={AdminPackingSlips} />
-        <Route path={"/admin/onboarding"} component={AdminOnboardingManager} />
         <Route path={"/admin/peptide-cheat-sheet"} component={AdminPeptideCheatSheet} />
         <Route path={"/admin/categories"} component={AdminCategoryManagement} />
         {/* Client Projects (Back-Office) */}
@@ -247,8 +239,6 @@ function Router() {
         <Route path={"/admin/acquisition"} component={AdminAcquisitionDashboard} />
         <Route path={"/admin/upcoming-appointments"} component={AdminUpcomingAppointments} />
         <Route path={"/admin/calendly-settings"} component={AdminCalendlySettings} />
-        <Route path={"/admin/contact-admin"} component={AdminContactAdmin} />
-        <Route path={"/admin/data-integrity"} component={AdminDataIntegrityAudit} />
         <Route path={"/admin/my-action-items"} component={MyActionItems} />
         <Route path={"/admin/fulfillment-queue"} component={FulfillmentQueue} />
         <Route path={"/admin/backorders"} component={AdminBackorders} />

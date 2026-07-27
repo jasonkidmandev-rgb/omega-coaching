@@ -444,12 +444,22 @@ export default function PackingSlips() {
     <AdminLayout>
       <div className="space-y-6">
         <div>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="text-xs text-muted-foreground">Admin — search, filter, archive</span>
+            <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            <button
+              onClick={() => setLocation("/admin/fulfillment-queue")}
+              className="text-xs text-muted-foreground hover:text-blue-600 hover:underline"
+            >
+              Processing today's orders? Go to the Fulfillment Queue →
+            </button>
+          </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
             <ClipboardList className="h-8 w-8 text-primary" />
-            Packing Slips
+            All Packing Slips
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage order fulfillment and track shipments
+            Search, filter, archive, and export — for day-to-day fulfillment work, use the Fulfillment Queue
           </p>
         </div>
 
