@@ -61,7 +61,9 @@ export async function gatherRetentionWatch(): Promise<RetentionWatchItem[]> {
   if (!database) throw new Error("Database not available");
 
   const [rows] = (await database.execute(sql`
-    SELECT id, clientName, personId, endDate, startDate, programStartDate, createdAt, durationMonths, engagementLevel
+    -- Raw SQL: the physical column is contactId; the Drizzle personId alias does not
+    -- apply here. Aliased back to personId so the code below reads unchanged.
+    SELECT id, clientName, contactId AS personId, endDate, startDate, programStartDate, createdAt, durationMonths, engagementLevel
     FROM client_protocols
     WHERE status = 'active' AND archivedAt IS NULL AND isActiveVersion = 1
   `)) as any;

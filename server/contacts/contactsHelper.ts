@@ -152,32 +152,23 @@ export async function findOrCreateContact(data: {
 async function syncLegacyColumns(personId: number, contact: any) {
   const fullName = contact.fullName || `${contact.firstName || ""} ${contact.lastName || ""}`.trim();
   const email = contact.email || "";
-  const phone = contact.phone || "";
-  
-  // Use raw SQL for bulk updates across multiple tables
-  const queries = [
-    // client_protocols
-    `UPDATE client_protocols SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE personId = ?`,
-    // prospects
-    `UPDATE prospects SET name = ?, email = ?, phone = ? WHERE personId = ?`,
-    // client_projects
-    `UPDATE client_projects SET clientName = ?, clientEmail = ? WHERE personId = ?`,
-    // custom_orders
-    `UPDATE custom_orders SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE personId = ?`,
-    // packing_slips
-    `UPDATE packing_slips SET clientName = ?, clientEmail = ? WHERE personId = ?`,
-    // appointments
-    `UPDATE appointments SET clientName = ?, clientEmail = ?, clientPhone = ? WHERE personId = ?`,
-  ];
-  
-  // Execute updates with parameterized queries — never interpolate user data into raw SQL
+
+  // Raw SQL, so these must use the PHYSICAL column name `contactId`. Drizzle's
+  // `personId: int("contactId")` alias only applies to query-builder calls — inside
+  // sql`` the database sees the literal text, and `personId` throws "Unknown column".
+  // The catch below only logs, so when that happened these updates failed silently and
+  // renames stopped propagating to the denormalized name/email copies.
+  //
+  // (A parallel array of `?`-placeholder query strings used to sit here, unreferenced
+  // since the sql`` calls below replaced it. Removed — it was a second copy of these
+  // statements that could drift out of sync with the ones actually executed.)
   try {
-    await db.execute(sql`UPDATE client_protocols SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
-    await db.execute(sql`UPDATE prospects SET name = ${fullName}, email = ${email} WHERE personId = ${personId}`);
-    await db.execute(sql`UPDATE client_projects SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
-    await db.execute(sql`UPDATE custom_orders SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
-    await db.execute(sql`UPDATE packing_slips SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
-    await db.execute(sql`UPDATE appointments SET clientName = ${fullName}, clientEmail = ${email} WHERE personId = ${personId}`);
+    await db.execute(sql`UPDATE client_protocols SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${personId}`);
+    await db.execute(sql`UPDATE prospects SET name = ${fullName}, email = ${email} WHERE contactId = ${personId}`);
+    await db.execute(sql`UPDATE client_projects SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${personId}`);
+    await db.execute(sql`UPDATE custom_orders SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${personId}`);
+    await db.execute(sql`UPDATE packing_slips SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${personId}`);
+    await db.execute(sql`UPDATE appointments SET clientName = ${fullName}, clientEmail = ${email} WHERE contactId = ${personId}`);
   } catch (err) {
     console.error("[ContactsHelper] Error syncing legacy columns for contact", personId, err);
   }

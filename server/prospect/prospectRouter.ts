@@ -72,8 +72,10 @@ export const prospectRouter = router({
           const [enrollment] = await d.execute(sql`SELECT id, tier, status, coachingFeePaid, coachingFeeAmount, enrolledAt FROM transformation_enrollments WHERE id = ${r.enrollmentId}`);
           if (enrollment) enrollmentData = enrollment;
         } else if (r.personId) {
-          // Fall back to the contact's most recent enrollment
-          const enrollments = await d.execute(sql`SELECT id, tier, status, coachingFeePaid, coachingFeeAmount, enrolledAt FROM transformation_enrollments WHERE personId = ${r.personId} ORDER BY createdAt DESC LIMIT 1`);
+          // Fall back to the contact's most recent enrollment.
+          // Raw SQL: the column is physically `contactId` (Drizzle's `personId` alias
+          // does not apply inside sql``). `${r.personId}` is a JS property and is right.
+          const enrollments = await d.execute(sql`SELECT id, tier, status, coachingFeePaid, coachingFeeAmount, enrolledAt FROM transformation_enrollments WHERE contactId = ${r.personId} ORDER BY createdAt DESC LIMIT 1`);
           if (enrollments.length > 0) enrollmentData = enrollments[0];
         }
 

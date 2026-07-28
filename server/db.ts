@@ -8129,8 +8129,13 @@ export async function getInboxConversations() {
   const db = await getDb();
   if (!db) return [];
 
-  // convKey = personId when present, else -clientProtocolId (keeps orphan protocols
-  // in their own bucket without colliding with real contactIds).
+  // convKey = the person when present, else -clientProtocolId (keeps orphan protocols
+  // in their own bucket without colliding with real contact ids).
+  //
+  // NOTE: this is raw SQL, so it must use the PHYSICAL column name `contactId`.
+  // Drizzle's `personId: int("contactId")` alias only applies to query-builder calls;
+  // inside sql`` the database sees the literal text. Writing `personId` here throws
+  // "Unknown column 'c2.personId'", which silently emptied the whole admin inbox.
   const conversations = await db.execute(sql`
     SELECT
       cp.id as clientProtocolId,
@@ -8147,24 +8152,24 @@ export async function getInboxConversations() {
       COALESCE(ur.unreadCount, 0) as unreadCount,
       u.lastSeenAt as clientLastSeenAt
     FROM (
-      SELECT c.id, c.clientProtocolId, c.personId, c.message, c.authorType, c.authorName, c.createdAt, c.loomUrl
+      SELECT c.id, c.clientProtocolId, c.contactId, c.message, c.authorType, c.authorName, c.createdAt, c.loomUrl
       FROM protocol_comments c
       INNER JOIN (
-        SELECT COALESCE(c2.personId, -c2.clientProtocolId) AS convKey, MAX(c2.id) AS maxId
+        SELECT COALESCE(c2.contactId, -c2.clientProtocolId) AS convKey, MAX(c2.id) AS maxId
         FROM protocol_comments c2
         JOIN client_protocols cp2 ON cp2.id = c2.clientProtocolId AND cp2.deletedAt IS NULL
-        GROUP BY COALESCE(c2.personId, -c2.clientProtocolId)
+        GROUP BY COALESCE(c2.contactId, -c2.clientProtocolId)
       ) k ON c.id = k.maxId
     ) lm
     JOIN client_protocols cp ON cp.id = lm.clientProtocolId
     LEFT JOIN users u ON LOWER(cp.clientEmail) = LOWER(u.email)
     LEFT JOIN (
-      SELECT COALESCE(c3.personId, -c3.clientProtocolId) AS convKey, COUNT(*) AS unreadCount
+      SELECT COALESCE(c3.contactId, -c3.clientProtocolId) AS convKey, COUNT(*) AS unreadCount
       FROM protocol_comments c3
       JOIN client_protocols cp3 ON cp3.id = c3.clientProtocolId AND cp3.deletedAt IS NULL
       WHERE c3.authorType = 'client' AND c3.isRead = 0
-      GROUP BY COALESCE(c3.personId, -c3.clientProtocolId)
-    ) ur ON ur.convKey = COALESCE(lm.personId, -lm.clientProtocolId)
+      GROUP BY COALESCE(c3.contactId, -c3.clientProtocolId)
+    ) ur ON ur.convKey = COALESCE(lm.contactId, -lm.clientProtocolId)
     WHERE cp.deletedAt IS NULL
     ORDER BY lm.createdAt DESC
   `);

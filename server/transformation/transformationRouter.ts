@@ -789,7 +789,7 @@ export const transformationRouter = router({
                COALESCE(u.email, e.email) as userEmail
         FROM transformation_enrollments e
         LEFT JOIN users u ON e.userId = u.id
-        LEFT JOIN contacts ct ON e.personId = ct.id
+        LEFT JOIN contacts ct ON e.contactId = ct.id
         WHERE e.status = ${status}
         ORDER BY e.createdAt DESC
         LIMIT ${limit} OFFSET ${offset}
@@ -803,7 +803,7 @@ export const transformationRouter = router({
                COALESCE(u.email, e.email) as userEmail
         FROM transformation_enrollments e
         LEFT JOIN users u ON e.userId = u.id
-        LEFT JOIN contacts ct ON e.personId = ct.id
+        LEFT JOIN contacts ct ON e.contactId = ct.id
         ORDER BY e.createdAt DESC
         LIMIT ${limit} OFFSET ${offset}
       `);
@@ -2263,7 +2263,7 @@ export const transformationRouter = router({
         // canonical record, not the retired clients table). updated_at auto-bumps.
         try {
           const enrollLookup = await database.execute(sql`
-            SELECT personId FROM transformation_enrollments WHERE id = ${enrollmentId} LIMIT 1
+            SELECT contactId AS personId FROM transformation_enrollments WHERE id = ${enrollmentId} LIMIT 1
           `);
           const enrollRows = (enrollLookup[0] as unknown) as any[];
           const linkedContactId = enrollRows?.[0]?.personId;
