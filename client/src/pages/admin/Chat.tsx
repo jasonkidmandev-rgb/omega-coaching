@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { trpc } from "@/lib/trpc";import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { processMessageForDisplay } from "@/lib/htmlUtils";

@@ -13,7 +13,8 @@
  * confirms the at-risk signal (quiet after N days / payment due / program ending).
  */
 import { trpc } from "@/lib/trpc";
-import { useLocation } from "wouter";import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocation } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
