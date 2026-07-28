@@ -20,8 +20,12 @@ Two developers, **Farjad** and **Saboor**, build this app together, both pushing
 - **main is always deployable.** Hide half-done work behind a flag (`shared/flags.ts`)
   rather than leaving main broken.
 - **Type safety:** the build skips type-checking. A GitHub Action runs
-  `typecheck:ratchet` against the baseline in `tsc-error-baseline.txt` (currently 743).
-  Don't increase it; if you add a new error, fix it.
+  `typecheck:ratchet` against the baseline in `tsc-error-baseline.txt` (currently **723**;
+  it was 743 until `08dd789`, then 723 as of `7851dd8`). Read the file rather than trusting
+  a number written here. Don't increase it; if you add a new error, fix it.
+  Note the ratchet is the **only** CI gate — it cannot catch anything inside a `` sql`` ``
+  template or any other string, which is how the chat outage shipped. See the raw-SQL
+  gotcha in `workspace/claude/context.md`.
 - Small, frequent commits with clear messages (they double as our code review).
 - Neither of us sees the other's work until it's on `main`, so pull and push often; the
   more frequently we sync, the smaller any overlap.
