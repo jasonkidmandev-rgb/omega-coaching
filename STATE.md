@@ -1,0 +1,186 @@
+# STATE.md — verified state of this codebase
+
+**Maintained by Saboor (development/execution owner).** This file records what has been
+**measured**, not what is planned or believed. Every claim below says how it was checked
+and when, so it can be re-checked rather than trusted.
+
+**Why this file exists:** planning documents describe intent; they drift from the code and
+nobody notices. A worked example from this repo — the root `CLAUDE.md` stated the typecheck
+baseline was `743` when it had already been lowered twice and was `723`. Not anyone's fault;
+copied numbers rot. So: **the code and the database are the source of truth, this file
+records what they actually said, and anything here that isn't dated + evidenced should be
+treated as unverified.**
+
+Relationship to `workspace/`: that folder is Farjad + Saboor coordination (milestones, plans,
+logs). This file is the measured baseline underneath it. When they disagree, re-measure.
+
+> ⚠️ **`docs/` is gitignored** (see `.gitignore`). The long-form audits referenced below live
+> only on Saboor's machine and do **not** travel with the repo. Anything that must survive is
+> summarised here.
+
+---
+
+## How to verify anything (and what each check does NOT prove)
+
+| Check | Command | Proves | Does **not** prove |
+|---|---|---|---|
+| Types | `node scripts/typecheck-ratchet.mjs` | No new type errors vs `tsc-error-baseline.txt` | Anything inside a string — SQL, URLs, template literals |
+| Build | `npx vite build` | It compiles and chunks | Any runtime behaviour |
+| Unit tests | `npx vitest run` | Pure logic still behaves | Almost nothing DB- or HTTP-shaped; the harness has no database |
+| Integration | `pnpm testdb:up && pnpm test:integration` | Real queries against a real MySQL | Only covers the few files named `*.integration.test.ts` |
+| Live schema | read-only query against the Railway DB | Ground truth for column names | — |
+
+⛔ **Do NOT run the app locally.** The committed `.env` points `DATABASE_URL` at the **live
+production DB** and `SMTP_HOST` at a real sender, and `startServer()`
+(`server/_core/index.ts:552-576`) starts ~20 cron jobs **unconditionally** — no kill switch.
+`pnpm dev` begins mailing real clients within seconds. Verified 2026-07-29 by starting it for
+~35s, killing it, and confirming 0 sends in the DB. Runtime verification therefore happens on
+the Railway deploy, not locally. **Fixing this (env-gate the crons, point local `.env` at the
+Docker test DB) unblocks all local verification and is worth doing early.**
+
+---
+
+## Measured facts
+
+### Type checking — verified 2026-07-29
+- Baseline is whatever `tsc-error-baseline.txt` says. **Read the file; do not trust a number
+  quoted elsewhere.** It was 743, then 725, and is **723** as of `7851dd8`.
+- The ratchet (`.github/workflows/typecheck.yml`) is the **only** CI gate. It blocks
+  *increases* only.
+- ⚠️ A parse error makes `tsc` bail early and report *fewer* errors. A sudden large drop is a
+  red flag, not a win — that happened on 2026-07-29 (725 → "2") from a stray backtick inside a
+  template literal.
+
+### Test suite — verified 2026-07-29, three consecutive runs
+- **1661 tests / 123 files, all passing, stable.**
+- `*.integration.test.ts` (DB-backed) and `*.probe.test.ts` (live third-party APIs) are
+  excluded from the default run by `vitest.config.ts`.
+- **Green does not mean covered.** `inbox.test.ts` called `getInboxConversations()` and
+  asserted the result was an array — that function opens `if (!db) return []`, so with no DB it
+  returned `[]` before reaching its SQL and **passed for the entire time the admin inbox was
+  throwing in production**. Deleted, along with ~24 other tests that only asserted a name
+  existed. Real behavioural coverage does not exist yet; that needs a DB-backed harness.
+
+### Admin navigation architecture — changed 2026-07-29 (`5273297`, `a43fb6f`). **Do not regress this.**
+`AdminLayout` is mounted **once, above** the admin router, in `client/src/App.tsx`:
+
+```
+Router()  ->  location.startsWith("/admin")  ->  <AdminRoutes/>
+                 <Suspense fallback={<LoadingSpinner/>}>   // shell chunk, once per session
+                   <AdminLayout>                            // persists across navigation
+                     <Suspense fallback={<PageSkeleton/>}>  // page chunks, INSIDE the chrome
+                       <Switch> …73 admin routes… <Route component={NotFound}/> </Switch>
+```
+
+Three rules that keep it working:
+1. **Admin pages must NOT render `<AdminLayout>` themselves.** All 64 were stripped to bare
+   fragments. Re-adding one renders a sidebar inside a sidebar.
+2. **The page-chunk Suspense fallback must stay a content-area skeleton**, never the
+   full-screen `LoadingSpinner` (`min-h-screen bg-slate-900`) — that just relocates the flash
+   the fix removed.
+3. **The `/admin` branch is chosen by a location check, not two `<Route>` entries.** Two
+   routes (`/admin` and `/admin/:rest*`) make the Switch swap elements on the
+   `/admin → /admin/clients` transition, remounting the shell and reintroducing the bug.
+
+Before this, every admin click unmounted the whole shell and flashed a full-screen dark
+spinner, because the only Suspense boundary was app-level and the layout lived inside each
+lazy page.
+
+### Identity / data model — ⚠️ live trap, verified 2026-07-29
+Code says `people` / `personId`; the database still says `contacts` / `contactId`. Drizzle
+bridges them via `personId: int("contactId")`.
+
+**That alias applies ONLY to query-builder calls.** Inside a `` sql`` `` template MySQL sees the
+literal text, so `personId` is an unknown column — even though the SQL sits in a `.ts` file.
+This threw `Unknown column 'c2.personId'` on every admin-inbox call, so **chat appeared dead
+while the messages were completely intact**. Fixed across 6 sites in `1e0c4eb`. Six more UPDATEs
+in `contactsHelper.ts` sat in a log-only `try/catch`, so contact renames had been failing
+**silently**.
+
+Nothing automated catches this — types, ratchet, build and tests all pass on an opaque string.
+Grep before shipping anything identity-adjacent:
+
+```bash
+grep -rn "personId" server/ --include=*.ts | grep -v "\.test\." \
+  | grep -E "SELECT |FROM |WHERE |JOIN |GROUP BY|VALUES|COALESCE|SET " \
+  | grep -vE "\$\{[^}]*personId[^}]*\}" | grep -vE "AS personId"
+```
+
+Alias rather than rename where downstream JS reads `.personId`: `SELECT contactId AS personId`.
+~20 other columns share the trap (`lifecycleStage`→`lifecycle_stage`, `fullName`→`full_name`,
+…), but some camelCase names genuinely *are* physical elsewhere (`payment_events.grossAmount`) —
+check the specific table. **All of this disappears once `cutover/phase4-people-rename.sql` runs.**
+
+### App URLs — changed 2026-07-29 (`7851dd8`)
+`server/lib/appUrl.ts` is the only definition. Use `getAppBaseUrl()`, or
+`getRequestBaseUrl(origin)` in request-scoped code. **Never write a domain literal.**
+Previously ~70 copies of `process.env.VITE_APP_URL || 'https://peptidecoach.pro'` across 26
+files, each in a client-facing link, all defaulting to the **old Manus site** — so a missing
+`VITE_APP_URL` would silently mail clients back to the system being migrated away from.
+
+---
+
+## Open, verified problems
+
+### 🔴 Unauthenticated endpoints — 3 of 6 fixed 2026-07-29, 3 still open
+`publicProcedure` is bare `t.procedure`, no middleware; only a 3000-req/15-min IP limit sits in
+front. Each takes a **sequential integer ID** and returns real client data.
+
+| Endpoint | Exposure | Status |
+|---|---|---|
+| `transformation.getIntakeForm` | Full health intake — DOB, address, medications, diagnoses, mental-health history, substance use, emergency contacts. **36 live forms in prod.** | 🔴 **OPEN — the worst one** |
+| `checkin.getForClient` | Any check-in by id (397 in prod) | 🔴 OPEN |
+| `transformation.completePaymentPublic` | Trusts client-supplied `amount` / `tier` / `clientEmail` | 🔴 OPEN |
+| `transformation.getEnrollmentPublic` | `SELECT *` + spread leaked the `authToken` magic-link column | ✅ requires the token, returns an explicit allow-list |
+| `customOrders.capturePaymentPublic` | Marked an order **paid with no Stripe verification** | ✅ **deleted** — see below |
+| `refund.getByClient` | Refund history by id | ✅ `adminProcedure` (it had no caller at all) |
+
+The correct pattern already exists in this codebase — `checkin.getClientHistory`,
+`getClientInventory`, `getClientDocuments` and `paymentPortal.getMyPayments` all resolve a
+protocol from an access token and scope the query to it. Copy it; this is not a rearchitecture.
+
+**Why the remaining three are harder:** each is reached by a *client-facing flow* that currently
+carries no credential — the intake wizard is handed only an `enrollmentId`, and check-in emails
+link to `/checkin/<id>`. Securing them means threading a token through those flows (and
+re-issuing outstanding check-in links). That is very doable, but it changes the funnel, and
+**the funnel cannot be verified locally while the cron/prod-`.env` problem stands** (see the
+warning above). Gating the crons first is the cheapest way to de-risk this.
+
+**`capturePaymentPublic` was deleted rather than secured.** Every Stripe `success_url` in the
+codebase points at `/payment/success`; nothing linked to `/custom-order/:id/payment-success`.
+So the endpoint that marked orders paid without verification had **no legitimate caller** — the
+signed webhook `handleCustomOrderCompleted` is and was the real path. The orphaned page and
+route went with it, along with the dead, unrouted `TransformationJourney.tsx` (2,706 lines).
+
+### 🟡 Found while doing the above (2026-07-29)
+- **Cancelling a custom-order payment landed on a 404.** Stripe was sent
+  `cancel_url = /custom-order/payment-cancelled/<id>` but the route was
+  `/custom-order/:id/payment-cancelled` — the two never matched. Both shapes now route.
+- **`AdminLayout` violates the rules of hooks.** `useState`/`useAuth`/`useEffect` run, then the
+  component returns early for the loading / not-signed-in / not-staff cases (lines ~298-375),
+  and *more* hooks (`useLocation`, `useState`, `useMemo`…) are called after. Hook count
+  therefore changes between renders as `loading` flips. Not currently observed to misbehave, but
+  it is a real latent bug and it is why the two `window.location.href` calls in that file were
+  left alone — fixing them properly means hoisting every hook above the early returns, which
+  restructures the shell and wants runtime verification.
+
+### 🟡 Smaller, confirmed
+- **Sleep Quality renders `/5` but is stored 1–10** (slider and server both `max 10`). Four admin
+  surfaces: `ClientEdit.tsx:2448,2542`, `Enrollments.tsx:1252,1360`.
+- **`isDiscountable` is inert** — `0 !== false` is always true, so everything discounts. 123 of
+  185 items and 10 of 18 categories are marked non-discountable and ignored (~$3,207 across 9
+  clients). Deliberately mirrored in `server/lib/protocolTotal.ts` so the shown total matches
+  the charged total. **Needs Jason's pricing decision, not a code fix.**
+- **Coaching plan pricing is stale** — the checkout can still charge for retired plans and has
+  no key for the current 6-Month Elite; the advertised loyalty/partner discounts have no
+  implementation. **Blocked on whether this app keeps its coaching checkout at all now that
+  omegalongevity.com is the funnel.**
+- **`VITE_APP_URL` must be set on the Railway service** — unverified, needs Railway access.
+- **`support@humanedge.health`** now appears on the custom-order payment screens; that mailbox
+  or alias must exist or client mail bounces.
+
+---
+
+## Changelog of this file
+- 2026-07-29 — created. Baseline recorded after the navigation fix, the raw-SQL/chat fix, the
+  app-URL centralisation and the test cleanup.

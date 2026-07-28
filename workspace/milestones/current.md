@@ -57,10 +57,18 @@ Not originally in M1, but these outrank polish. Full detail in
 - [x] Stripe receipts said a bare "Payment" — the template's `paymentMethod` union omitted
       `'stripe'` while its callers default to it (7851dd8). Owner: Saboor
 - [x] Test suite green + stable, no-value tests removed (7851dd8). Owner: Saboor
-- [ ] **LAUNCH BLOCKER, 6 unauthenticated endpoints.** `getIntakeForm` exposes 36 clients'
-      full health intake by sequential ID; `getEnrollmentPublic` leaks the `authToken`
-      magic-link column; `capturePaymentPublic` marks orders paid with no Stripe check.
-      Small local fixes, the correct token pattern already exists in the codebase. Owner: ___
+- [~] **LAUNCH BLOCKER, unauthenticated endpoints — 3 of 6 done.** Owner: Saboor
+      DONE: `getEnrollmentPublic` was handing out the `authToken` magic-link column to anyone
+      counting integers — now requires that token and returns an explicit allow-list;
+      `capturePaymentPublic` **deleted** (marked orders paid with no Stripe check *and* had no
+      caller — every `success_url` goes to `/payment/success`, the signed webhook was always
+      the real path); `refund.getByClient` admin-gated (zero callers).
+      **STILL OPEN, and these are the hard ones:** `getIntakeForm` (36 clients' full health
+      intake by sequential id — the worst of the six), `checkin.getForClient` (397 check-ins),
+      `completePaymentPublic` (trusts client-supplied amount/tier). Each needs a token threaded
+      through a client-facing flow that carries none today, and that funnel **cannot be verified
+      locally until the cron/`.env` item below is fixed** — so that one is the real unblocker.
+      Owner: ___
 - [ ] Gate cron init behind an env flag (default off outside prod) + point local `.env` at
       the Docker test DB. Currently `pnpm dev` mails real clients, so **nothing can be
       verified locally** — see the warning at the top of `claude/context.md`. Owner: ___

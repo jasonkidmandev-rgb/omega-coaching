@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -547,7 +548,7 @@ export default function DetailsTab({
                 )}
                 {programs?.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No programs available. <a href="/admin/programs" className="text-primary hover:underline">Create a program</a> first.
+                    No programs available. <Link href="/admin/programs" className="text-primary hover:underline">Create a program</Link> first.
                   </p>
                 )}
               </div>

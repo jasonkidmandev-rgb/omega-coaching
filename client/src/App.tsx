@@ -123,7 +123,6 @@ const WaiverRenewal = lazyWithRetry(() => import("./pages/WaiverRenewal"));
 const PaymentSuccess = lazyWithRetry(() => import("./pages/PaymentSuccess"));
 const PaymentFailure = lazyWithRetry(() => import("./pages/PaymentFailure"));
 // VenmoPaymentConfirmation removed - migrating to Stripe
-const CustomOrderPaymentSuccess = lazyWithRetry(() => import("./pages/CustomOrderPaymentSuccess"));
 const CustomOrderPaymentCancelled = lazyWithRetry(() => import("./pages/CustomOrderPaymentCancelled"));
 const OrderConfirmation = lazyWithRetry(() => import("./pages/OrderConfirmation"));
 const InstallApp = lazyWithRetry(() => import("./pages/InstallApp"));
@@ -361,7 +360,11 @@ function Router() {
         {/* Venmo confirmation route removed - migrating to Stripe */}
 
         {/* Custom order payment pages */}
-        <Route path={"/custom-order/:id/payment-success"} component={CustomOrderPaymentSuccess} />
+        {/* Stripe cancel_url emits /custom-order/payment-cancelled/<id>; the route below
+            used to be /custom-order/:id/payment-cancelled, which never matched, so every
+            cancelled custom-order payment landed on the 404 page. Old shape kept as an
+            alias in case a live Stripe session still carries it. */}
+        <Route path={"/custom-order/payment-cancelled/:id"} component={CustomOrderPaymentCancelled} />
         <Route path={"/custom-order/:id/payment-cancelled"} component={CustomOrderPaymentCancelled} />
         {/* PWA Install Instructions */}
         <Route path={"/install"} component={InstallApp} />

@@ -1,4 +1,5 @@
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "../_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { getDb, cloneTemplateToClientProtocol, getDefaultTemplate, getClientProtocolByEmail, generateAccessToken, createClientProtocol } from "../db";
 import { sql } from "drizzle-orm";
@@ -556,9 +557,20 @@ export const transformationRouter = router({
       }
     }),
 
-  // Get enrollment by ID (public - for non-logged-in users with enrollment ID)
+  // Get enrollment by ID, for a not-logged-in client holding their own access token.
+  //
+  // SECURITY (2026-07-29): this took only `{ id }` — a sequential integer — and returned
+  // `SELECT *` spread wholesale. `transformation_enrollments.authToken` is the client's
+  // magic-link credential, so the endpoint handed that token to anyone who counted
+  // upwards, along with name/email/phone and payment amounts. Now it requires the token
+  // it used to leak, and returns an explicit field list so a future column can never be
+  // published by accident.
+  //
+  // Note: the only caller was `client/src/pages/TransformationJourney.tsx`, which is no
+  // longer routed (see App.tsx) — so this hardening has no live consumer to break. The
+  // dead page is a separate cleanup.
   getEnrollmentPublic: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.number(), accessToken: z.string().min(1) }))
     .query(async ({ input }) => {
       const database = await db();
       const enrollment = await database.execute(sql`
@@ -566,9 +578,19 @@ export const transformationRouter = router({
       `);
       const rows = (enrollment[0] as unknown) as any[];
       if (!rows[0]) return null;
-      
-      // Add computed fields based on status for frontend compatibility
+
       const e = rows[0];
+
+      // Constant-ish comparison on an unguessable 64-char token. Also reject an expired
+      // one, so a leaked link stops working when it is supposed to.
+      const tokenOk =
+        typeof e.authToken === "string" &&
+        e.authToken.length > 0 &&
+        e.authToken === input.accessToken &&
+        (!e.authTokenExpiresAt || new Date(e.authTokenExpiresAt) > new Date());
+      if (!tokenOk) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid or expired access token" });
+      }
       const statusOrder = [
         'enrolled', 'watching_videos', 'video_complete', 'coaching_paid',
         'intake_complete', 'discovery_scheduled', 'discovery_complete', 'protocol_preparing',
@@ -577,9 +599,23 @@ export const transformationRouter = router({
         'active', 'week3_review', 'month2', 'month3_final', 'completed', 'renewed'
       ];
       const currentStatusIndex = statusOrder.indexOf(e.status);
-      
+
       return {
-        ...e,
+        // Explicit allow-list. Do NOT spread `e`: it carries authToken,
+        // authTokenExpiresAt and other internal columns that must never leave the server.
+        id: e.id,
+        status: e.status,
+        tier: e.tier,
+        programType: e.programType,
+        clientName: e.clientName,
+        email: e.email,
+        phone: e.phone,
+        createdAt: e.createdAt,
+        enrolledAt: e.enrolledAt,
+        coachingFeeAmount: e.coachingFeeAmount,
+        coachingFeePaidAt: e.coachingFeePaidAt,
+        discoverySessionScheduledAt: e.discoverySessionScheduledAt,
+        discoverySessionCompletedAt: e.discoverySessionCompletedAt,
         // Computed fields for frontend compatibility
         bioregulatorVideoWatched: e.bioregulatorVideoWatched || currentStatusIndex >= statusOrder.indexOf('video_complete'),
         coachingFeePaid: e.coachingFeePaid || currentStatusIndex >= statusOrder.indexOf('coaching_paid'),

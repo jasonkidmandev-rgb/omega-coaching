@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -28,6 +29,7 @@ interface CheckinHistoryTabProps {
 }
 
 export default function CheckinHistoryTab({ clientProtocolId }: CheckinHistoryTabProps) {
+  const [, setLocation] = useLocation();
   const [expandedCheckins, setExpandedCheckins] = useState<Set<number>>(new Set());
 
   const { data: history, isLoading } = trpc.checkin.getClientCheckinHistory.useQuery(
@@ -366,7 +368,11 @@ export default function CheckinHistoryTab({ clientProtocolId }: CheckinHistoryTa
                           className="mt-2"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.location.href = `/admin/clients/${clientProtocolId}/checkins/${checkin.id}`;
+                            // Client-side nav: this stays inside /admin, so the shell
+                            // (sidebar, header, badges) persists instead of the whole app
+                            // reloading. A hard reload here also threw away the client's
+                            // unsaved edits on the surrounding ClientEdit form.
+                            setLocation(`/admin/clients/${clientProtocolId}/checkins/${checkin.id}`);
                           }}
                         >
                           Review Now

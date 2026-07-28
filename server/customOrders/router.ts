@@ -629,90 +629,17 @@ export const customOrdersRouter = router({
       return { ...order, items: sanitizedItems };
     }),
 
-  // ─── Public: Confirm payment by order ID (for Stripe redirect callback) ───
-  capturePaymentPublic: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      const order = await customOrderDb.getCustomOrder(input.id);
-      if (!order) throw new Error("Order not found");
-
-      // If already paid, return success without re-processing
-      if (order.status === "paid" || order.status === "processing" || order.status === "shipped" || order.status === "delivered") {
-        return { success: true, orderNumber: order.orderNumber, alreadyPaid: true };
-      }
-
-      if (order.status !== "pending_payment") throw new Error("Order is not awaiting payment");
-
-      // Mark as paid (Stripe webhook will also confirm this)
-      await customOrderDb.updateCustomOrderStatus(order.id, "paid");
-
-      // Deduct inventory — fail LOUD: failures, unmapped items, and backorders
-      // all alert admins (parity with the protocol payment path).
-      try {
-        const deductions = await customOrderDb.deductInventoryForCustomOrder(order.id, 0);
-        await alertInventoryDeductions({
-          subjectName: order.clientName,
-          subjectDesc: `Custom order ${order.orderNumber} (${order.clientName})`,
-          results: deductions,
-        });
-        console.log(`[CustomOrder] Inventory deducted for ${order.orderNumber}`);
-      } catch (err) {
-        console.error(`[CustomOrder] Inventory deduction failed:`, err);
-        await alertInventoryDeductions({
-          subjectName: order.clientName,
-          subjectDesc: `Custom order ${order.orderNumber} (${order.clientName})`,
-          results: [{ itemName: 'Inventory deduction', quantity: 0, success: false, error: err instanceof Error ? err.message : 'deduction crashed entirely' }],
-        }).catch(e => console.error(`[CustomOrder] Inventory alert failed:`, e));
-      }
-
-      // Create packing slip
-      try {
-        const slipId = await customOrderDb.createPackingSlipForCustomOrder(order.id);
-        if (slipId) console.log(`[CustomOrder] Packing slip created: ${slipId}`);
-      } catch (err) {
-        console.error(`[CustomOrder] Packing slip creation failed:`, err);
-      }
-
-      // Send payment confirmation email to client
-      try {
-        await sendEmail({
-          to: order.clientEmail,
-          subject: `Payment Confirmed - ${order.orderNumber}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background-color: #f97316; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-                <h1 style="color: white; margin: 0; font-size: 22px;">Payment Confirmed</h1>
-              </div>
-              <div style="padding: 20px; background: #fff; border: 1px solid #eee; border-top: none;">
-                <p>Hi ${order.clientName},</p>
-                <p>Your payment for order <strong>${order.orderNumber}</strong> has been confirmed.</p>
-                <p><strong>Amount:</strong> $${parseFloat(order.total?.toString() || "0").toFixed(2)}</p>
-                <p>We're now processing your order and will notify you when it ships.</p>
-                <p>Thank you for your business!</p>
-              </div>
-              <div style="text-align: center; padding: 15px; color: #999; font-size: 12px;">
-                Omega Longevity | humanedge.health
-              </div>
-            </div>
-          `,
-        });
-      } catch (err) {
-        console.error(`[CustomOrder] Payment confirmation email failed:`, err);
-      }
-
-      // Notify admins
-      try {
-        await createNotificationsForEnabledUsers(
-          "new_store_order",
-          "Custom Order Payment Received",
-          `${order.clientName} paid for custom order ${order.orderNumber} ($${parseFloat(order.total?.toString() || "0").toFixed(2)}).`,
-        );
-      } catch (err) {
-        console.error("[CustomOrder] Admin notification failed:", err);
-      }
-
-      return { success: true, orderNumber: order.orderNumber, alreadyPaid: false };
-    }),
+  // REMOVED 2026-07-29: capturePaymentPublic.
+  //
+  // It marked a custom order PAID from an unauthenticated `{ id }` alone - no Stripe
+  // verification - then deducted inventory, created a packing slip and emailed a payment
+  // confirmation. Anyone counting integers could take goods.
+  //
+  // It also had no legitimate caller: every Stripe `success_url` in this file points at
+  // /payment/success, and nothing linked to /custom-order/:id/payment-success. The
+  // authoritative path is and was the webhook, `handleCustomOrderCompleted` in
+  // server/stripe/webhook.ts, which Stripe calls with a signed payload. The orphaned
+  // success page and its route were removed with it.
 });
 
 // ─── Helper: Send invoice email ─────────────────────────────────────────────

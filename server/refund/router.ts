@@ -50,7 +50,10 @@ export const refundRouter = router({
   /**
    * Get refund requests for a client
    */
-  getByClient: publicProcedure
+  // SECURITY (2026-07-29): was `publicProcedure`, so anyone could read any client's
+  // refund history by supplying an id. It has no caller in the client app at all, so
+  // admin-gating it removes the exposure with nothing to break.
+  getByClient: adminProcedure
     .input(z.object({ clientId: z.string() }))
     .query(async ({ input }) => {
       try {
