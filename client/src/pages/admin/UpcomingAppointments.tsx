@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { toLocaleDateStringMT, toLocaleTimeStringMT } from "../../lib/timezone";
-import AdminLayout from "@/components/AdminLayout";
 import { Calendar, Clock, User, Mail, Video, Filter, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Globe } from "lucide-react";
 
 // Unified appointment shape for display
@@ -158,7 +157,7 @@ export default function UpcomingAppointments() {
   };
 
   return (
-    <AdminLayout>
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -475,6 +474,6 @@ export default function UpcomingAppointments() {
         </div>
       )}
     </div>
-    </AdminLayout>
+    </>
   );
 }

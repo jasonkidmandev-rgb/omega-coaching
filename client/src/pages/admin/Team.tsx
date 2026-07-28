@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -231,11 +230,11 @@ export default function AdminTeam() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
@@ -299,7 +298,7 @@ export default function AdminTeam() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -888,6 +887,6 @@ export default function AdminTeam() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </>
   );
 }

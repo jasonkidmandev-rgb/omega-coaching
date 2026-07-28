@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/AdminLayout";
 import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -706,7 +705,7 @@ export default function AdminClients() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4 md:space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
@@ -1889,7 +1888,7 @@ export default function AdminClients() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 }
 

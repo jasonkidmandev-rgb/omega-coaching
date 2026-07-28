@@ -1,6 +1,4 @@
-import { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
-import { trpc } from "@/lib/trpc";
+import { useState } from "react";import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -162,7 +160,7 @@ export default function ProtocolPresets() {
   };
 
   return (
-    <AdminLayout>
+    <>
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -512,6 +510,6 @@ export default function ProtocolPresets() {
         </DialogContent>
       </Dialog>
     </div>
-    </AdminLayout>
+    </>
   );
 }

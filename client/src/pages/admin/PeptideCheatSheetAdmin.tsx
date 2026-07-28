@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -393,7 +392,7 @@ export default function PeptideCheatSheetAdmin() {
   const featuredPeptides = peptides?.filter(p => p.isFeatured).length || 0;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1114,6 +1113,6 @@ export default function PeptideCheatSheetAdmin() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 }

@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { goBackTo } from "@/hooks/useGoBack";
-import AdminLayout from "@/components/AdminLayout";
-import { trpc } from "../../lib/trpc";
+import { goBackTo } from "@/hooks/useGoBack";import { trpc } from "../../lib/trpc";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -443,7 +441,7 @@ export default function NotificationSettings() {
   };
 
   return (
-    <AdminLayout>
+    <>
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
@@ -811,6 +809,6 @@ export default function NotificationSettings() {
         </TabsContent>
       </Tabs>
     </div>
-    </AdminLayout>
+    </>
   );
 }

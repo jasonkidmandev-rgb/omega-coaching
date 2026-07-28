@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { trpc } from "@/lib/trpc";
-import AdminLayout from "@/components/AdminLayout";
-import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { processMessageForDisplay } from "@/lib/htmlUtils";
@@ -168,7 +166,7 @@ export default function AdminChat() {
 
   if (protocolLoading || commentsLoading) {
     return (
-      <AdminLayout>
+      <>
       <div className="h-screen flex flex-col bg-gray-50">
         {/* Header skeleton */}
         <div className="bg-white border-b px-3 py-3 flex items-center gap-3">
@@ -188,12 +186,12 @@ export default function AdminChat() {
           ))}
         </div>
       </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
     <div className="h-[100dvh] flex flex-col bg-gray-100">
       {/* ── Chat Header ── */}
       <div className="bg-white border-b border-gray-200 px-2 sm:px-4 py-2.5 flex items-center gap-2 sm:gap-3 shadow-sm flex-shrink-0 z-10">
@@ -470,6 +468,6 @@ export default function AdminChat() {
         </p>
       </div>
     </div>
-    </AdminLayout>
+    </>
   );
 }

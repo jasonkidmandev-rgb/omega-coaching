@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -410,7 +409,7 @@ export default function NotificationAnalysis() {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <AdminLayout>
+    <>
     <div className="container max-w-7xl py-8 px-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -747,6 +746,6 @@ export default function NotificationAnalysis() {
         </TabsContent>
       </Tabs>
     </div>
-    </AdminLayout>
+    </>
   );
 }

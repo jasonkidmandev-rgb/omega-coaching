@@ -1,6 +1,4 @@
-import React, { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT, toLocaleTimeStringMT } from "@/lib/timezone";
@@ -109,7 +107,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-4 md:space-y-8">
         <div className="flex items-start justify-between">
           <div>
@@ -966,7 +964,7 @@ export default function AdminDashboard() {
           </Card>
         )}
       </div>
-    </AdminLayout>
+    </>
   );
 }
 

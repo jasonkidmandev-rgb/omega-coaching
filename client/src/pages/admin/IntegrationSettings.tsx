@@ -1,6 +1,4 @@
-import { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
-import { trpc } from "@/lib/trpc";
+import { useState } from "react";import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -180,7 +178,7 @@ export default function IntegrationSettings() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6 p-6 max-w-6xl">
         {/* Header */}
         <div className="flex items-center gap-3">
@@ -495,6 +493,6 @@ export default function IntegrationSettings() {
           </DialogContent>
         </Dialog>
       </div>
-    </AdminLayout>
+    </>
   );
 }

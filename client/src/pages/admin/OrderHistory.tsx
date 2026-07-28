@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +99,7 @@ export default function OrderHistory() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Order History</h1>
@@ -373,6 +372,6 @@ export default function OrderHistory() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </>
   );
 }

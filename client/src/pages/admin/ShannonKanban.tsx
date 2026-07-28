@@ -6,7 +6,6 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT } from "@/lib/timezone";
-import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -821,5 +820,5 @@ export default function ShannonKanban({ embedded = false }: { embedded?: boolean
     </>
   );
 
-  return embedded ? content : <AdminLayout>{content}</AdminLayout>;
+  return embedded ? content : <>{content}</>;
 }

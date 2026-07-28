@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -90,7 +89,7 @@ export default function People() {
   const noProtocolCount = people.filter(p => !p.clientProtocolId).length;
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
@@ -205,6 +204,6 @@ export default function People() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </>
   );
 }

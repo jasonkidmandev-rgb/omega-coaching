@@ -1,6 +1,4 @@
-import { useMemo, useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
-import { trpc } from "@/lib/trpc";
+import { useMemo, useState } from "react";import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -269,7 +267,7 @@ export default function CheckinManagement() {
   };
 
   return (
-    <AdminLayout>
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1167,6 +1165,6 @@ export default function CheckinManagement() {
         </DialogContent>
       </Dialog>
     </div>
-    </AdminLayout>
+    </>
   );
 }

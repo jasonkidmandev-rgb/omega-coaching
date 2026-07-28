@@ -13,9 +13,7 @@
  * confirms the at-risk signal (quiet after N days / payment due / program ending).
  */
 import { trpc } from "@/lib/trpc";
-import { useLocation } from "wouter";
-import AdminLayout from "@/components/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocation } from "wouter";import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,7 +65,7 @@ export default function AcquisitionDashboard() {
   const needsActionToday = (stats?.overdueFollowUps ?? 0) + (stats?.todayFollowUps ?? 0);
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -310,7 +308,7 @@ export default function AcquisitionDashboard() {
           </>
         )}
       </div>
-    </AdminLayout>
+    </>
   );
 }
 

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "../../lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,7 +155,7 @@ export default function PromoCodes() {
   };
   
   return (
-    <AdminLayout>
+    <>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -804,6 +803,6 @@ export default function PromoCodes() {
         </DialogContent>
       </Dialog>
     </div>
-    </AdminLayout>
+    </>
   );
 }

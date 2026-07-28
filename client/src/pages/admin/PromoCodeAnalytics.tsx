@@ -1,6 +1,4 @@
-import { trpc } from "@/lib/trpc";
-import AdminLayout from "@/components/AdminLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { trpc } from "@/lib/trpc";import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,7 +51,7 @@ export default function PromoCodeAnalytics() {
   const topByRevenue = analytics?.topByRevenue || [];
 
   return (
-    <AdminLayout>
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -276,6 +274,6 @@ export default function PromoCodeAnalytics() {
         </CardContent>
       </Card>
     </div>
-    </AdminLayout>
+    </>
   );
 }

@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -494,7 +493,7 @@ export default function ProjectList() {
   }, [projects]);
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -864,6 +863,6 @@ export default function ProjectList() {
           </Card>
         )}
       </div>
-    </AdminLayout>
+    </>
   );
 }

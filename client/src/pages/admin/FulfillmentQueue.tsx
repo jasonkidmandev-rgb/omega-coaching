@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { trpc } from "../../lib/trpc";
-import AdminLayout from "@/components/AdminLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { trpc } from "../../lib/trpc";import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -487,7 +485,7 @@ export default function FulfillmentQueue() {
   const selectedSlip = queueData.find(s => s.id === selectedSlipId) ?? null;
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-6 max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -747,6 +745,6 @@ export default function FulfillmentQueue() {
           </TabsContent>
         </Tabs>
       </div>
-    </AdminLayout>
+    </>
   );
 }

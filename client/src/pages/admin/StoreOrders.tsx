@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import { useLocation, useParams } from "wouter";
-import { goBackTo } from "@/hooks/useGoBack";
-import AdminLayout from "@/components/AdminLayout";
-import { trpc } from "@/lib/trpc";
+import { goBackTo } from "@/hooks/useGoBack";import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -328,7 +326,7 @@ export default function AdminStoreOrders() {
   };
 
   return (
-    <AdminLayout>
+    <>
     <div className="min-h-screen bg-white text-gray-900">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -985,6 +983,6 @@ export default function AdminStoreOrders() {
         </Dialog>
       </div>
     </div>
-    </AdminLayout>
+    </>
   );
 }

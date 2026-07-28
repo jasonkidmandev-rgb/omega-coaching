@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -146,7 +145,7 @@ export default function NotificationTemplates() {
   const filteredTemplates = templates?.filter((t: any) => t.category === activeCategory) || [];
   
   return (
-    <AdminLayout>
+    <>
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Notification Templates</h1>
@@ -384,6 +383,6 @@ export default function NotificationTemplates() {
         </DialogContent>
       </Dialog>
     </div>
-    </AdminLayout>
+    </>
   );
 }

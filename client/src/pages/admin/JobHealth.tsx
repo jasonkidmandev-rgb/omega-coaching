@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +64,7 @@ export default function JobHealth() {
   const failures = runs.filter((r) => r.status === "error");
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div className="flex justify-between items-start">
           <div>
@@ -144,6 +143,6 @@ export default function JobHealth() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </>
   );
 }

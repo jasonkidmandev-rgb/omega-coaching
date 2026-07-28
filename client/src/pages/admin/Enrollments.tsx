@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import AdminLayout from "@/components/AdminLayout";
-import { toLocaleDateStringMT } from "@/lib/timezone";
+import { useState, useEffect } from "react";import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -405,7 +403,7 @@ export default function AdminEnrollments() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1683,6 +1681,6 @@ export default function AdminEnrollments() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 }

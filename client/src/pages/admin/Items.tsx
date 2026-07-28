@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -388,7 +387,7 @@ export default function AdminItems() {
   })).filter((group) => group.items.length > 0);
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -1278,6 +1277,6 @@ export default function AdminItems() {
           </div>
         )}
       </div>
-    </AdminLayout>
+    </>
   );
 }

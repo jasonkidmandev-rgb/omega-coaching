@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "../../lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,7 +127,7 @@ export default function IntakeFormEditor() {
   }
   
   return (
-    <AdminLayout>
+    <>
     <div className="container max-w-6xl py-8 px-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -461,6 +460,6 @@ export default function IntakeFormEditor() {
         </DialogContent>
       </Dialog>
     </div>
-    </AdminLayout>
+    </>
   );
 }

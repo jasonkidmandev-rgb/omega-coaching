@@ -1,6 +1,4 @@
-import { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
-import { trpc } from "../../lib/trpc";
+import { useState } from "react";import { trpc } from "../../lib/trpc";
 import { toLocaleDateStringMT } from "../../lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -218,7 +216,7 @@ export default function TransformationPayments() {
   };
 
   return (
-    <AdminLayout>
+    <>
     <div className="min-h-screen bg-gray-50">
       {/* Header - mobile responsive */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
@@ -688,6 +686,6 @@ export default function TransformationPayments() {
         </DialogContent>
       </Dialog>
     </div>
-    </AdminLayout>
+    </>
   );
 }

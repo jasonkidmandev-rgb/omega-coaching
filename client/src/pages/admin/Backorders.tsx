@@ -1,5 +1,4 @@
 import { trpc } from "../../lib/trpc";
-import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,7 @@ export default function Backorders() {
   const backorderData = backorders.data || [];
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-6 max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -148,6 +147,6 @@ export default function Backorders() {
           </div>
         )}
       </div>
-    </AdminLayout>
+    </>
   );
 }

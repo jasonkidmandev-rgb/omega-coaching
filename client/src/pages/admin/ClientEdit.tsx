@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1210,16 +1209,16 @@ export default function AdminClientEdit() {
 
   if (clientLoading && !isNew) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       {/* Template Selection Confirmation Dialog */}
       <Dialog open={showTemplateConfirmDialog} onOpenChange={setShowTemplateConfirmDialog}>
         <DialogContent>
@@ -2312,7 +2311,7 @@ export default function AdminClientEdit() {
           <EngagementHistorySection protocolId={client?.id} />
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 }
 

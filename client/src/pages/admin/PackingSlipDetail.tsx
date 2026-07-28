@@ -1,6 +1,4 @@
-import * as React from "react";
-import AdminLayout from "@/components/AdminLayout";
-import { toLocaleDateStringMT } from "@/lib/timezone";
+import * as React from "react";import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -696,24 +694,24 @@ export default function PackingSlipDetail() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   if (!packingSlip) {
     return (
-      <AdminLayout>
+      <>
         <div className="text-center py-12">
           <h2 className="text-xl font-semibold">Packing slip not found</h2>
           <Button onClick={() => setLocation('/admin/packing-slips')} className="mt-4">
             Back to Packing Slips
           </Button>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
@@ -888,7 +886,7 @@ export default function PackingSlipDetail() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6 print:space-y-4">
         {/* Header - Hidden on print */}
         <div className="flex items-center justify-between print:hidden">
@@ -2012,6 +2010,6 @@ export default function PackingSlipDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 }

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AdminLayout from "@/components/AdminLayout";
 import {
   Globe,
   Eye,
@@ -103,9 +102,9 @@ function MiniBarChart({ data, maxVal }: { data: number[]; maxVal: number }) {
 
 export default function WebTrafficAnalytics() {
   return (
-    <AdminLayout>
+    <>
       <WebTrafficAnalyticsContent />
-    </AdminLayout>
+    </>
   );
 }
 

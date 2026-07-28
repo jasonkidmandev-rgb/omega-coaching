@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/AdminLayout";
 import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -292,7 +291,7 @@ export default function CoachingSessions() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -637,6 +636,6 @@ export default function CoachingSessions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 }

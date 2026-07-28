@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/AdminLayout";
 import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -643,7 +642,7 @@ ${inventoryData.map(cat => {
   }, [inventoryData]);
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -1540,7 +1539,7 @@ ${inventoryData.map(cat => {
           }}
         />
       </div>
-    </AdminLayout>
+    </>
   );
 }
 

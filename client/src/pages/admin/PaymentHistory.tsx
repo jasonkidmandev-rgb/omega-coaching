@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -218,7 +217,7 @@ export default function PaymentHistory() {
     : 0;
 
   return (
-    <AdminLayout>
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-start">
@@ -803,6 +802,6 @@ export default function PaymentHistory() {
       {/* Payment Export Dialog */}
       <PaymentExport open={exportOpen} onOpenChange={setExportOpen} />
     </div>
-    </AdminLayout>
+    </>
   );
 }

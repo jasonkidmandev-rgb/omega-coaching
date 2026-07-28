@@ -1,6 +1,4 @@
-import * as React from "react";
-import AdminLayout from "@/components/AdminLayout";
-import { toLocaleDateStringMT } from "@/lib/timezone";
+import * as React from "react";import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -432,16 +430,16 @@ export default function PackingSlips() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div>
           <div className="flex items-center gap-1.5 mb-0.5">
@@ -956,6 +954,6 @@ export default function PackingSlips() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 }

@@ -1,6 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import AdminLayout from "@/components/AdminLayout";
-import { toLocaleDateStringMT } from "@/lib/timezone";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";import { toLocaleDateStringMT } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -380,7 +378,7 @@ export default function EmailTemplatePreview() {
   const availableVariables = Object.keys(selectedTemplate.sampleData);
 
   return (
-    <AdminLayout>
+    <>
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -886,6 +884,6 @@ export default function EmailTemplatePreview() {
         </DialogContent>
       </Dialog>
     </div>
-    </AdminLayout>
+    </>
   );
 }

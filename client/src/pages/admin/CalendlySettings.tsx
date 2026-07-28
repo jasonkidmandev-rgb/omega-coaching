@@ -1,4 +1,3 @@
-import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -112,17 +111,17 @@ export default function CalendlySettings() {
 
   if (loadingStatus) {
     return (
-      <AdminLayout>
+      <>
         <div className="flex items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   if (!status?.configured) {
     return (
-      <AdminLayout>
+      <>
         <div className="p-6 max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Calendly Integration</h1>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
@@ -136,14 +135,14 @@ export default function CalendlySettings() {
             </p>
           </div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   const hasChanges = JSON.stringify(excludedNames.sort()) !== JSON.stringify((excludedData?.excludedNames || []).sort());
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-6 max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -445,6 +444,6 @@ export default function CalendlySettings() {
           </div>
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 }

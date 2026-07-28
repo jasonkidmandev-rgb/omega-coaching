@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "../../lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -229,7 +228,7 @@ export default function FormsEditor() {
   }, [intakeSections]);
   
   return (
-    <AdminLayout>
+    <>
     <div className="container max-w-6xl py-8 px-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -836,7 +835,7 @@ export default function FormsEditor() {
         </DialogContent>
       </Dialog>
     </div>
-    </AdminLayout>
+    </>
   );
 }
 

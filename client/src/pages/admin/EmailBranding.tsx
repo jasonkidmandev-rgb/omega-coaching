@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,7 +101,7 @@ export default function EmailBranding() {
   };
   
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -571,6 +570,6 @@ export default function EmailBranding() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </>
   );
 }

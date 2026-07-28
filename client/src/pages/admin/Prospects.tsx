@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT } from "@/lib/timezone";
-import ShannonKanban from "./ShannonKanban";
-import AdminLayout from "@/components/AdminLayout";
-import { Button } from "@/components/ui/button";
+import ShannonKanban from "./ShannonKanban";import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -484,7 +482,7 @@ export default function Prospects() {
   const prospects = filteredProspects;
   
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6 p-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1762,7 +1760,7 @@ export default function Prospects() {
           </DialogContent>
         </Dialog>
       </div>
-    </AdminLayout>
+    </>
   );
 }
 

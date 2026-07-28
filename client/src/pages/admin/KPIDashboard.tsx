@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
@@ -37,7 +36,7 @@ export default function KPIDashboard() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <>
         <div className="p-6 max-w-7xl mx-auto">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-48" />
@@ -46,7 +45,7 @@ export default function KPIDashboard() {
             </div>
           </div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
@@ -57,7 +56,7 @@ export default function KPIDashboard() {
   const stageTimings = data?.stageTimings || [];
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-6 max-w-7xl mx-auto space-y-6">
         <Breadcrumb items={[{ label: "KPI Dashboard" }]} />
         
@@ -363,6 +362,6 @@ export default function KPIDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </AdminLayout>
+    </>
   );
 }

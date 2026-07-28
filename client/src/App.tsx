@@ -20,6 +20,11 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import AgeRestricted from "./pages/AgeRestricted";
 
+// The admin shell. Hoisted out of the individual pages and mounted above the admin
+// router (see AdminRoutes below) so it survives navigation instead of being rebuilt on
+// every click. Lazy so the public/marketing bundle does not carry the whole sidebar.
+const AdminLayout = lazyWithRetry(() => import("./components/AdminLayout"));
+
 // Lazy loaded admin pages (code splitting)
 const AdminDashboard = lazyWithRetry(() => import("./pages/admin/Dashboard"));
 const AdminClients = lazyWithRetry(() => import("./pages/admin/Clients"));
@@ -144,12 +149,148 @@ function LoadingSpinner() {
   );
 }
 
+// Fallback for a page chunk loading *inside* the admin shell. Deliberately NOT
+// LoadingSpinner: that one is `min-h-screen bg-slate-900`, and rendering it here would
+// just move the full-screen dark flash rather than remove it. This occupies the content
+// area only, so the sidebar and header stay visible and in place.
+function PageSkeleton() {
+  return (
+    <div className="p-6 space-y-4" aria-busy="true" aria-label="Loading page">
+      <div className="h-8 w-64 rounded-md bg-muted animate-pulse" />
+      <div className="h-4 w-96 rounded bg-muted animate-pulse" />
+      <div className="grid gap-4 pt-4">
+        <div className="h-32 rounded-lg bg-muted animate-pulse" />
+        <div className="h-32 rounded-lg bg-muted animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
 function PageTracker() {
   usePageTracker();
   return null;
 }
 
+/**
+ * The admin application.
+ *
+ * AdminLayout is mounted HERE, above the admin router, instead of inside each of the
+ * 64 admin pages. Two things follow from that, and both were bugs before:
+ *
+ *  1. The shell survives navigation. Previously the layout was a child of the page, so
+ *     every route swap destroyed and rebuilt it - resetting the sidebar scroll position
+ *     and its expanded categories, and re-firing its badge queries.
+ *
+ *  2. The Suspense boundary for page chunks now sits INSIDE the chrome. Previously the
+ *     only boundary was App-level and its fallback was full-screen, so loading any lazy
+ *     page blanked the entire UI to a dark spinner - indistinguishable from a full page
+ *     reload. Now the sidebar and header stay put and only the content area changes.
+ *
+ * See docs/risks/2026-07-29-navigation-rerender-trace.md for the full trace.
+ */
+function AdminRoutes() {
+  return (
+    // Outer boundary: covers the one-time load of the shell chunk itself.
+    <Suspense fallback={<LoadingSpinner />}>
+      <AdminLayout>
+        {/* Inner boundary: per-page chunks, scoped to the content area. */}
+        <Suspense fallback={<PageSkeleton />}>
+          <Switch>
+          <Route path={"/admin"} component={AdminDashboard} />
+          <Route path={"/admin/dashboard"} component={AdminDashboard} />
+          <Route path={"/admin/clients/new"} component={AdminClientEdit} />
+          <Route path={"/admin/clients/:id"} component={AdminClientEdit} />
+          <Route path={"/admin/clients"} component={AdminClients} />
+          <Route path={"/admin/people"} component={AdminPeople} />
+          <Route path={"/admin/client-protocols"} component={AdminClientProtocols} />
+          <Route path={"/admin/templates/new"} component={AdminTemplateEdit} />
+          <Route path={"/admin/templates/:id"} component={AdminTemplateEdit} />
+          <Route path={"/admin/templates"} component={AdminTemplates} />
+          <Route path={"/admin/items"} component={AdminItems} />
+          {/* Supplements route removed - use /admin/items with filter tabs */}
+          <Route path={"/admin/team"} component={AdminTeam} />
+          <Route path={"/admin/programs"} component={AdminPrograms} />
+          <Route path={"/admin/launchpad-settings"} component={AdminLaunchpadSettings} />
+          <Route path={"/admin/inventory"} component={AdminInventory} />
+          <Route path={"/admin/settings"} component={AdminSettings} />
+          <Route path={"/admin/notification-report"} component={AdminNotificationReport} />
+          <Route path={"/admin/email-templates"} component={AdminEmailTemplatePreview} />
+          <Route path={"/admin/email-report-settings"} component={AdminEmailReportSettings} />
+          <Route path={"/admin/notification-settings"} component={AdminNotificationSettings} />
+          <Route path={"/admin/payment-history"} component={AdminPaymentHistory} />
+          <Route path={"/admin/job-health"} component={AdminJobHealth} />
+          <Route path={"/admin/affiliate-partners"} component={AdminAffiliatePartners} />
+          <Route path={"/admin/email-branding"} component={AdminEmailBranding} />
+          <Route path={"/admin/email-preview"} component={AdminEmailPreview} />
+          <Route path={"/admin/order-history"} component={AdminOrderHistory} />
+          <Route path={"/admin/store-waivers"} component={AdminStoreWaivers} />
+          <Route path={"/admin/packing-slips/:id"} component={AdminPackingSlipDetail} />
+          <Route path={"/admin/packing-slips"} component={AdminPackingSlips} />
+          <Route path={"/admin/peptide-cheat-sheet"} component={AdminPeptideCheatSheet} />
+          <Route path={"/admin/categories"} component={AdminCategoryManagement} />
+          {/* Client Projects (Back-Office) */}
+          <Route path={"/admin/projects/new"} component={AdminProjectDetail} />
+          <Route path={"/admin/projects/:id"} component={AdminProjectDetail} />
+          <Route path={"/admin/projects"} component={AdminProjectList} />
+          <Route path={"/admin/workflow-templates"} component={AdminWorkflowTemplates} />
+          <Route path={"/admin/store-orders/:id"} component={AdminStoreOrders} />
+          <Route path={"/admin/store-orders"} component={AdminStoreOrders} />
+          <Route path={"/admin/custom-orders/:id"} component={AdminCustomOrders} />
+          <Route path={"/admin/custom-orders"} component={AdminCustomOrders} />
+          <Route path={"/admin/checkins"} component={AdminCheckinManagement} />
+          <Route path={"/admin/checkin-management"}>{() => { window.location.replace('/admin/checkins'); return null; }}</Route>
+          <Route path={"/admin/web-traffic"} component={AdminWebTrafficAnalytics} />
+          <Route path={"/admin/clients/:clientId/checkins/:checkinId"} component={AdminCheckinReview} />
+          <Route path={"/admin/notification-templates"} component={AdminNotificationTemplates} />
+          <Route path={"/admin/protocol-presets"} component={AdminProtocolPresets} />
+          <Route path={"/admin/integrations"} component={AdminIntegrationSettings} />
+          <Route path={"/admin/promo-codes"} component={AdminPromoCodes} />
+          <Route path={"/admin/promo-code-analytics"} component={AdminPromoCodeAnalytics} />
+          <Route path={"/admin/store-promos"} component={AdminStorePromos} />
+
+          <Route path={"/admin/masterclass-videos"} component={AdminMasterclassVideos} />
+          <Route path={"/admin/enrollments"} component={AdminEnrollments} />
+          <Route path={"/admin/transformation-payments"} component={AdminTransformationPayments} />
+          <Route path={"/admin/intake-form-editor"} component={AdminIntakeFormEditor} />
+          <Route path={"/admin/forms-editor"} component={AdminFormsEditor} />
+          <Route path={"/admin/notification-analysis"} component={AdminNotificationAnalysis} />
+          <Route path={"/admin/notification-history"} component={AdminNotificationHistory} />
+          <Route path={"/admin/prospects/:id"} component={AdminProspects} />
+          <Route path={"/admin/prospects"} component={AdminProspects} />
+          <Route path={"/admin/coaching-sessions"} component={AdminCoachingSessions} />
+          <Route path={"/admin/booking-calendar"} component={AdminBookingCalendar} />
+          <Route path={"/admin/inbox"} component={AdminInbox} />
+          <Route path={"/admin/chat/:id"} component={AdminChat} />
+          <Route path={"/admin/morning-briefing"} component={AdminMorningBriefing} />
+          <Route path={"/admin/conversion-tracking"} component={AdminConversionTracking} />
+          {/* Retired: the standalone board now lives as the "Kanban" tab inside Lead Pipeline. */}
+          <Route path={"/admin/shannon-kanban"}>{() => { window.location.replace('/admin/prospects?tab=kanban'); return null; }}</Route>
+          <Route path={"/admin/acquisition"} component={AdminAcquisitionDashboard} />
+          <Route path={"/admin/upcoming-appointments"} component={AdminUpcomingAppointments} />
+          <Route path={"/admin/calendly-settings"} component={AdminCalendlySettings} />
+          <Route path={"/admin/my-action-items"} component={MyActionItems} />
+          <Route path={"/admin/fulfillment-queue"} component={FulfillmentQueue} />
+          <Route path={"/admin/backorders"} component={AdminBackorders} />
+          <Route path={"/admin/notification-preferences"} component={NotificationPreferences} />
+          <Route path={"/admin/kpi-dashboard"} component={KPIDashboard} />
+          </Switch>
+        </Suspense>
+      </AdminLayout>
+    </Suspense>
+  );
+}
+
 function Router() {
+  const [location] = useLocation();
+
+  // Route the whole /admin/* tree through one persistent element. Branching on the
+  // location rather than using two <Route> entries is deliberate: a Switch swapping
+  // between a "/admin" route and a "/admin/:rest*" route would unmount AdminRoutes on
+  // that transition and remount the shell - the exact bug this is fixing.
+  if (location === "/admin" || location.startsWith("/admin/")) {
+    return <AdminRoutes />;
+  }
+
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Switch>
@@ -168,84 +309,6 @@ function Router() {
         <Route path={"/partners"} component={Partners} />
         <Route path={"/community"} component={CommunityChoice} />
         <Route path={"/intake"} component={IntakeLanding} />
-        {/* Admin routes */}
-        <Route path={"/admin"} component={AdminDashboard} />
-        <Route path={"/admin/dashboard"} component={AdminDashboard} />
-        <Route path={"/admin/clients/new"} component={AdminClientEdit} />
-        <Route path={"/admin/clients/:id"} component={AdminClientEdit} />
-        <Route path={"/admin/clients"} component={AdminClients} />
-        <Route path={"/admin/people"} component={AdminPeople} />
-        <Route path={"/admin/client-protocols"} component={AdminClientProtocols} />
-        <Route path={"/admin/templates/new"} component={AdminTemplateEdit} />
-        <Route path={"/admin/templates/:id"} component={AdminTemplateEdit} />
-        <Route path={"/admin/templates"} component={AdminTemplates} />
-        <Route path={"/admin/items"} component={AdminItems} />
-        {/* Supplements route removed - use /admin/items with filter tabs */}
-        <Route path={"/admin/team"} component={AdminTeam} />
-        <Route path={"/admin/programs"} component={AdminPrograms} />
-        <Route path={"/admin/launchpad-settings"} component={AdminLaunchpadSettings} />
-        <Route path={"/admin/inventory"} component={AdminInventory} />
-        <Route path={"/admin/settings"} component={AdminSettings} />
-        <Route path={"/admin/notification-report"} component={AdminNotificationReport} />
-        <Route path={"/admin/email-templates"} component={AdminEmailTemplatePreview} />
-        <Route path={"/admin/email-report-settings"} component={AdminEmailReportSettings} />
-        <Route path={"/admin/notification-settings"} component={AdminNotificationSettings} />
-        <Route path={"/admin/payment-history"} component={AdminPaymentHistory} />
-        <Route path={"/admin/job-health"} component={AdminJobHealth} />
-        <Route path={"/admin/affiliate-partners"} component={AdminAffiliatePartners} />
-        <Route path={"/admin/email-branding"} component={AdminEmailBranding} />
-        <Route path={"/admin/email-preview"} component={AdminEmailPreview} />
-        <Route path={"/admin/order-history"} component={AdminOrderHistory} />
-        <Route path={"/admin/store-waivers"} component={AdminStoreWaivers} />
-        <Route path={"/admin/packing-slips/:id"} component={AdminPackingSlipDetail} />
-        <Route path={"/admin/packing-slips"} component={AdminPackingSlips} />
-        <Route path={"/admin/peptide-cheat-sheet"} component={AdminPeptideCheatSheet} />
-        <Route path={"/admin/categories"} component={AdminCategoryManagement} />
-        {/* Client Projects (Back-Office) */}
-        <Route path={"/admin/projects/new"} component={AdminProjectDetail} />
-        <Route path={"/admin/projects/:id"} component={AdminProjectDetail} />
-        <Route path={"/admin/projects"} component={AdminProjectList} />
-        <Route path={"/admin/workflow-templates"} component={AdminWorkflowTemplates} />
-        <Route path={"/admin/store-orders/:id"} component={AdminStoreOrders} />
-        <Route path={"/admin/store-orders"} component={AdminStoreOrders} />
-        <Route path={"/admin/custom-orders/:id"} component={AdminCustomOrders} />
-        <Route path={"/admin/custom-orders"} component={AdminCustomOrders} />
-        <Route path={"/admin/checkins"} component={AdminCheckinManagement} />
-        <Route path={"/admin/checkin-management"}>{() => { window.location.replace('/admin/checkins'); return null; }}</Route>
-        <Route path={"/admin/web-traffic"} component={AdminWebTrafficAnalytics} />
-        <Route path={"/admin/clients/:clientId/checkins/:checkinId"} component={AdminCheckinReview} />
-        <Route path={"/admin/notification-templates"} component={AdminNotificationTemplates} />
-        <Route path={"/admin/protocol-presets"} component={AdminProtocolPresets} />
-        <Route path={"/admin/integrations"} component={AdminIntegrationSettings} />
-        <Route path={"/admin/promo-codes"} component={AdminPromoCodes} />
-        <Route path={"/admin/promo-code-analytics"} component={AdminPromoCodeAnalytics} />
-        <Route path={"/admin/store-promos"} component={AdminStorePromos} />
-
-        <Route path={"/admin/masterclass-videos"} component={AdminMasterclassVideos} />
-        <Route path={"/admin/enrollments"} component={AdminEnrollments} />
-        <Route path={"/admin/transformation-payments"} component={AdminTransformationPayments} />
-        <Route path={"/admin/intake-form-editor"} component={AdminIntakeFormEditor} />
-        <Route path={"/admin/forms-editor"} component={AdminFormsEditor} />
-        <Route path={"/admin/notification-analysis"} component={AdminNotificationAnalysis} />
-        <Route path={"/admin/notification-history"} component={AdminNotificationHistory} />
-        <Route path={"/admin/prospects/:id"} component={AdminProspects} />
-        <Route path={"/admin/prospects"} component={AdminProspects} />
-        <Route path={"/admin/coaching-sessions"} component={AdminCoachingSessions} />
-        <Route path={"/admin/booking-calendar"} component={AdminBookingCalendar} />
-        <Route path={"/admin/inbox"} component={AdminInbox} />
-        <Route path={"/admin/chat/:id"} component={AdminChat} />
-        <Route path={"/admin/morning-briefing"} component={AdminMorningBriefing} />
-        <Route path={"/admin/conversion-tracking"} component={AdminConversionTracking} />
-        {/* Retired: the standalone board now lives as the "Kanban" tab inside Lead Pipeline. */}
-        <Route path={"/admin/shannon-kanban"}>{() => { window.location.replace('/admin/prospects?tab=kanban'); return null; }}</Route>
-        <Route path={"/admin/acquisition"} component={AdminAcquisitionDashboard} />
-        <Route path={"/admin/upcoming-appointments"} component={AdminUpcomingAppointments} />
-        <Route path={"/admin/calendly-settings"} component={AdminCalendlySettings} />
-        <Route path={"/admin/my-action-items"} component={MyActionItems} />
-        <Route path={"/admin/fulfillment-queue"} component={FulfillmentQueue} />
-        <Route path={"/admin/backorders"} component={AdminBackorders} />
-        <Route path={"/admin/notification-preferences"} component={NotificationPreferences} />
-        <Route path={"/admin/kpi-dashboard"} component={KPIDashboard} />
         <Route path={"/masterclass"}>{() => { window.location.replace("/transformation"); return null; }}</Route>
         <Route path={"/transformation/checkout"} component={TransformationCheckout} />
         <Route path={"/transformation/masterclass"} component={Masterclass} />
