@@ -14,6 +14,7 @@ import * as db from "../db";
 import { findOrCreateContact } from "../contacts/contactService";
 import { automationEvents, clientProjects, projectTasks, projectSubtasks, teamMembers } from "../../drizzle/schema";
 import { eq, and, isNull } from "drizzle-orm";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 // ============================================================
 // TIER → CONFIGURATION MAPPING
@@ -595,7 +596,7 @@ export async function runOnboardingAutomation(params: OnboardingTriggerParams): 
   // ============================================================
   try {
     const { sendOnboardingWelcomeEmail } = await import('../emailService');
-    const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+    const baseUrl = getAppBaseUrl();
 
     await sendOnboardingWelcomeEmail({
       to: clientEmail,

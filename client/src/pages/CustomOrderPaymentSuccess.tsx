@@ -105,7 +105,7 @@ export default function CustomOrderPaymentSuccess() {
               {errorMessage || "There was an issue processing your payment. Please contact support."}
             </p>
             <p className="text-sm text-gray-500">
-              If you believe this is an error, please contact us at support@peptidecoach.pro
+              If you believe this is an error, please contact us at support@humanedge.health
             </p>
             <Button
               variant="outline"

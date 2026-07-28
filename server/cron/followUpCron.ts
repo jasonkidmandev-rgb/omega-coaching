@@ -13,6 +13,7 @@
 
 import * as db from '../db';
 import { sendFollowUpEmail } from '../emailService';
+import { getAppBaseUrl } from "../lib/appUrl";
 
 // Configuration
 const DAYS_AFTER_SENT = 3; // Wait 3 days after initial send before follow-up
@@ -65,7 +66,7 @@ async function runFollowUpJob(): Promise<void> {
     const branding = await db.getEmailBrandingSettings();
     
     // Use environment variable or default origin
-    const origin = process.env.APP_URL || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+    const origin = process.env.APP_URL || getAppBaseUrl();
     
     let sent = 0;
     let failed = 0;
@@ -177,7 +178,7 @@ export async function triggerFollowUpJob(): Promise<{ sent: number; failed: numb
   
   const protocols = await db.getProtocolsNeedingFollowUp(DAYS_AFTER_SENT, MAX_FOLLOW_UPS);
   const branding = await db.getEmailBrandingSettings();
-  const origin = process.env.APP_URL || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const origin = process.env.APP_URL || getAppBaseUrl();
   
   let sent = 0;
   let failed = 0;

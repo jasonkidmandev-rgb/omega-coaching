@@ -1,3 +1,4 @@
+import { getAppBaseUrl } from "../lib/appUrl";
 /**
  * Checkout Confirmation Email Template
  * Sent to clients after completing the transformation checkout flow
@@ -24,7 +25,12 @@ export interface CheckoutConfirmationData {
   planKey: CheckoutPlanType;
   planName: string;
   planPrice: number;
-  paymentMethod: 'paypal' | 'venmo' | 'other';
+  // Must stay in step with the callers: transformationRouter.sendCheckoutConfirmation
+  // accepts 'stripe' | 'manual' | 'paypal' | 'venmo' | 'other' and DEFAULTS to 'stripe',
+  // and emailService.sendCheckoutConfirmationEmail passes it straight through. This type
+  // omitted 'stripe' and 'manual', so the now-primary Stripe path fell through the label
+  // ternary below and every Stripe receipt said a bare "Payment".
+  paymentMethod: 'stripe' | 'manual' | 'paypal' | 'venmo' | 'other';
   intakeCompleted: boolean;
   discoveryScheduled: boolean;
   discoveryCalendlyUrl?: string;
@@ -178,12 +184,23 @@ function getProgramRoadmap(data: CheckoutConfirmationData): string {
 }
 
 export function generateCheckoutConfirmationHTML(data: CheckoutConfirmationData): string {
-  const siteUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const siteUrl = getAppBaseUrl();
   const supportEmail = 'omega@omegalongevity.com';
   const meta = PLAN_META[data.planKey];
   const nextSteps = getNextSteps(data);
   const roadmap = getProgramRoadmap(data);
-  const paymentMethodLabel = data.paymentMethod === 'paypal' ? 'PayPal' : data.paymentMethod === 'venmo' ? 'Venmo' : 'Payment';
+  const PAYMENT_METHOD_LABELS: Record<CheckoutConfirmationData['paymentMethod'], string> = {
+    stripe: 'Stripe',
+    paypal: 'PayPal',
+    venmo: 'Venmo',
+    // A payment recorded by hand (the Venmo/manual fallback). "Manual payment" would
+    // read oddly on a client receipt, so it stays generic.
+    manual: 'Payment',
+    other: 'Payment',
+  };
+  // A Record keyed by the union means adding a payment method to the type is a compile
+  // error until it is labelled here — which is exactly what failed to happen for Stripe.
+  const paymentMethodLabel = PAYMENT_METHOD_LABELS[data.paymentMethod] ?? 'Payment';
   const formattedDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Denver', year: 'numeric', month: 'long', day: 'numeric' });
 
   // Subject line helper

@@ -7,6 +7,7 @@ import {
 import { eq, and, lte, gte, isNull, sql, desc, or, asc } from "drizzle-orm";
 import { siteSettings } from "../../drizzle/schema";
 import { sendTrackedEmail } from "../emailService";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 // Timezone offset map (hours from UTC)
 const TIMEZONE_OFFSETS: Record<string, number> = {
@@ -451,8 +452,8 @@ export async function sendScheduledCheckins() {
       // Send the consolidated check-in email (includes progress tracking from former progressReminderCron)
       if (protocol.clientEmail) {
         const clientName = protocol.clientName || 'Client';
-        const checkinUrl = `${process.env.VITE_APP_URL || 'https://peptidecoach.pro'}/checkin/${checkinId}`;
-        const dashboardUrl = `${process.env.VITE_APP_URL || 'https://peptidecoach.pro'}/dashboard`;
+        const checkinUrl = `${getAppBaseUrl()}/checkin/${checkinId}`;
+        const dashboardUrl = `${getAppBaseUrl()}/dashboard`;
         
         // Fetch progress tracking data for this user
         let daysSincePhoto: number | null = null;
@@ -844,7 +845,7 @@ export function buildConsolidatedCheckinEmail(params: {
 }): string {
   const { clientName, protocolName, checkinUrl, dashboardUrl, suggestions, daysSincePhoto, daysSinceNote, weekNumber, coachName, customGreeting, customCtaText } = params;
   
-  const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const baseUrl = getAppBaseUrl();
   const storeUrl = `${baseUrl}/order`;
   const launchpadUrl = `${baseUrl}/launchpad`;
   const podcastUrl = 'https://www.youtube.com/@InsideOmega';

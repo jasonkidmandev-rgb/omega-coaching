@@ -12,6 +12,7 @@ import { isStaging } from "../_core/appEnv";
 import { runCronJob } from "./cronRunner";
 import crypto from "crypto";
 import { createEmailTracking, generateTrackingPixel, generateTrackedLink } from "../emailTracking";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 const getTransporter = () => {
   // Staging seal: never send real email from a test environment, even via a
@@ -185,7 +186,7 @@ export async function processEnrollmentFollowUps(): Promise<{ sent: number; fail
     
     const transporter = getTransporter();
     const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
-    const baseUrl = process.env.VITE_APP_URL || "https://peptidecoach.pro";
+    const baseUrl = getAppBaseUrl();
     
     for (const enrollment of enrollments) {
       try {
@@ -448,7 +449,7 @@ export async function checkStalledEnrollments(): Promise<{ found: number; notifi
     
     const transporter = getTransporter();
     const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
-    const baseUrl = process.env.VITE_APP_URL || "https://peptidecoach.pro";
+    const baseUrl = getAppBaseUrl();
     const adminEmails = ["omega@omegalongevity.com", "shannon@omegalongevity.com"];
     
     const htmlContent = generateStalledEnrollmentAdminHTML(enrollments, baseUrl);

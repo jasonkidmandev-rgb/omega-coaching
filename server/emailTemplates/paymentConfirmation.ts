@@ -1,3 +1,4 @@
+import { getAppBaseUrl } from "../lib/appUrl";
 /**
  * Payment Confirmation Email Template
  * Sent to clients after successful payment
@@ -40,7 +41,7 @@ export function generatePaymentConfirmationHTML(data: PaymentConfirmationData): 
   });
 
   const paymentMethodLabel = data.paymentMethod === "paypal" ? "PayPal" : data.paymentMethod === "venmo" ? "Venmo" : "Payment";
-  const siteUrl = data.siteUrl || process.env.VITE_APP_URL || "https://peptidecoach.pro";
+  const siteUrl = data.siteUrl || getAppBaseUrl();
 
   return `
 <!DOCTYPE html>

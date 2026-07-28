@@ -16,6 +16,7 @@ import { getDb } from '../db';
 import { sql } from 'drizzle-orm';
 import { sendTrackedEmail } from '../emailService';
 import { generateAbandonedCheckoutEmail } from '../emailTemplates/abandonedCheckoutRecovery';
+import { getAppBaseUrl } from "../lib/appUrl";
 
 // Configuration
 const ABANDONMENT_THRESHOLD_HOURS = 24;
@@ -85,7 +86,7 @@ async function runAbandonedCheckoutRecovery(): Promise<{ sent: number; failed: n
 
     console.log(`[Abandoned Checkout Cron] Found ${abandonedCheckouts.length} abandoned checkouts to process`);
 
-    const origin = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+    const origin = getAppBaseUrl();
 
     for (const checkout of abandonedCheckouts) {
       try {

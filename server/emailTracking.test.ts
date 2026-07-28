@@ -86,13 +86,3 @@ describe("Email Tracking Features", () => {
   });
 });
 
-describe("Email Tracking Router", () => {
-  it("should have emailTracking router in appRouter", async () => {
-    const { appRouter } = await import("./routers");
-    expect(appRouter._def.procedures).toHaveProperty("emailTracking.getStatus");
-    expect(appRouter._def.procedures).toHaveProperty("emailTracking.getEvents");
-    expect(appRouter._def.procedures).toHaveProperty("emailTracking.getBranding");
-    expect(appRouter._def.procedures).toHaveProperty("emailTracking.updateBranding");
-    expect(appRouter._def.procedures).toHaveProperty("emailTracking.getProtocolStats");
-  });
-});

@@ -47,6 +47,7 @@ import { sendEmail } from "./emailService";
 import { users } from "../drizzle/schema";
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
+import { getAppBaseUrl, getRequestBaseUrl } from "./lib/appUrl";
 
 /**
  * Resolve the PERSON behind the logged-in account.
@@ -1565,7 +1566,7 @@ const clientProtocolRouter = router({
         }
         
         // Get base URL for client edit link
-        const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+        const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
         const clientEditUrl = `${baseUrl}/admin/clients/${protocol.id}`;
         
         // Send email to each admin (use notificationEmail if set)
@@ -1790,7 +1791,7 @@ const clientProtocolRouter = router({
       const protocolSections = await db.getProtocolSections(input.id);
       
       // Build protocol URL - use request origin for correct domain
-      const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       const protocolUrl = `${baseUrl}/protocol/${protocol.accessToken}`;
       
       const result = await sendProtocolEmail({
@@ -1853,7 +1854,7 @@ const clientProtocolRouter = router({
       }
       
       // Build protocol URL - use request origin for correct domain
-      const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       const protocolUrl = `${baseUrl}/protocol/${protocol.accessToken}`;
       
       // Record email sent event and get tracking token
@@ -1917,7 +1918,7 @@ const clientProtocolRouter = router({
       }
       
       // Build URLs
-      const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       const paymentLink = `${baseUrl}/protocol/${protocol.accessToken}`;
       const paymentPortalLink = `${baseUrl}/payment-portal/${protocol.accessToken}`;
       
@@ -1965,7 +1966,7 @@ const clientProtocolRouter = router({
     .input(z.object({ protocolIds: z.array(z.number()) }))
     .mutation(async ({ input, ctx }) => {
       const { sendProtocolLinkWithTracking } = await import("./emailService");
-      const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       
       let sent = 0;
       let skipped = 0;
@@ -2044,7 +2045,7 @@ const clientProtocolRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
       const { sendAccountInviteEmail } = await import("./emailService");
-      const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       const signupUrl = `${baseUrl}/launchpad`;
       
       let sent = 0;
@@ -2111,7 +2112,7 @@ const clientProtocolRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
       const { sendWelcomeEmail } = await import("./emailService");
-      const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       
       const protocol = await db.getClientProtocolById(input.protocolId);
       if (!protocol) {
@@ -2676,7 +2677,7 @@ const clientProtocolRouter = router({
       }
 
       const urgencyLevel = input.urgencyLevel || 'friendly';
-      const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       const paymentLink = `${baseUrl}/protocol/${protocol.accessToken}`;
       const paymentPortalLink = `${baseUrl}/dashboard`;
       
@@ -3078,7 +3079,7 @@ const userRouter = router({
       const { sql: sqlTag } = await import('drizzle-orm');
       await dbConn.execute(sqlTag`INSERT INTO password_reset_tokens (userId, token, expiresAt) VALUES (${user.id}, ${token}, ${expiresAt})`);
       // Send reset email
-      const origin = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const origin = ctx.req?.headers?.origin || getAppBaseUrl();
       const resetUrl = `${origin}/set-password?token=${token}`;
       await sendEmail({
         to: user.email,
@@ -3331,7 +3332,7 @@ const commentsRouter = router({
           if (protocol && protocol.clientEmail) {
             console.log(`[Comments] Attempting to send email to ${protocol.clientEmail}`);
             const { sendNewMessageEmailToClient } = await import('./emailService');
-            const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+            const baseUrl = getAppBaseUrl();
             // Look up client's userId for per-user notification preferences
             let clientUserId: number | undefined;
             try {
@@ -4076,7 +4077,7 @@ const ordersRouter = router({
       const { getStripeSecretKey } = await import('./stripe/stripeConfig');
       const Stripe = (await import('stripe')).default;
       const stripe = new Stripe(getStripeSecretKey(), { apiVersion: '2024-06-20' as any });
-      const origin = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const origin = ctx.req?.headers?.origin || getAppBaseUrl();
 
       const PROCESSING_FEE_RATE = 0.035; // 3.5% CC processing fee
       const totalDollars = input.totalCents / 100;
@@ -4709,7 +4710,7 @@ const settingsRouter = router({
       const customCtaText = await db.getSiteSetting('checkin_email_cta_text');
       const coachName = await db.getSiteSetting('coach_name') || 'Jason';
       
-      const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = getAppBaseUrl();
       
       const emailHtml = buildConsolidatedCheckinEmail({
         clientName: ctx.user?.name || 'Test User',
@@ -4907,7 +4908,7 @@ const emailTrackingRouter = router({
       }
       
       const branding = await db.getEmailBrandingSettings();
-      const origin = ctx.req?.headers?.origin || 'https://peptidecoach.pro';
+      const origin = getRequestBaseUrl(ctx.req?.headers?.origin);
       const protocolUrl = `${origin}/protocol/${protocol.accessToken}`;
       
       const { sendFollowUpEmail } = await import('./emailService');
@@ -4946,7 +4947,7 @@ const emailTrackingRouter = router({
       );
       
       const branding = await db.getEmailBrandingSettings();
-      const origin = ctx.req?.headers?.origin || 'https://peptidecoach.pro';
+      const origin = getRequestBaseUrl(ctx.req?.headers?.origin);
       
       const { sendFollowUpEmail } = await import('./emailService');
       
@@ -4997,7 +4998,7 @@ const emailTrackingRouter = router({
       ]),
     }))
     .query(async ({ input, ctx }) => {
-      const siteUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const siteUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       
       // Sample data for previews
       const sampleData = {
@@ -5485,7 +5486,7 @@ const packingSlipRouter = router({
         
         // Get protocol URL for the email
         const protocol = packingSlip.clientProtocolId ? await db.getClientProtocolById(packingSlip.clientProtocolId) : null;
-        const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+        const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
         const protocolUrl = protocol ? `${baseUrl}/protocol/${protocol.accessToken}` : undefined;
         
         await sendShippingNotification({
@@ -6105,7 +6106,7 @@ const packingSlipRouter = router({
           const { generateDeliveryNotificationHTML, generateDeliveryNotificationText } = await import('./emailTemplates/deliveryNotification');
           const { sendEmail } = await import('./emailService');
           
-          const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+          const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
           const supportEmail = await db.getSiteSetting('support_email') || 'support@omegalongevity.com';
           
           const items = packingSlip.items.map((item: any) => ({
@@ -7687,7 +7688,7 @@ export const appRouter = router({
               const project = task ? await db.getClientProjectById(task.clientProjectId) : null;
               
               const { sendSubtaskAssignmentNotification } = await import('./emailService');
-              const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+              const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
               
               await sendSubtaskAssignmentNotification({
                 to: teamMember.email,
@@ -8246,7 +8247,7 @@ export const appRouter = router({
           ctx.user.id
         );
         
-        const baseUrl = ctx.req.headers.origin || "https://peptidecoach.pro";
+        const baseUrl = getRequestBaseUrl(ctx.req.headers.origin);
         const appName = process.env.VITE_APP_TITLE || "Omega Longevity";
         const inviterName = ctx.user.name || ctx.user.email || "Admin";
         

@@ -4,11 +4,12 @@ import { storeWaivers, users, siteSettings } from '../../drizzle/schema';
 import { eq, and, lt, isNotNull } from 'drizzle-orm';
 import { sendEmail } from '../emailService';
 import crypto from 'crypto';
+import { getAppBaseUrl } from "../lib/appUrl";
 
 const ENV = {
   SMTP_FROM: process.env.SMTP_FROM || 'noreply@example.com',
   VITE_APP_TITLE: process.env.VITE_APP_TITLE || 'Omega Longevity',
-  VITE_APP_URL: process.env.VITE_APP_URL || 'https://peptidecoach.pro',
+  VITE_APP_URL: getAppBaseUrl(),
 };
 
 // Days before expiration to send reminder

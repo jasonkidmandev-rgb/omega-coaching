@@ -17,7 +17,7 @@ export default function CustomOrderPaymentCancelled() {
         </p>
         <p className="text-sm text-gray-500">
           If you'd like to complete your payment, please use the original invoice link from your email. 
-          If you need help, contact us at support@peptidecoach.pro
+          If you need help, contact us at support@humanedge.health
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
           <Button

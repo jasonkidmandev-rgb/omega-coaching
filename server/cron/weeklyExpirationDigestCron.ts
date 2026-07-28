@@ -7,6 +7,7 @@
 import * as db from "../db";
 import { getDb } from "../db";
 import { sendEmail } from '../emailService';
+import { getAppBaseUrl } from "../lib/appUrl";
 
 const CRON_DAY = 1; // Monday (0 = Sunday, 1 = Monday, etc.)
 const CRON_HOUR = 9;
@@ -82,7 +83,7 @@ function generateDigestEmailHtml(protocols: Array<{
   status: string;
   id: number;
 }>): string {
-  const appUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const appUrl = getAppBaseUrl();
   const appTitle = process.env.VITE_APP_TITLE || 'Omega Longevity';
   
   // Group protocols by urgency

@@ -13,6 +13,7 @@ import nodemailer from "nodemailer";
 import { isStaging } from "../_core/appEnv";
 import { runCronJob } from "./cronRunner";
 import { createEmailTracking, generateTrackingPixel, generateTrackedLink } from "../emailTracking";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 const getTransporter = () => {
   // Staging seal: never send real email from a test environment, even via a
@@ -228,7 +229,7 @@ export async function processIntakeFormReminders(): Promise<{ sent24h: number; s
   
   const transporter = getTransporter();
   const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
-  const baseUrl = process.env.VITE_APP_URL || "https://peptidecoach.pro";
+  const baseUrl = getAppBaseUrl();
   
   try {
     // === 24-hour reminders ===
@@ -485,7 +486,7 @@ export async function sendManualIntakeReminder(enrollmentId: number): Promise<{ 
     
     const transporter = getTransporter();
     const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
-    const baseUrl = process.env.VITE_APP_URL || "https://peptidecoach.pro";
+    const baseUrl = getAppBaseUrl();
     const intakeUrl = `${baseUrl}/intake?enrollmentId=${enrollment.id}&openIntake=true`;
     
     const emailSubject = `Reminder: Complete Your Intake Form - ${tierNames[enrollment.tier] || "Transformation Program"}`;

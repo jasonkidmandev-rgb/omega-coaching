@@ -2,6 +2,7 @@ import { adminProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { sendPaymentConfirmationEmail, sendAdminPaymentReceivedEmail } from "./emailService";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 /**
  * Create packing slip for a paid protocol if one doesn't exist
@@ -135,7 +136,7 @@ async function sendPaymentConfirmationEmailSafe(
     const supportEmail = await db.getSiteSetting('support_email') || 'support@omegalongevity.com';
 
     // Get site URL for email links
-    const siteUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+    const siteUrl = getAppBaseUrl();
 
     await sendPaymentConfirmationEmail({
       clientName: protocol.clientName,

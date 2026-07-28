@@ -54,7 +54,7 @@ export default function LaunchpadHub() {
         <div className="container max-w-6xl py-3 md:py-4 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 md:gap-3">
-              <a href="https://peptidecoach.pro" className="flex-shrink-0">
+              <a href="https://www.humanedge.health" className="flex-shrink-0">
                 <img src="/omega-longevity-logo.png" alt="Omega Longevity" className="h-8 md:h-10" />
               </a>
               {/* About Jason - Hover Bio */}

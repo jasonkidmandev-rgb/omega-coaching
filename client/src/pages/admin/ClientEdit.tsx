@@ -2148,7 +2148,7 @@ export default function AdminClientEdit() {
                 Link Preview
               </Label>
               <div className="bg-gray-100 dark:bg-gray-100 rounded-lg p-3 font-mono text-sm break-all">
-                {typeof window !== 'undefined' ? `${window.location.origin}/protocol/${client?.accessToken}` : `https://peptidecoach.pro/protocol/${client?.accessToken}`}
+                {typeof window !== 'undefined' ? `${window.location.origin}/protocol/${client?.accessToken}` : `https://www.humanedge.health/protocol/${client?.accessToken}`}
               </div>
             </div>
 

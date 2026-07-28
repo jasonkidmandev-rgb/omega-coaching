@@ -142,7 +142,7 @@ export default function InstallApp() {
                         <div>
                           <h3 className="text-white font-medium mb-1">Open Safari</h3>
                           <p className="text-slate-400 text-sm">
-                            Navigate to <span className="text-orange-400 font-medium">peptidecoach.pro</span>
+                            Navigate to <span className="text-orange-400 font-medium">humanedge.health</span>
                           </p>
                           <p className="text-amber-500/80 text-xs mt-1">
                             ⚠️ Must use Safari - won't work in Chrome
@@ -221,7 +221,7 @@ export default function InstallApp() {
                         <div>
                           <h3 className="text-white font-medium mb-1">Open Chrome</h3>
                           <p className="text-slate-400 text-sm">
-                            Navigate to <span className="text-orange-400 font-medium">peptidecoach.pro</span>
+                            Navigate to <span className="text-orange-400 font-medium">humanedge.health</span>
                           </p>
                         </div>
                       </div>

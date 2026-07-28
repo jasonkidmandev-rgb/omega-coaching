@@ -79,7 +79,8 @@ describe('sendIntakeFormEmail', () => {
 
     const logCalls = consoleSpy.mock.calls.flat().join(' ');
     expect(logCalls).toContain('openIntake=true');
-    expect(logCalls).toContain('journey');
+    // The link points at /intake now, not the retired /journey route.
+    expect(logCalls).toContain('/intake?');
 
     consoleSpy.mockRestore();
   });

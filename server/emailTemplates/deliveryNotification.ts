@@ -1,3 +1,4 @@
+import { getAppBaseUrl } from "../lib/appUrl";
 // Omega Longevity brand colors
 const BRAND_COLORS = {
   primary: "#F97316", // Orange
@@ -27,7 +28,7 @@ export interface DeliveryNotificationData {
 }
 
 export function generateDeliveryNotificationHTML(data: DeliveryNotificationData): string {
-  const siteUrl = data.siteUrl || 'https://peptidecoach.pro';
+  const siteUrl = data.siteUrl || getAppBaseUrl();
   const supportEmail = data.supportEmail || 'support@omegalongevity.com';
   const deliveryDateStr = data.deliveryDate.toLocaleDateString('en-US', { timeZone: 'America/Denver',
     weekday: 'long',
@@ -170,7 +171,7 @@ export function generateDeliveryNotificationHTML(data: DeliveryNotificationData)
 }
 
 export function generateDeliveryNotificationText(data: DeliveryNotificationData): string {
-  const siteUrl = data.siteUrl || 'https://peptidecoach.pro';
+  const siteUrl = data.siteUrl || getAppBaseUrl();
   const supportEmail = data.supportEmail || 'support@omegalongevity.com';
   const deliveryDateStr = data.deliveryDate.toLocaleDateString('en-US', { timeZone: 'America/Denver',
     weekday: 'long',

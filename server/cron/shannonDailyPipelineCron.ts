@@ -7,6 +7,7 @@
 import { getDb } from "../db";
 import { sendEmail } from "../emailService";
 import { sql } from "drizzle-orm";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 const SHANNON_EMAIL = "shannon@omegalongevity.com";
 const SHANNON_NAME = "Shannon";
@@ -182,7 +183,7 @@ export async function gatherPipelineData(): Promise<PipelineEmailData> {
 }
 
 function buildPipelineEmailHtml(data: PipelineEmailData): string {
-  const appUrl = process.env.VITE_APP_URL || "https://peptidecoach.pro";
+  const appUrl = getAppBaseUrl();
   const primaryColor = "#ea580c";
   const secondaryColor = "#1e40af";
   const dangerColor = "#ef4444";

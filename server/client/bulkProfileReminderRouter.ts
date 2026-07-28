@@ -4,13 +4,14 @@ import * as db from "../db";
 import { getDb } from "../db";
 import { logAuditEvent, type AuditAction } from "../audit";
 import { clientNotificationHistory } from "../../drizzle/schema";
+import { getRequestBaseUrl } from "../lib/appUrl";
 
 export const bulkProfileReminderRouter = router({
   // Send bulk profile completion reminders to all clients with incomplete profiles
   send: adminProcedure
     .mutation(async ({ ctx }) => {
       const allProtocols = await db.getAllClientProtocols('active');
-      const origin = ctx.req?.headers?.origin || 'https://peptidecoach.pro';
+      const origin = getRequestBaseUrl(ctx.req?.headers?.origin);
       
       const { sendProfileCompletionReminderEmail } = await import('../emailService');
       

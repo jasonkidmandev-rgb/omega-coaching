@@ -2,6 +2,7 @@ import * as db from "../db";
 import { paymentEvents } from "../../drizzle/schema";
 import { sendPaymentStatusNotification } from "../emailService";
 import { alertInventoryDeductions, notifyInventoryAdmins } from "./inventoryAlerts";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 export type PaymentMethodInput = 'venmo' | 'cc' | 'stripe' | 'other' | 'paypal';
 
@@ -128,7 +129,7 @@ export async function processProtocolPaymentReceived(
   // 6. Client email notification
   try {
     if (protocol.clientEmail) {
-      const baseUrl = options.baseUrl || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = options.baseUrl || getAppBaseUrl();
       const protocolUrl = `${baseUrl}/protocol/${(protocol as any).accessToken}`;
       const methodLabel = paymentMethod === 'stripe' ? 'Credit Card (Stripe)' :
                           paymentMethod === 'venmo' ? 'Venmo' :

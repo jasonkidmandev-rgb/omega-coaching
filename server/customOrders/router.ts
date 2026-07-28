@@ -6,6 +6,7 @@ import { findOrCreateContact } from "../contacts/contactService";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getStripeSecretKey } from "../stripe/stripeConfig";
 import { alertInventoryDeductions } from "../payment/inventoryAlerts";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 const lineItemSchema = z.object({
   inventoryItemId: z.number().nullable().optional(),
@@ -268,7 +269,7 @@ export const customOrdersRouter = router({
       // Create Stripe checkout session with 3.5% processing fee
       const Stripe = (await import('stripe')).default;
       const stripe = new Stripe(getStripeSecretKey(), { apiVersion: '2024-06-20' as any });
-      const origin = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const origin = getAppBaseUrl();
 
       const PROCESSING_FEE_RATE = 0.035;
       const processingFee = Math.round(total * PROCESSING_FEE_RATE * 100) / 100;
@@ -349,7 +350,7 @@ export const customOrdersRouter = router({
       // Create new Stripe checkout session with 3.5% processing fee
       const Stripe = (await import('stripe')).default;
       const stripe = new Stripe(getStripeSecretKey(), { apiVersion: '2024-06-20' as any });
-      const origin = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const origin = getAppBaseUrl();
 
       const PROCESSING_FEE_RATE = 0.035;
       const processingFee = Math.round(total * PROCESSING_FEE_RATE * 100) / 100;
@@ -465,7 +466,7 @@ export const customOrdersRouter = router({
                 <p>Thank you for your business!</p>
               </div>
               <div style="text-align: center; padding: 15px; color: #999; font-size: 12px;">
-                Omega Longevity | peptidecoach.pro
+                Omega Longevity | humanedge.health
               </div>
             </div>
           `,
@@ -690,7 +691,7 @@ export const customOrdersRouter = router({
                 <p>Thank you for your business!</p>
               </div>
               <div style="text-align: center; padding: 15px; color: #999; font-size: 12px;">
-                Omega Longevity | peptidecoach.pro
+                Omega Longevity | humanedge.health
               </div>
             </div>
           `,
@@ -829,7 +830,7 @@ async function sendInvoiceEmail(
       </div>
       
       <div style="text-align: center; padding: 15px; color: #999; font-size: 12px;">
-        Omega Longevity | peptidecoach.pro
+        Omega Longevity | humanedge.health
       </div>
     </div>
   `;

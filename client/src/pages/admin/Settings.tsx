@@ -206,7 +206,7 @@ export default function Settings() {
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#0f172a;">
 <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
 <div style="text-align:center;margin-bottom:0;"><div style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);padding:30px;border-radius:16px 16px 0 0;">
-<img src="https://peptidecoach.pro/omega-longevity-logo.png" alt="Omega Longevity" style="height:50px;margin-bottom:15px;" />
+<img src="https://www.humanedge.health/omega-longevity-logo.png" alt="Omega Longevity" style="height:50px;margin-bottom:15px;" />
 <h1 style="color:#fff;margin:0;font-size:24px;font-weight:600;">Weekly Progress Check-In</h1>
 <p style="color:rgba(255,255,255,0.9);margin:10px 0 0;font-size:14px;">Week 4 &bull; Time to track your health journey!</p>
 </div></div>

@@ -75,10 +75,11 @@ describe('Abandoned Checkout Recovery Email', () => {
     expect(html).toContain('Dosing adjustments');
   });
 
-  it('should include the $75 strategy session link for questions', () => {
+  it('should include a consultation booking link for questions', () => {
     const html = generateAbandonedCheckoutEmail(baseData);
-    expect(html).toContain('$75 Strategy Session');
-    expect(html).toContain('calendly.com/omegalongevity/75-strategy-session');
+    // The offer changed from a "$75 Strategy Session" to a consultation booking link.
+    // Asserting on the link rather than the label so a copy tweak doesn't fail the test.
+    expect(html).toContain('calendly.com/jason-vigilanttechs/20-minute-consult-95');
   });
 
   it('should include Omega Longevity branding', () => {

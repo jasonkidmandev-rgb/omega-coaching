@@ -10,6 +10,7 @@ import { eq, and, desc, asc, sql, isNull, gte, lte, or } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { generateCheckinPdf, generateCheckinHistoryPdf } from "./checkinPdf";
 import { calculateNextScheduledTime, GLOBAL_CHECKIN_SETTING_KEY, areCheckinsGloballyEnabled } from "../cron/checkinCron";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 // Helper to get db with null check
 async function db() {
@@ -1588,7 +1589,7 @@ export const checkinRouter = router({
                     ${overallScore ? `<p><strong>Overall Score:</strong> ${overallScore}/10</p>` : ''}
                     ${lowestScore && lowestScore <= 5 ? `<p style="color: #e53e3e;"><strong>⚠️ Low Score Alert:</strong> Lowest score was ${lowestScore}/10. Review recommended.</p>` : ''}
                     <p style="margin-top: 20px;">
-                      <a href="${process.env.VITE_APP_URL || 'https://peptidecoach.pro'}/admin/clients/${protocol.id}" 
+                      <a href="${getAppBaseUrl()}/admin/clients/${protocol.id}" 
                          style="background-color: #ed8936; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
                         Review Check-In
                       </a>

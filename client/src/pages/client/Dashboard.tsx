@@ -448,7 +448,7 @@ export default function ClientDashboard() {
       <header className="border-b border-gray-200 bg-[#1e3a5f] sticky top-0 z-40">
         <div className="container max-w-6xl py-3 px-4">
           <div className="flex items-center justify-between">
-            <a href="https://peptidecoach.pro" className="bg-white rounded-lg px-3 py-1.5 inline-block">
+            <a href="https://www.humanedge.health" className="bg-white rounded-lg px-3 py-1.5 inline-block">
               <img src="/omega-longevity-logo.png" alt="Omega Longevity" className="h-6 md:h-8" />
             </a>
             <Button 

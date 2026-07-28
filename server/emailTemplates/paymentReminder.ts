@@ -1,3 +1,4 @@
+import { getAppBaseUrl } from "../lib/appUrl";
 /**
  * Payment Reminder Email Template
  * Sent to clients with pending payments
@@ -20,7 +21,7 @@ export interface PaymentReminderData {
 
 export function generatePaymentReminderHTML(data: PaymentReminderData): string {
   const urgency = data.daysOverdue >= 7 ? "urgent" : "standard";
-  const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const baseUrl = getAppBaseUrl();
   const storeUrl = `${baseUrl}/order`;
   const launchpadUrl = `${baseUrl}/launchpad`;
   const podcastUrl = 'https://www.youtube.com/@InsideOmega';

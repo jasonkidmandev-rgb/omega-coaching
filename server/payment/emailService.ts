@@ -5,6 +5,7 @@ import {
   PaymentConfirmationData,
 } from "../emailTemplates/paymentConfirmation";
 import { getSiteSetting } from '../db';
+import { getAppBaseUrl } from "../lib/appUrl";
 
 const getTransporter = () => {
   const smtpHost = process.env.SMTP_HOST;
@@ -195,7 +196,7 @@ export async function sendAdminPaymentReceivedEmail(
 
     const transporter = getTransporter();
     const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
-    const siteUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+    const siteUrl = getAppBaseUrl();
     
     const methodLabel = data.paymentMethod === 'paypal' ? 'PayPal' 
       : data.paymentMethod === 'venmo' ? 'Venmo' 
@@ -315,7 +316,7 @@ export async function sendAdminPaymentReceivedEmail(
         let trackedHtml = htmlContent;
         try {
           const { createEmailTracking, injectTrackingIntoHtml } = await import('../emailTracking');
-          const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+          const baseUrl = getAppBaseUrl();
           const tid = await createEmailTracking({
             emailType: 'sendAdminPaymentReceivedEmail',
             recipientEmail: adminEmail,

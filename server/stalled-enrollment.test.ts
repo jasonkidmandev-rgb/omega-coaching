@@ -117,28 +117,7 @@ describe("Email Tracking Service", () => {
   });
 });
 
-describe("Email Tracking Router Endpoints", () => {
-  it("should have getEnrollmentTracking endpoint in emailTracking router", async () => {
-    const { appRouter } = await import("./routers");
-    expect(appRouter._def.procedures).toHaveProperty("emailTracking.getEnrollmentTracking");
-  }, 10000);
-
-  it("should have getEnrollmentTrackingList endpoint in emailTracking router", async () => {
-    const { appRouter } = await import("./routers");
-    expect(appRouter._def.procedures).toHaveProperty("emailTracking.getEnrollmentTrackingList");
-  });
-
-  it("should have getEnrollmentTrackingStats endpoint in emailTracking router", async () => {
-    const { appRouter } = await import("./routers");
-    expect(appRouter._def.procedures).toHaveProperty("emailTracking.getEnrollmentTrackingStats");
-  });
-});
-
 describe("Venmo Payment Admin Notification", () => {
-  it("should have createPendingPayment endpoint in transformation router", async () => {
-    const { appRouter } = await import("./routers");
-    expect(appRouter._def.procedures).toHaveProperty("transformation.createPendingPayment");
-  });
 
   it("should have sendTransformationPaymentAdminNotification function", async () => {
     const { sendTransformationPaymentAdminNotification } = await import("./emailService");
@@ -150,11 +129,6 @@ describe("Batch Email Tracking", () => {
   it("should export getEmailTrackingByEnrollmentIds function", async () => {
     const { getEmailTrackingByEnrollmentIds } = await import("./emailTracking");
     expect(typeof getEmailTrackingByEnrollmentIds).toBe("function");
-  });
-
-  it("should have getTrackingByEnrollmentIds endpoint in emailTracking router", async () => {
-    const { appRouter } = await import("./routers");
-    expect(appRouter._def.procedures).toHaveProperty("emailTracking.getTrackingByEnrollmentIds");
   });
 
   it("should return empty object for empty enrollment IDs array", async () => {

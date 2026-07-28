@@ -5,6 +5,7 @@ import * as db from "../db";
 import { sendPaymentStatusNotification } from "../emailService";
 import { sendPaymentConfirmationEmail } from "./emailService";
 import { processProtocolPaymentReceived } from "./paymentService";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 export const paymentRouter = router({
   // ── Resilient payment layer: failover switch + unified ledger views ────────
@@ -164,7 +165,7 @@ export const paymentRouter = router({
     .mutation(async ({ input, ctx }) => {
       try {
         const protocolId = parseInt(input.clientProtocolId);
-        const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+        const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
 
         // Map free-text method to enum; treat anything unrecognised as 'other'
         const methodMap: Record<string, 'venmo' | 'cc' | 'stripe' | 'other' | 'paypal'> = {
@@ -285,7 +286,7 @@ export const paymentRouter = router({
           paymentMethod,
           protocolName,
           paymentDate: protocol.paymentReceivedAt || new Date(),
-          siteUrl: process.env.VITE_APP_URL || "https://peptidecoach.pro",
+          siteUrl: getAppBaseUrl(),
         });
 
         if (result.success) {
@@ -346,7 +347,7 @@ export const paymentRouter = router({
 
           // Send email notification to client if they have an email
           if (protocol.clientEmail) {
-            const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+            const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
             const protocolUrl = `${baseUrl}/protocol/${protocol.accessToken}`;
             
             await sendPaymentStatusNotification({

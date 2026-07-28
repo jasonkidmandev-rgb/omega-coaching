@@ -1,3 +1,4 @@
+import { getAppBaseUrl } from "../lib/appUrl";
 /**
  * Store Order Confirmation Email Template
  * Sent to customers after successful store purchase
@@ -53,7 +54,7 @@ export function generateStoreOrderConfirmationHTML(data: StoreOrderConfirmationD
 
   const paymentMethodLabel = data.paymentMethod === "paypal" ? "PayPal" : "Venmo";
   const hasDiscount = parseFloat(data.discountAmount) > 0;
-  const siteUrl = data.siteUrl || process.env.VITE_APP_URL || "https://peptidecoach.pro";
+  const siteUrl = data.siteUrl || getAppBaseUrl();
 
   const itemsHTML = data.items.map(item => {
     const lineTotal = (parseFloat(item.pricePerUnit) * item.quantity).toFixed(2);

@@ -26,17 +26,11 @@ describe("Booking Calendar System", () => {
   });
 
   describe("Outlook Integration", () => {
-    it("should check if Outlook is configured", async () => {
-      // Without environment variables, should return false
-      const OUTLOOK_CLIENT_ID = process.env.OUTLOOK_CLIENT_ID || "";
-      const OUTLOOK_CLIENT_SECRET = process.env.OUTLOOK_CLIENT_SECRET || "";
-      const OUTLOOK_REDIRECT_URI = process.env.OUTLOOK_REDIRECT_URI || "";
-      
-      const isConfigured = !!(OUTLOOK_CLIENT_ID && OUTLOOK_CLIENT_SECRET && OUTLOOK_REDIRECT_URI);
-      
-      // In test environment, Outlook credentials are set
-      expect(isConfigured).toBe(true);
-    });
+    // Removed: "should check if Outlook is configured". It read process.env directly,
+    // re-implemented the check inline, and asserted the *developer's machine* had
+    // Outlook credentials. It imported nothing from the app, so it could never fail
+    // for a reason involving our code — and always failed for everyone without those
+    // env vars set.
 
     it("should generate correct OAuth authorization URL format", async () => {
       const state = "test-state-123";

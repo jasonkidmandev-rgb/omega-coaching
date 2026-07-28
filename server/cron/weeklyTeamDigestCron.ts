@@ -7,6 +7,7 @@
 import { getDb } from "../db";
 import { sendEmail } from "../emailService";
 import { sql } from "drizzle-orm";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 // Team recipients
 const DIGEST_RECIPIENTS = [
@@ -123,7 +124,7 @@ async function gatherDigestData(): Promise<DigestData> {
 }
 
 function buildDigestEmailHtml(data: DigestData, recipientName: string): string {
-  const appUrl = process.env.VITE_APP_URL || "https://peptidecoach.pro";
+  const appUrl = getAppBaseUrl();
   const primaryColor = "#ea580c";
   const secondaryColor = "#1e40af";
 

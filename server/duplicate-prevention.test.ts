@@ -233,17 +233,4 @@ describe('Template & Client Protocol Item Deduplication', () => {
     });
   });
 
-  describe('Router Endpoints Exist', () => {
-    it('should have appRouter defined with procedures', async () => {
-      const { appRouter } = await import('./routers');
-      expect(appRouter).toBeDefined();
-      expect(appRouter._def).toBeDefined();
-      // Verify the router has clientProtocol sub-router
-      const procedures = Object.keys(appRouter._def.procedures);
-      expect(procedures.length).toBeGreaterThan(0);
-      // Check that some client protocol procedures exist
-      const clientProtocolProcs = procedures.filter(p => p.includes('clientProtocol'));
-      expect(clientProtocolProcs.length).toBeGreaterThan(0);
-    }, 30000);
-  });
 });

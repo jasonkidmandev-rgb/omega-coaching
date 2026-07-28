@@ -21,6 +21,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getDb } from "../db";
 import { emailTracking, pendingVenmoPayments, transformationEnrollments } from "../../drizzle/schema";
 import { eq, and, inArray, sql } from "drizzle-orm";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 const getTransporter = () => {
   // Staging seal: never send real email from a test environment, even via a
@@ -143,7 +144,7 @@ async function runPaymentReminderJob(): Promise<void> {
     const now = new Date();
     const transporter = getTransporter();
     const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
-    const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+    const baseUrl = getAppBaseUrl();
 
     let remindersSent = 0;
     let remindersFailed = 0;

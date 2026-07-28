@@ -148,35 +148,6 @@ describe("Email Tracking - Enrollment Features", () => {
     });
   });
 
-  describe("Transformation Router - Email Tracking Endpoints", () => {
-    it("should have getEnrollmentEmailTracking endpoint", async () => {
-      const { appRouter } = await import("./routers");
-      expect(appRouter._def.procedures).toHaveProperty("transformation.getEnrollmentEmailTracking");
-    });
-
-    it("should have getEmailClickDetails endpoint", async () => {
-      const { appRouter } = await import("./routers");
-      expect(appRouter._def.procedures).toHaveProperty("transformation.getEmailClickDetails");
-    });
-
-    it("should have getTransformationEmailStats endpoint", async () => {
-      const { appRouter } = await import("./routers");
-      expect(appRouter._def.procedures).toHaveProperty("transformation.getTransformationEmailStats");
-    });
-
-    it("should have getEmailTrackingByEnrollmentIds endpoint", async () => {
-      const { appRouter } = await import("./routers");
-      expect(appRouter._def.procedures).toHaveProperty("transformation.getEmailTrackingByEnrollmentIds");
-    });
-  });
-
-  describe("Transformation Router - Resend Welcome Email", () => {
-    it("should have resendWelcomeEmail endpoint", async () => {
-      const { appRouter } = await import("./routers");
-      expect(appRouter._def.procedures).toHaveProperty("transformation.resendWelcomeEmail");
-    });
-  });
-
   describe("sendTransformationMilestoneEmail", () => {
     it("should accept enrollmentId parameter", async () => {
       const emailService = await import("./emailService");

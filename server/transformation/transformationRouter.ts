@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { sendTransformationMilestoneEmail, sendAdminMilestoneNotification, sendTransformationPaymentConfirmationEmail, sendTransformationPaymentAdminNotification, sendEmail, sendCheckoutConfirmationEmail } from "../emailService";
 import { checkRateLimit, getClientIp } from "../utils/rateLimiter";
 import { autoCreateOrLinkClient, logEnrollmentActivity } from "../provisioning/clientProvisioning";
+import { getAppBaseUrl } from "../lib/appUrl";
 // PayPal/Venmo removed - migrating to Stripe
 // createPayPalOrder functions kept in db.ts for historical record lookup only
 
@@ -296,7 +297,7 @@ export const transformationRouter = router({
       // Send welcome email to client
       try {
         if (clientEmail) {
-          const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+          const baseUrl = getAppBaseUrl();
           await sendTransformationMilestoneEmail({
             to: clientEmail,
             clientName: ctx.user?.name || 'Valued Client',
@@ -457,7 +458,7 @@ export const transformationRouter = router({
       // Welcome email to client
       try {
         if (email) {
-          const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+          const baseUrl = getAppBaseUrl();
           await sendTransformationMilestoneEmail({
             to: email,
             clientName: name || ctx.user?.name || 'Valued Client',
@@ -1132,7 +1133,7 @@ export const transformationRouter = router({
         const enrollment = enrollmentRows[0];
         
         if (enrollment?.userEmail) {
-          const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+          const baseUrl = getAppBaseUrl();
           const dashboardUrl = `${baseUrl}/transformation`;
           
           // Map step to milestone type and next step info
@@ -1362,7 +1363,7 @@ export const transformationRouter = router({
             const tier = data.tier || 'flagship';
             const tierPrices: Record<string, number> = { elite: 15000, functional_health_elite: 8500, advanced: 4500, flagship: 3000, recovery: 3000, immunity: 3000, longevity: 3000, mitochondria: 3000, essentials: 1000 };
             const amount = tierPrices[tier] || 3000;
-            const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+            const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
             
             // Send confirmation to client
             if (clientEmail) {
@@ -1757,7 +1758,7 @@ export const transformationRouter = router({
         paymentMethod: input.paymentMethod,
       });
       
-      const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       const notificationResult = await sendTransformationPaymentAdminNotification({
         clientName: input.clientName,
         clientEmail: input.clientEmail || 'unknown',
@@ -1809,7 +1810,7 @@ export const transformationRouter = router({
       
       // Send confirmation email to client
       if (paymentData.clientEmail) {
-        const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+        const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
         await sendTransformationPaymentConfirmationEmail({
           to: paymentData.clientEmail,
           clientName: paymentData.clientName,
@@ -2910,7 +2911,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       
       // Send payment confirmation emails
       try {
-        const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+        const baseUrl = getAppBaseUrl();
         
         await sendTransformationPaymentConfirmationEmail({
           to: clientEmail,
@@ -3104,7 +3105,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       
       // Send verification email
       const { sendGuestEnrollmentVerificationEmail } = await import('../emailService');
-      const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = getAppBaseUrl();
       
       await sendGuestEnrollmentVerificationEmail({
         to: enrollment.email,
@@ -3192,7 +3193,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       // Send confirmation emails
       const clientEmail = enrollment.userEmail || enrollment.email || paymentRecord.payerEmail;
       const clientName = enrollment.userName || enrollment.clientName || paymentRecord.payerName || 'Valued Client';
-      const baseUrl = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = ctx.req?.headers?.origin || getAppBaseUrl();
       
       try {
         if (clientEmail) {
@@ -3261,7 +3262,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       const stripe = new Stripe(getStripeSecretKey(), { apiVersion: '2024-06-20' as any });
 
       const { enrollmentId, tier, planName, amount, customerEmail, customerName, vipConcierge, vipConciergeFee, promoCode, promoCodeId, originalAmount, discountAmount } = input;
-      const origin = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const origin = ctx.req?.headers?.origin || getAppBaseUrl();
 
       // Build line items
       const PROCESSING_FEE_RATE = 0.035; // 3.5% CC processing fee
@@ -3362,7 +3363,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       const { getStripeSecretKey } = await import('../stripe/stripeConfig');
       const Stripe = (await import('stripe')).default;
       const stripe = new Stripe(getStripeSecretKey(), { apiVersion: '2024-06-20' as any });
-      const origin = ctx.req?.headers?.origin || process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const origin = ctx.req?.headers?.origin || getAppBaseUrl();
 
       const tierPrices: Record<string, number> = {
         flagship: 3000, recovery: 3000, immunity: 3000, longevity: 3000, mitochondria: 3000,
@@ -3722,7 +3723,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       if (!clientEmail) throw new Error('No email address found for this enrollment. Cannot resend welcome email.');
 
       const clientName = enrollment.userName || enrollment.clientName || 'Valued Client';
-      const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = getAppBaseUrl();
       const dashboardUrl = `${baseUrl}/transformation`;
 
       // Create tracking record for the resend
@@ -3787,7 +3788,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
 
       const clientName = enrollment.userName || enrollment.clientName || 'Valued Client';
       const tier = enrollment.tier || 'flagship';
-      const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = getAppBaseUrl();
 
       // Optionally reset intake form status so client can redo it
       if (resetForm) {
@@ -4537,7 +4538,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       `);
 
       // Build the enrollment link
-      const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+      const baseUrl = getAppBaseUrl();
       const enrollmentLink = `${baseUrl}/transformation`;
 
       // Send email with the new link

@@ -187,7 +187,7 @@ export function generateAbandonedCheckoutEmail(data: AbandonedCheckoutEmailData)
               </p>
               <p style="margin: 0; font-size: 12px; color: #94a3b8; text-align: center;">
                 You're receiving this because you started a checkout at 
-                <a href="https://peptidecoach.pro" style="color: #D97706;">peptidecoach.pro</a>.
+                <a href="https://www.humanedge.health" style="color: #D97706;">humanedge.health</a>.
                 If this wasn't you, you can safely ignore this email.
               </p>
             </td>

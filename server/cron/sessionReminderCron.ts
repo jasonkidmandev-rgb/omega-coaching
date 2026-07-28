@@ -12,6 +12,7 @@ import { isStaging } from "../_core/appEnv";
 import { runCronJob } from "./cronRunner";
 import { v4 as uuidv4 } from "uuid";
 import * as db from "../db";
+import { getAppBaseUrl } from "../lib/appUrl";
 
 const getTransporter = () => {
   // Staging seal: never send real email from a test environment, even via a
@@ -67,7 +68,7 @@ function generateSessionReminderHTML(params: {
     trackingBaseUrl,
   } = params;
 
-  const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const baseUrl = getAppBaseUrl();
   const storeUrl = `${baseUrl}/order`;
   const launchpadUrl = `${baseUrl}/launchpad`;
   const podcastUrl = 'https://www.youtube.com/@InsideOmega';
@@ -246,7 +247,7 @@ function generate1HourReminderHTML(params: {
   trackingBaseUrl: string;
 }): string {
   const { clientName, sessionType, sessionTime, duration, meetingLink, trackingId, trackingBaseUrl } = params;
-  const baseUrl = process.env.VITE_APP_URL || 'https://peptidecoach.pro';
+  const baseUrl = getAppBaseUrl();
   const trackingPixel = `<img src="${trackingBaseUrl}/api/track/open/${trackingId}" width="1" height="1" style="display:none;" alt="" />`;
 
   return `
@@ -354,7 +355,7 @@ export async function process1HourReminders(): Promise<{ sent: number; failed: n
 
   const transporter = getTransporter();
   const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
-  const baseUrl = process.env.VITE_APP_URL || "https://peptidecoach.pro";
+  const baseUrl = getAppBaseUrl();
 
   const now = new Date();
   const windowStart = new Date(now.getTime() + 50 * 60 * 1000); // 50 minutes from now
@@ -465,7 +466,7 @@ export async function processSessionReminders(): Promise<{ sent: number; failed:
 
   const transporter = getTransporter();
   const smtpFrom = process.env.SMTP_FROM || "Omega Longevity <noreply@omegalongevity.com>";
-  const baseUrl = process.env.VITE_APP_URL || "https://peptidecoach.pro";
+  const baseUrl = getAppBaseUrl();
 
   // Calculate the 24-hour window (23-25 hours from now to account for cron timing)
   const now = new Date();
