@@ -273,6 +273,9 @@ function AdminRoutes() {
           <Route path={"/admin/backorders"} component={AdminBackorders} />
           <Route path={"/admin/notification-preferences"} component={NotificationPreferences} />
           <Route path={"/admin/kpi-dashboard"} component={KPIDashboard} />
+          {/* Unmatched /admin/* — without this the content area renders blank, since
+              this Switch no longer falls through to the app-level NotFound route. */}
+          <Route component={NotFound} />
           </Switch>
         </Suspense>
       </AdminLayout>
