@@ -24,9 +24,12 @@ with the date and the reason.
   router-graph import each (the 5s timeouts that made the failure count swing 8-20 between
   runs), and `inbox.test.ts` passed green throughout a live chat outage — advertising
   coverage that didn't exist. Behavioural coverage needs a DB-backed harness (v2).
-- 2026-07-29, Don't run the app locally; verify with typecheck + build + unit tests, and do
-  runtime checks on the Railway deploy. Why: `.env` targets the prod DB with a live mailer
-  and crons start unconditionally. Revisit once cron init is env-gated.
+- 2026-07-29, `sideEffectsDisabled()` in `server/_core/appEnv.ts` is the single gate for
+  anything that reaches a real person (crons, email, IMAP, live Stripe). Gate new work with
+  it rather than a bare `NODE_ENV` check. Why: the environment is now derived, not assumed —
+  `APP_ENV` defaulted to `'production'`, so `pnpm dev` ran ~20 crons against the production
+  DB with a live mailer. One choke point means the next cron inherits the seal for free.
+  (Supersedes the earlier "don't run the app locally" decision — you can run it again.)
 - 2026-07-29, Both devs push straight to `main`, `pull --rebase` before push. Why:
   Railway auto-deploys main for prod testing; branches would hide work from the deployed
   test site until merge.

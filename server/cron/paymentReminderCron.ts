@@ -11,7 +11,7 @@
 
 import * as db from "../db";
 import nodemailer from "nodemailer";
-import { isStaging } from "../_core/appEnv";
+import { sideEffectsDisabled } from "../_core/appEnv";
 import { runCronJob } from "./cronRunner";
 import {
   generatePaymentReminderHTML,
@@ -24,9 +24,9 @@ import { eq, and, inArray, sql } from "drizzle-orm";
 import { getAppBaseUrl } from "../lib/appUrl";
 
 const getTransporter = () => {
-  // Staging seal: never send real email from a test environment, even via a
+  // Seal: never send real email outside production (staging or local), even via a
   // manual/admin trigger that bypasses the boot-time cron skip.
-  if (isStaging()) return null;
+  if (sideEffectsDisabled()) return null;
 
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = process.env.SMTP_PORT;

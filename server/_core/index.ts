@@ -42,7 +42,7 @@ import { initStrategySessionMonitorCron } from "../cron/strategySessionMonitorCr
 import { initBackorderAndTrackingCron } from "../cron/backorderAndTrackingCron";
 import { initTaskEscalationCron } from "../cron/taskEscalationCron";
 import { startEmailReplyPolling } from '../emailReplyBridge';
-import { isStaging } from './appEnv';
+import { sideEffectsDisabled, describeAppEnv } from './appEnv';
 import { initDbBackupCron } from '../cron/dbBackupCron';
 import calendlyWebhookRouter from "../calendly/webhook";
 import ghlWebhookRouter from "../integrations/ghl/webhook";
@@ -542,9 +542,12 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    // Always state the mode. Whether this process can email a real client should never
+    // have to be inferred from which .env happened to be loaded.
+    console.log(`[Startup] ${describeAppEnv()}`);
 
-    if (isStaging()) {
-      console.log('[Startup] STAGING environment — cron jobs and email-reply polling are disabled.');
+    if (sideEffectsDisabled()) {
+      console.log('[Startup] Cron jobs and email-reply polling are NOT started in this mode.');
       return;
     }
 

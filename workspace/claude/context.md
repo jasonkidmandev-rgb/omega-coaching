@@ -27,22 +27,29 @@ PeptideCoach -> HumanEdge. The app is the source of truth; external funnels feed
 - Back navigation: shared hook `client/src/hooks/useGoBack.ts` (`useGoBack` + `goBackTo`).
 - Brand: shared `client/src/components/HumanEdgeBrand.tsx` (used by Cover + Login).
 
-## ⛔ Do NOT start the dev server locally (Saboor, 2026-07-29)
-The committed `.env` points `DATABASE_URL` at the **live Railway prod DB** and
-`SMTP_HOST` at **smtp.resend.com** (a real sender). `startServer()`
-(`server/_core/index.ts:552-576`) initializes **~20 cron jobs unconditionally** — there is
-no `DISABLE_CRONS` gate. So `pnpm dev` immediately begins check-in dispatch (every 5 min),
-low-score alerts (15 min), payment reminders and a startup check-in scan **against real
-clients with a working mailer**.
+## ✅ Local dev is now sealed — you can run the app again (Saboor, 2026-07-29)
+**This used to be dangerous and is now fixed. Please don't re-open it.**
 
-I started it for ~35s while verifying the navigation fix, then killed it and confirmed via
-the DB that nothing was sent (0 notifications / 0 engagement events / 0 check-ins in the
-hour). Verify with typecheck + `vite build` + unit tests instead; for anything needing a
-running app, deploy and click through on Railway.
+Until today, `APP_ENV` defaulted to `'production'`. With a committed `.env` pointing
+`DATABASE_URL` at the **live Railway prod DB** and `SMTP_HOST` at **smtp.resend.com**,
+`pnpm dev` started ~20 cron jobs against production with a working mailer — check-in
+dispatch every 5 min, low-score alerts every 15, payment reminders, a startup check-in
+scan. No mistake required; starting the server was enough. (I hit it for ~35s and confirmed
+via the DB that nothing went out.)
 
-**Worth fixing properly:** gate cron init behind an env flag defaulting off outside
-production, and point local `.env` at the Docker test DB (`pnpm testdb:up`). Small job,
-unblocks all local verification. Added to `current.md`.
+`server/_core/appEnv.ts` now derives the environment rather than assuming it. Production
+and staging behave **exactly as before**; everything else resolves to `local` and gets the
+same seal staging already had — no crons, no email, no IMAP polling, Stripe in test mode.
+The gate is the existing choke point, renamed `isStaging()` → `sideEffectsDisabled()`
+(6 call sites). The server prints its mode at startup.
+
+- **Railway is unaffected**: `railway.toml` runs `pnpm run start`, which sets
+  `NODE_ENV=production` explicitly. Verified across all 8 env combinations before shipping.
+- **To deliberately exercise crons/email locally:** `ALLOW_LOCAL_SIDE_EFFECTS=true` — opt-in
+  and loudly logged. Point `DATABASE_URL` at the Docker test DB (`pnpm testdb:up`) first;
+  the seal stops sends, not reads, and `.env` still targets **production data**.
+- **If you add a new cron or mailer,** gate it with `sideEffectsDisabled()` from
+  `server/_core/appEnv.ts` — not a bare `NODE_ENV` check — so it inherits the same seal.
 
 ## Findings / gotchas (append as you discover)
 - **⚠️ Raw SQL does NOT get Drizzle's column aliases — this broke admin chat.** The schema

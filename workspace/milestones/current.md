@@ -69,7 +69,16 @@ Not originally in M1, but these outrank polish. Full detail in
       through a client-facing flow that carries none today, and that funnel **cannot be verified
       locally until the cron/`.env` item below is fixed** — so that one is the real unblocker.
       Owner: ___
-- [ ] Gate cron init behind an env flag (default off outside prod) + point local `.env` at
+- [x] **Gate cron init so local dev can't mail real clients. DONE, Owner: Saboor.**
+      `server/_core/appEnv.ts` now derives the environment instead of defaulting to
+      `'production'`. Railway and staging behave exactly as before; `pnpm dev`/vitest resolve
+      to `local` and inherit staging's existing seal — no crons, no email, no IMAP polling,
+      Stripe test mode. Gate is `sideEffectsDisabled()` (was `isStaging()`), 6 call sites.
+      **If you add a cron or a mailer, gate it with `sideEffectsDisabled()`**, not a bare
+      `NODE_ENV` check. Override for deliberate local testing: `ALLOW_LOCAL_SIDE_EFFECTS=true`
+      (point `DATABASE_URL` at `pnpm testdb:up` first — `.env` still targets prod data).
+      This unblocks local runtime verification, which the three remaining auth holes need.
+- [ ] ~~Gate cron init behind an env flag (default off outside prod)~~ + point local `.env` at
       the Docker test DB. Currently `pnpm dev` mails real clients, so **nothing can be
       verified locally** — see the warning at the top of `claude/context.md`. Owner: ___
 - [ ] Confirm `VITE_APP_URL` is actually set on the Railway service (needs Railway access).

@@ -1,10 +1,10 @@
-import { isStaging } from "../_core/appEnv";
+import { sideEffectsDisabled } from "../_core/appEnv";
 
 // Evaluated at call time so dotenv has already populated process.env.
-// Staging is always forced into test mode so a test deployment can never
+// Staging and local dev are always forced into test mode so they can never
 // touch live Stripe, even if a live key is left in the environment.
 function testMode(): boolean {
-  return isStaging() || process.env.STRIPE_TEST_MODE === 'true';
+  return sideEffectsDisabled() || process.env.STRIPE_TEST_MODE === 'true';
 }
 
 export function getStripeSecretKey(): string {

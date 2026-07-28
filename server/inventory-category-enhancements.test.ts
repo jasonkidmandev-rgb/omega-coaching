@@ -1,6 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 describe('Inventory Category Enhancements', () => {
+  // Importing ./routers pulls in the whole ~9.6k-line router graph and everything it
+  // touches; it lands around 5s on a warm machine, i.e. right on vitest's default
+  // timeout. Left inline, whichever test imported it first failed at random and made the
+  // suite's pass count a coin-flip. Hoisted here — outer scope, so both the Router
+  // Validation and Upload Router blocks share it — with an explicit budget, so the cost
+  // is paid once and the tests below just assert.
+  let appRouter: typeof import('./routers')['appRouter'];
+  beforeAll(async () => {
+    ({ appRouter } = await import('./routers'));
+  }, 60_000);
+
   describe('Schema Fields', () => {
     it('should have iconUrl field in inventory categories schema', async () => {
       // Test that the schema includes iconUrl field
@@ -24,27 +35,22 @@ describe('Inventory Category Enhancements', () => {
 
   describe('Router Validation', () => {
     it('should accept iconUrl in updateCategory mutation', async () => {
-      // Import the router to verify it's properly typed
-      const { appRouter } = await import('./routers');
       expect(appRouter).toBeDefined();
       expect(appRouter.inventory).toBeDefined();
       expect(appRouter.inventory.updateCategory).toBeDefined();
     });
 
     it('should accept accentColor in updateCategory mutation', async () => {
-      const { appRouter } = await import('./routers');
       expect(appRouter.inventory.updateCategory).toBeDefined();
     });
 
     it('should accept isActive in updateCategory mutation', async () => {
-      const { appRouter } = await import('./routers');
       expect(appRouter.inventory.updateCategory).toBeDefined();
     });
   });
 
   describe('Upload Router', () => {
     it('should have upload router available', async () => {
-      const { appRouter } = await import('./routers');
       expect(appRouter).toBeDefined();
       expect(appRouter.upload).toBeDefined();
       expect(appRouter.upload.uploadImage).toBeDefined();

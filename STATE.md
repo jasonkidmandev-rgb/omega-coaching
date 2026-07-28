@@ -30,13 +30,33 @@ logs). This file is the measured baseline underneath it. When they disagree, re-
 | Integration | `pnpm testdb:up && pnpm test:integration` | Real queries against a real MySQL | Only covers the few files named `*.integration.test.ts` |
 | Live schema | read-only query against the Railway DB | Ground truth for column names | — |
 
-⛔ **Do NOT run the app locally.** The committed `.env` points `DATABASE_URL` at the **live
-production DB** and `SMTP_HOST` at a real sender, and `startServer()`
-(`server/_core/index.ts:552-576`) starts ~20 cron jobs **unconditionally** — no kill switch.
-`pnpm dev` begins mailing real clients within seconds. Verified 2026-07-29 by starting it for
-~35s, killing it, and confirming 0 sends in the DB. Runtime verification therefore happens on
-the Railway deploy, not locally. **Fixing this (env-gate the crons, point local `.env` at the
-Docker test DB) unblocks all local verification and is worth doing early.**
+✅ **Running the app locally is now safe (fixed 2026-07-29).** It previously was not: `APP_ENV`
+defaulted to `'production'`, and with a committed `.env` pointing `DATABASE_URL` at the live
+Railway DB and `SMTP_HOST` at a real sender, `pnpm dev` started ~20 cron jobs against production
+with a working mailer — check-in dispatch every 5 min, low-score alerts every 15, payment
+reminders, a startup check-in scan. Nobody had to do anything wrong.
+
+`server/_core/appEnv.ts` now **derives** the environment instead of assuming it:
+
+| Environment | Resolves to | Side effects |
+|---|---|---|
+| Railway (`pnpm start` sets `NODE_ENV=production`) | `production` | **active** — unchanged |
+| Staging (`APP_ENV=staging`) | `staging` | suppressed — unchanged |
+| `pnpm dev`, vitest, or nothing set | **`local`** | **suppressed** |
+| `ALLOW_LOCAL_SIDE_EFFECTS=true` | `local` | active — opt-in, logged loudly |
+
+"Suppressed" means the same seal staging already had, via the same choke point (`isStaging()` →
+`sideEffectsDisabled()`, 6 call sites): no cron jobs, no outbound email, no IMAP reply polling,
+Stripe forced to test mode. The server prints its mode at startup, so what it can reach is never
+a guess.
+
+The truth table above was verified against all 8 env combinations before shipping; production
+resolving to `production` rests on `railway.toml` running `pnpm run start`, which sets
+`NODE_ENV=production` explicitly.
+
+⚠️ Still true: **`.env` targets the production database.** The seal stops writes that *reach a
+person*, not reads. Before enabling `ALLOW_LOCAL_SIDE_EFFECTS`, point `DATABASE_URL` at the
+Docker test DB (`pnpm testdb:up`).
 
 ---
 
