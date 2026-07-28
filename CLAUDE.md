@@ -43,7 +43,10 @@ As you work, keep `workspace/` up to date without being asked:
 - When you finish a task, tick its box in `current.md`.
 - When you discover something reusable (a root cause, a gotcha, a decision), append it
   to `workspace/claude/context.md` (Findings) or `workspace/decisions.md`.
-- Add a short line to the active dev's `workspace/log/<name>.md` describing what was done.
+- Log the day's work in the active dev's `workspace/log/<name>.md`, including any
+  decision made or issue fixed that day.
+- When a pending decision is resolved, move it from the "Open" section of
+  `workspace/decisions.md` down to "Decided" with the date and the reason.
 Stage these workspace edits alongside the related code change so they travel together.
 
 ## Note

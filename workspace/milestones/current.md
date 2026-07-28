@@ -18,7 +18,7 @@ Before editing `server/routers.ts` / `server/db.ts` / `drizzle/schema.ts`, add a
 - [x] Back buttons app-wide. DONE (T4 sweep 17f43d4 + check-in review fix 6607f58).
       Spot-verify only.
 - [~] Broken / dead links: 404 page restored for unmatched `/admin/*` (a43fb6f). Verify
-      the remaining paths from Jason's video. Owner: ___
+      the remaining paths identified in the app review. Owner: ___
 - [ ] Audit the remaining hard reloads: 36 `window.location.href` + 11 internal
       `<a href="/…">`. Convert any internal navigation that shouldn't reload to wouter;
       keep logout / external / post-payment. (Smaller now the main re-render is fixed.) Owner: ___
