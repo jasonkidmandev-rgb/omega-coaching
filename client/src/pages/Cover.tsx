@@ -7,7 +7,7 @@ export default function Cover() {
   const year = new Date().getFullYear();
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
+    <div className="relative min-h-screen overflow-hidden bg-brand-dark text-white">
       <AuroraBackground />
 
       {/* Content */}
@@ -28,7 +28,7 @@ export default function Cover() {
 
         {/* Hero */}
         <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-          <HumanEdgeMark className="mb-7 h-16 w-16 rounded-2xl shadow-2xl shadow-amber-500/20 sm:h-20 sm:w-20" />
+          <HumanEdgeMark className="mb-7 h-16 w-16 rounded-2xl shadow-2xl shadow-brand-gold/20 sm:h-20 sm:w-20" />
 
           <h1 className="text-5xl font-bold leading-none tracking-tight sm:text-6xl md:text-7xl">
             <Wordmark />
@@ -44,7 +44,7 @@ export default function Cover() {
           <div className="mt-10 flex w-full max-w-md flex-col items-center gap-3 sm:w-auto sm:flex-row">
             <button
               onClick={() => setLocation("/login")}
-              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-7 py-3.5 font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:from-amber-400 hover:to-orange-400 hover:shadow-orange-500/40 sm:w-auto"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gold px-7 py-3.5 font-semibold text-brand-gold-foreground shadow-lg shadow-brand-gold/25 transition-all hover:opacity-90 hover:shadow-brand-gold/40 sm:w-auto"
             >
               Log in
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

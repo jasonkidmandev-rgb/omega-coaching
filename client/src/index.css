@@ -42,14 +42,20 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-dark-foreground: var(--brand-dark-foreground);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-to: var(--brand-gold-to);
+  --color-brand-gold-foreground: var(--brand-gold-foreground);
+  --color-brand-border: var(--brand-border);
 }
 
 :root {
   --primary: var(--color-blue-700);
   --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-amber-500);
-  --sidebar-primary-to: var(--color-orange-500);
-  --sidebar-primary-foreground: var(--color-white);
+  --sidebar-primary: #c9a869;
+  --sidebar-primary-to: #c9a869;
+  --sidebar-primary-foreground: #141b2e;
   --chart-1: var(--color-blue-300);
   --chart-2: var(--color-blue-500);
   --chart-3: var(--color-blue-600);
@@ -73,20 +79,26 @@
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.623 0.214 259.815);
-  --sidebar: var(--color-slate-950);
+  --sidebar: #141b2e;
   --sidebar-foreground: var(--color-slate-300);
-  --sidebar-accent: oklch(1 0 0 / 5%);
+  --sidebar-accent: oklch(1 0 0 / 6%);
   --sidebar-accent-foreground: var(--color-white);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--color-amber-500);
+  --sidebar-ring: #c9a869;
+  --brand-dark: var(--sidebar);
+  --brand-dark-foreground: var(--sidebar-foreground);
+  --brand-gold: var(--sidebar-primary);
+  --brand-gold-to: var(--sidebar-primary-to);
+  --brand-gold-foreground: var(--sidebar-primary-foreground);
+  --brand-border: var(--sidebar-border);
 }
 
 .dark {
   --primary: var(--color-blue-700);
   --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-amber-500);
-  --sidebar-primary-to: var(--color-orange-500);
-  --sidebar-primary-foreground: var(--color-white);
+  --sidebar-primary: #c9a869;
+  --sidebar-primary-to: #c9a869;
+  --sidebar-primary-foreground: #141b2e;
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.85 0.005 65);
   --card: oklch(0.21 0.006 285.885);
@@ -109,12 +121,18 @@
   --chart-3: var(--color-blue-600);
   --chart-4: var(--color-blue-700);
   --chart-5: var(--color-blue-800);
-  --sidebar: var(--color-slate-950);
+  --sidebar: #141b2e;
   --sidebar-foreground: var(--color-slate-300);
-  --sidebar-accent: oklch(1 0 0 / 5%);
+  --sidebar-accent: oklch(1 0 0 / 6%);
   --sidebar-accent-foreground: var(--color-white);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--color-amber-500);
+  --sidebar-ring: #c9a869;
+  --brand-dark: var(--sidebar);
+  --brand-dark-foreground: var(--sidebar-foreground);
+  --brand-gold: var(--sidebar-primary);
+  --brand-gold-to: var(--sidebar-primary-to);
+  --brand-gold-foreground: var(--sidebar-primary-foreground);
+  --brand-border: var(--sidebar-border);
 }
 
 @layer base {

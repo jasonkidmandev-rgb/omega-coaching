@@ -104,17 +104,17 @@ export default function Login() {
   };
 
   const inputClass =
-    "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-colors focus:border-amber-400/60 focus:bg-white/10";
+    "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-colors focus:border-brand-gold/60 focus:bg-white/10";
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 p-4 text-white">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-brand-dark p-4 text-white">
       <AuroraBackground />
 
       <div className="relative z-10 w-full max-w-md">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
           {/* Brand */}
           <div className="mb-6 flex flex-col items-center text-center">
-            <HumanEdgeMark className="mb-4 h-14 w-14 rounded-2xl shadow-lg shadow-amber-500/20" />
+            <HumanEdgeMark className="mb-4 h-14 w-14 rounded-2xl shadow-lg shadow-brand-gold/20" />
             <h1 className="text-2xl font-bold tracking-tight">
               {mode === "login" ? "Welcome back" : "Create your account"}
             </h1>
@@ -170,7 +170,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setLocation("/forgot-password")}
-                    className="text-xs font-medium text-amber-400 hover:text-amber-300"
+                    className="text-xs font-medium text-brand-gold hover:text-brand-gold/80"
                   >
                     Forgot password?
                   </button>
@@ -201,7 +201,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:from-amber-400 hover:to-orange-400 hover:shadow-orange-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gold px-6 py-3 font-semibold text-brand-gold-foreground shadow-lg shadow-brand-gold/25 transition-all hover:opacity-90 hover:shadow-brand-gold/40 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>
@@ -228,7 +228,7 @@ export default function Login() {
                 Don't have an account?{" "}
                 <button
                   onClick={() => { setMode("signup"); setPassword(""); }}
-                  className="font-medium text-amber-400 hover:text-amber-300"
+                  className="font-medium text-brand-gold hover:text-brand-gold/80"
                 >
                   Sign up
                 </button>
@@ -238,7 +238,7 @@ export default function Login() {
                 Already have an account?{" "}
                 <button
                   onClick={() => { setMode("login"); setPassword(""); }}
-                  className="font-medium text-amber-400 hover:text-amber-300"
+                  className="font-medium text-brand-gold hover:text-brand-gold/80"
                 >
                   Sign in
                 </button>
