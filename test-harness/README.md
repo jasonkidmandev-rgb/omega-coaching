@@ -50,7 +50,7 @@ touches the DB or identity.
 | File | Purpose |
 |---|---|
 | `docker-compose.yml` | throwaway **MySQL 8** test DB on host port **3307**, wiped on `down -v` |
-| `schema/*.sql` | DDL loaded on first boot (in name order). Currently `contacts`, `clients`, `client_protocols`, `transformation_enrollments`, `client_projects`, `prospects` — faithful to the prod snapshot. Add more as tests need them (see Extending the schema) |
+| `schema/*.sql` | DDL loaded on first boot (in name order). **17 tables**: the identity set (`contacts`, `clients`, `client_protocols`, `transformation_enrollments`, `client_projects`, `prospects`, `checkin_schedules`, `protocol_comments`, `users`, email-engagement) plus, added 2026-07-29 to make the client-facing auth gates verifiable, `checkin_templates`, `checkins`, `checkin_responses`, `intake_form_responses`, `intake_form_signatures`, `notifications`, `site_settings`. All faithful to the prod snapshot. Add more as tests need them (see Extending the schema) |
 | `vitest.integration.config.ts` | runs only `*.integration.test.ts`; points the app's `DATABASE_URL` at the test DB; single-worker so tests can share/reset one DB |
 | `globalSetup.ts` | waits for the DB and **fails fast** with an actionable message if it's not up / schema not loaded |
 | `dbHelpers.ts` | raw mysql2 helpers for tests: `resetContacts()`, `truncate(...)`, `seedContact()`, `getContactRow()`, `closePool()` |
@@ -74,6 +74,26 @@ pnpm testdb:down        # wipe when done
 
 If a test seems to see stale data or a missing table, the schema only loads on a
 **fresh volume** — do a full reset: `pnpm testdb:down && pnpm testdb:up`.
+
+**`--wait` is not "schema ready".** The healthcheck is `mysqladmin ping`, which the
+*temporary* init server answers while `docker-entrypoint-initdb.d/*.sql` are still
+running. So `pnpm testdb:up` can return `Healthy` and a query issued immediately after
+will show **zero tables** — which looks exactly like a broken harness. `globalSetup.ts`
+handles this for `pnpm test:integration`; if you're querying by hand, poll for a table
+rather than trusting the container status:
+
+```bash
+until docker exec peptidecoach-test-db mysql -uroot -ptest -N \
+  -e "SELECT 1 FROM information_schema.tables
+      WHERE table_schema='peptidecoach_test' AND table_name='site_settings'" | grep -q 1
+do sleep 1; done
+```
+
+**Do not try to build the test DB with `drizzle-kit push` / `pnpm db:push`.** It fails on
+this schema: `drizzle-kit generate` emits **zero** `PRIMARY KEY` clauses (MySQL
+`ERROR 1075: there can be only one auto column and it must be defined as a key`) and quotes
+`DEFAULT 'CURRENT_TIMESTAMP'` into a string literal (`ERROR 1067`). Extract from the prod
+snapshot as described below instead.
 
 ---
 
