@@ -37,12 +37,9 @@ const AdminItems = lazyWithRetry(() => import("./pages/admin/Items"));
 // Supplements page removed - consolidated into Protocol Items
 const AdminTeam = lazyWithRetry(() => import("./pages/admin/Team"));
 const AdminPrograms = lazyWithRetry(() => import("./pages/admin/Programs"));
-const AdminLaunchpadSettings = lazyWithRetry(() => import("./pages/admin/LaunchpadSettings"));
 const AdminInventory = lazyWithRetry(() => import("./pages/admin/Inventory"));
-const AdminSettings = lazyWithRetry(() => import("./pages/admin/Settings"));
+const AdminSettingsHub = lazyWithRetry(() => import("./pages/admin/SettingsHub"));
 const AdminAffiliatePartners = lazyWithRetry(() => import("./pages/admin/AffiliatePartners"));
-const AdminEmailBranding = lazyWithRetry(() => import("./pages/admin/EmailBranding"));
-const AdminEmailPreview = lazyWithRetry(() => import("./pages/admin/EmailPreview"));
 const AdminOrderHistory = lazyWithRetry(() => import("./pages/admin/OrderHistory"));
 const AdminPackingSlips = lazyWithRetry(() => import("./pages/admin/PackingSlips"));
 const AdminPackingSlipDetail = lazyWithRetry(() => import("./pages/admin/PackingSlipDetail"));
@@ -55,16 +52,10 @@ const AdminCustomOrders = lazyWithRetry(() => import("./pages/admin/CustomOrders
 const AdminStoreWaivers = lazyWithRetry(() => import("./pages/admin/StoreWaivers"));
 const AdminPeptideCheatSheet = lazyWithRetry(() => import("./pages/admin/PeptideCheatSheetAdmin"));
 const AdminCategoryManagement = lazyWithRetry(() => import("./pages/admin/CategoryManagement"));
-const AdminNotificationReport = lazyWithRetry(() => import("./pages/admin/NotificationReport"));
-const AdminEmailTemplatePreview = lazyWithRetry(() => import("./pages/admin/EmailTemplatePreview"));
-const AdminNotificationSettings = lazyWithRetry(() => import("./pages/admin/NotificationSettings"));
 const AdminPaymentHistory = lazyWithRetry(() => import("./pages/admin/PaymentHistory"));
 const AdminCheckinManagement = lazyWithRetry(() => import("./pages/admin/CheckinManagement"));
 const AdminCheckinReview = lazyWithRetry(() => import("./pages/admin/CheckinReview"));
-const AdminNotificationTemplates = lazyWithRetry(() => import("./pages/admin/NotificationTemplates"));
 const AdminProtocolPresets = lazyWithRetry(() => import("./pages/admin/ProtocolPresets"));
-const AdminIntegrationSettings = lazyWithRetry(() => import("./pages/admin/IntegrationSettings"));
-const AdminEmailReportSettings = lazyWithRetry(() => import("./pages/admin/EmailReportSettings"));
 // Access codes removed
 const AdminPromoCodes = lazyWithRetry(() => import("./pages/admin/PromoCodes"));
 const AdminPromoCodeAnalytics = lazyWithRetry(() => import("./pages/admin/PromoCodeAnalytics"));
@@ -75,8 +66,6 @@ const AdminEnrollments = lazyWithRetry(() => import("./pages/admin/Enrollments")
 const AdminTransformationPayments = lazyWithRetry(() => import("./pages/admin/TransformationPayments"));
 const AdminIntakeFormEditor = lazyWithRetry(() => import("./pages/admin/IntakeFormEditor"));
 const AdminFormsEditor = lazyWithRetry(() => import("./pages/admin/FormsEditor"));
-const AdminNotificationAnalysis = lazyWithRetry(() => import("./pages/admin/NotificationAnalysis"));
-const AdminNotificationHistory = lazyWithRetry(() => import("./pages/admin/NotificationHistory"));
 const AdminProspects = lazyWithRetry(() => import("./pages/admin/Prospects"));
 const AdminWebTrafficAnalytics = lazyWithRetry(() => import("./pages/admin/WebTrafficAnalytics"));
 const AdminCoachingSessions = lazyWithRetry(() => import("./pages/admin/CoachingSessions"));
@@ -87,7 +76,6 @@ const AdminMorningBriefing = lazyWithRetry(() => import("./pages/admin/MorningBr
 const AdminConversionTracking = lazyWithRetry(() => import("./pages/admin/ConversionTracking"));
 const AdminAcquisitionDashboard = lazyWithRetry(() => import("./pages/admin/AcquisitionDashboard"));
 const AdminUpcomingAppointments = lazyWithRetry(() => import("./pages/admin/UpcomingAppointments"));
-const AdminCalendlySettings = lazyWithRetry(() => import("./pages/admin/CalendlySettings"));
 const TransformationEntry = lazyWithRetry(() => import("./pages/TransformationEntry"));
 // TransformationJourney removed - page deprecated, route redirects to /transformation
 const TransformationVerify = lazyWithRetry(() => import("./pages/TransformationVerify"));
@@ -133,7 +121,6 @@ const AcceptInvite = lazyWithRetry(() => import("./pages/AcceptInvite"));
 const MyActionItems = lazyWithRetry(() => import("./pages/admin/MyActionItems"));
 const FulfillmentQueue = lazyWithRetry(() => import("./pages/admin/FulfillmentQueue"));
 const AdminBackorders = lazyWithRetry(() => import("./pages/admin/Backorders"));
-const NotificationPreferences = lazyWithRetry(() => import("./pages/admin/NotificationPreferences"));
 const KPIDashboard = lazyWithRetry(() => import("./pages/admin/KPIDashboard"));
 
 // Loading spinner component for Suspense fallback
@@ -209,18 +196,19 @@ function AdminRoutes() {
           {/* Supplements route removed - use /admin/items with filter tabs */}
           <Route path={"/admin/team"} component={AdminTeam} />
           <Route path={"/admin/programs"} component={AdminPrograms} />
-          <Route path={"/admin/launchpad-settings"} component={AdminLaunchpadSettings} />
+          <Route path={"/admin/launchpad-settings"}><Redirect to={"/admin/settings/launchpad"} /></Route>
           <Route path={"/admin/inventory"} component={AdminInventory} />
-          <Route path={"/admin/settings"} component={AdminSettings} />
-          <Route path={"/admin/notification-report"} component={AdminNotificationReport} />
-          <Route path={"/admin/email-templates"} component={AdminEmailTemplatePreview} />
-          <Route path={"/admin/email-report-settings"} component={AdminEmailReportSettings} />
-          <Route path={"/admin/notification-settings"} component={AdminNotificationSettings} />
+          <Route path={"/admin/settings/:tab"} component={AdminSettingsHub} />
+          <Route path={"/admin/settings"} component={AdminSettingsHub} />
+          <Route path={"/admin/notification-report"}><Redirect to={"/admin/settings/notification-report"} /></Route>
+          <Route path={"/admin/email-templates"}><Redirect to={"/admin/settings/email-templates"} /></Route>
+          <Route path={"/admin/email-report-settings"}><Redirect to={"/admin/settings/email-reports"} /></Route>
+          <Route path={"/admin/notification-settings"}><Redirect to={"/admin/settings/notifications"} /></Route>
           <Route path={"/admin/payment-history"} component={AdminPaymentHistory} />
           <Route path={"/admin/job-health"} component={AdminJobHealth} />
           <Route path={"/admin/affiliate-partners"} component={AdminAffiliatePartners} />
-          <Route path={"/admin/email-branding"} component={AdminEmailBranding} />
-          <Route path={"/admin/email-preview"} component={AdminEmailPreview} />
+          <Route path={"/admin/email-branding"}><Redirect to={"/admin/settings/email-branding"} /></Route>
+          <Route path={"/admin/email-preview"}><Redirect to={"/admin/settings/email-preview"} /></Route>
           <Route path={"/admin/order-history"} component={AdminOrderHistory} />
           <Route path={"/admin/store-waivers"} component={AdminStoreWaivers} />
           <Route path={"/admin/packing-slips/:id"} component={AdminPackingSlipDetail} />
@@ -240,9 +228,9 @@ function AdminRoutes() {
           <Route path={"/admin/checkin-management"}>{() => { window.location.replace('/admin/checkins'); return null; }}</Route>
           <Route path={"/admin/web-traffic"} component={AdminWebTrafficAnalytics} />
           <Route path={"/admin/clients/:clientId/checkins/:checkinId"} component={AdminCheckinReview} />
-          <Route path={"/admin/notification-templates"} component={AdminNotificationTemplates} />
+          <Route path={"/admin/notification-templates"}><Redirect to={"/admin/settings/notification-templates"} /></Route>
           <Route path={"/admin/protocol-presets"} component={AdminProtocolPresets} />
-          <Route path={"/admin/integrations"} component={AdminIntegrationSettings} />
+          <Route path={"/admin/integrations"}><Redirect to={"/admin/settings/integrations"} /></Route>
           <Route path={"/admin/promo-codes"} component={AdminPromoCodes} />
           <Route path={"/admin/promo-code-analytics"} component={AdminPromoCodeAnalytics} />
           <Route path={"/admin/store-promos"} component={AdminStorePromos} />
@@ -252,8 +240,8 @@ function AdminRoutes() {
           <Route path={"/admin/transformation-payments"} component={AdminTransformationPayments} />
           <Route path={"/admin/intake-form-editor"} component={AdminIntakeFormEditor} />
           <Route path={"/admin/forms-editor"} component={AdminFormsEditor} />
-          <Route path={"/admin/notification-analysis"} component={AdminNotificationAnalysis} />
-          <Route path={"/admin/notification-history"} component={AdminNotificationHistory} />
+          <Route path={"/admin/notification-analysis"}><Redirect to={"/admin/settings/notification-analysis"} /></Route>
+          <Route path={"/admin/notification-history"}><Redirect to={"/admin/settings/notification-history"} /></Route>
           <Route path={"/admin/prospects/:id"} component={AdminProspects} />
           <Route path={"/admin/prospects"} component={AdminProspects} />
           <Route path={"/admin/coaching-sessions"} component={AdminCoachingSessions} />
@@ -266,11 +254,11 @@ function AdminRoutes() {
           <Route path={"/admin/shannon-kanban"}>{() => { window.location.replace('/admin/prospects?tab=kanban'); return null; }}</Route>
           <Route path={"/admin/acquisition"} component={AdminAcquisitionDashboard} />
           <Route path={"/admin/upcoming-appointments"} component={AdminUpcomingAppointments} />
-          <Route path={"/admin/calendly-settings"} component={AdminCalendlySettings} />
+          <Route path={"/admin/calendly-settings"}><Redirect to={"/admin/settings/calendly"} /></Route>
           <Route path={"/admin/my-action-items"} component={MyActionItems} />
           <Route path={"/admin/fulfillment-queue"} component={FulfillmentQueue} />
           <Route path={"/admin/backorders"} component={AdminBackorders} />
-          <Route path={"/admin/notification-preferences"} component={NotificationPreferences} />
+          <Route path={"/admin/notification-preferences"}><Redirect to={"/admin/settings/notification-preferences"} /></Route>
           <Route path={"/admin/kpi-dashboard"} component={KPIDashboard} />
           {/* Unmatched /admin/* — without this the content area renders blank, since
               this Switch no longer falls through to the app-level NotFound route. */}

@@ -227,9 +227,10 @@ const menuCategories: MenuCategory[] = [
     items: [
       // Team & Access
       { icon: Shield, label: "Team", path: "/admin/team", roles: ['admin', 'manager'] },
-      { icon: Settings, label: "Site Settings", path: "/admin/settings", roles: ['admin'] },
-      { icon: CalendarClock, label: "Calendly Settings", path: "/admin/calendly-settings", roles: ['admin'] },
-      { icon: Webhook, label: "Integrations", path: "/admin/integrations", roles: ['admin'] },
+      // One entry for what used to be 8 separate sidebar links (site, Calendly,
+      // integrations, launchpad, email branding/preview, notification analysis/history).
+      // They're tabs of /admin/settings now; the old paths still redirect there.
+      { icon: Settings, label: "Settings", path: "/admin/settings", roles: ['admin'] },
       // Protocol Setup
       { icon: FileText, label: "Templates", path: "/admin/templates", roles: ['admin', 'manager', 'viewer'] },
       { icon: Package, label: "Protocol Items", path: "/admin/items", roles: ['admin', 'manager', 'viewer'] },
@@ -240,13 +241,9 @@ const menuCategories: MenuCategory[] = [
       { icon: Video, label: "Masterclass Videos", path: "/admin/masterclass-videos", roles: ['admin'] },
       { icon: FileText, label: "Forms Editor", path: "/admin/forms-editor", roles: ['admin'] },
       // Content & Resources
-      { icon: Rocket, label: "Launchpad Settings", path: "/admin/launchpad-settings", roles: ['admin'] },
       { icon: FileText, label: "Peptide Cheat Sheet", path: "/admin/peptide-cheat-sheet", roles: ['admin', 'manager'] },
-      // Email & Notifications
-      { icon: Mail, label: "Email Branding", path: "/admin/email-branding", roles: ['admin'] },
-      { icon: Eye, label: "Email Preview", path: "/admin/email-preview", roles: ['admin'] },
-      { icon: Bell, label: "Notification Analysis", path: "/admin/notification-analysis", roles: ['admin'] },
-      { icon: History, label: "Notification History", path: "/admin/notification-history", roles: ['admin'] },
+      // Kept as its own entry rather than folded into Settings: it's the one config page
+      // managers can reach, and Settings is admin-only. Redirects to the tab.
       { icon: Bell, label: "Team Email Preferences", path: "/admin/notification-preferences", roles: ['admin', 'manager'] },
       // Data & Admin Tools
       { icon: ListTodo, label: "Workflow Templates", path: "/admin/workflow-templates", roles: ['admin', 'manager'] },

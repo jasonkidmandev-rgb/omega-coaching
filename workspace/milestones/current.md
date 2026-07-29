@@ -46,6 +46,19 @@ rather than leaking anything, but it must be checked before Jason's team sees it
 | 7 | `/checkin/latest` → click a check-in (signed-in client, **no token**) | Opens via session — this is the owner path |
 | 8 | `/checkin/:id` with **no** token, signed out | Clean "link invalid or expired", not a crash |
 
+Status 2026-07-30: 1, 2 ✅ confirmed on the deployed build (intake panel renders + PDF export
+works). 7 needs a **client-role** login — `jason@sossupport.net` owns protocol 930002 with 15
+check-ins, so that account can test it. 3–6, 8 still open.
+
+### Settings consolidation
+| # | Path | Expect |
+|---|---|---|
+| 9 | `/admin/settings` | Opens on the Site tab, grouped tab bar renders |
+| 10 | Click through all 14 tabs | Each panel loads its own content; URL tracks the tab |
+| 11 | `/admin/notification-settings` (old path) | Redirects to `/admin/settings/notifications` **without a full page reload** |
+| 12 | `/admin/settings/bogus` | Falls back to the Site tab, not a blank page |
+| 13 | Sidebar → Team & Settings | One "Settings" entry, not nine |
+
 `Owner: ___`
 
 ---
@@ -76,10 +89,29 @@ rather than leaking anything, but it must be checked before Jason's team sees it
 ## B. UI and UX
 *The main remaining M1 work.*
 
-- [ ] **Consolidate ~15 settings pages into one tabbed Settings page.** Still separate:
-      `Settings`, 5x `Notification*`, 3x `Email*`, `CalendlySettings`, `IntegrationSettings`,
-      `LaunchpadSettings`, `Templates`. Move existing pages under tabs, don't rebuild.
-      `Owner: ___`
+- [x] **Consolidate the settings pages into one tabbed Settings page.** `Owner: Saboor`
+      `client/src/pages/admin/SettingsHub.tsx` — 13 routes are now tabs of `/admin/settings`,
+      grouped General / Notifications / Email. A *container*, not a rewrite: each tab renders
+      the existing page component untouched, so no page's behaviour or data fetching changed.
+      - Deep-linkable: `/admin/settings/<slug>`; switching tabs updates the URL with
+        `replace: true`, so Back leaves Settings instead of walking every tab visited.
+      - All 13 old paths still work — App.tsx `<Redirect>`s each to its tab, **client-side**,
+        so bookmarks survive without reintroducing a hard reload.
+      - Only the selected panel mounts, so opening Settings fetches one panel's data, not 14.
+      - **Tabs are role-filtered** (`roles` on each tab, default admin-only). Collapsing 9
+        sidebar links into one page would otherwise have shown managers the admin-only panels
+        the sidebar used to hide. `Team Email Preferences` stays a separate sidebar entry for
+        managers, since Settings itself is admin-only.
+      - Sidebar: 9 entries → 1 "Settings".
+      - **`Templates` deliberately excluded** despite being on the original list: it has
+        `/new` and `/:id` sub-routes, so it's a CRUD area, not a settings panel — folding it
+        in would mean nesting a router inside a tab.
+      - **Needs a browser pass** (below): typecheck/build/tests can't see a tab that renders
+        blank, and the panels need an admin session I can't get locally.
+- [ ] **Tidy the panels now they're tabs.** Each still renders its own `<h1>` and its own page
+      padding, so there's a duplicate heading under the Settings title and inconsistent
+      spacing between tabs. Cosmetic only; deliberately left out of the move so the
+      consolidation stayed behaviour-neutral. `Owner: ___`
 - [ ] **Flag removable settings** while consolidating (actual removal happens in M2).
       `Owner: ___`
 - [ ] **Layout tidy** on the highest-traffic admin pages.
