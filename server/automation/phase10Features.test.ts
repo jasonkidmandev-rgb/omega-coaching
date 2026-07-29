@@ -61,15 +61,13 @@ describe("Phase 10: Team Dashboards, Escalation & Conversion Tracking", () => {
 
   // Feature 3: Conversion Tracking
   describe("Conversion Tracking", () => {
-    it("should have the conversion metrics endpoint available", async () => {
-      const { appRouter } = await import("../routers");
-      expect(appRouter).toBeDefined();
-      // The automation sub-router is merged into appRouter and includes conversionMetrics
-      const routerDef = (appRouter as any)._def;
-      expect(routerDef).toBeDefined();
-      const hasAutomation = JSON.stringify(Object.keys(routerDef?.record || routerDef?.procedures || {})).includes('automation');
-      expect(hasAutomation).toBe(true);
-    });
+    // Removed 2026-07-29: "should have the conversion metrics endpoint available". Same
+    // problem as the morning-briefing one above — it imported the 9.6k-line router graph
+    // just to assert the string 'automation' appeared in the key list, exercising no
+    // behaviour, and the import regularly blew the 5s timeout. It passed a full suite run
+    // and failed the next on identical code, which is the flake that makes green
+    // meaningless. If conversion metrics need coverage, it belongs in an
+    // *.integration.test.ts against the test DB.
 
     it("should calculate conversion rate correctly", () => {
       // Test the conversion rate calculation logic
