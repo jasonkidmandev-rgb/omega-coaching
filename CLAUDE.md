@@ -45,6 +45,9 @@ As you work, keep `workspace/` up to date without being asked:
 - At the start of work, read `workspace/milestones/current.md` and
   `workspace/claude/context.md`.
 - When you finish a task, tick its box in `current.md`.
+- **If the dev starts on something not already listed in `current.md`, add it** (under
+  the right section, marked done/in-progress with their name as Owner) rather than
+  leaving it untracked. This applies to both devs, automatically, without being asked.
 - When you discover something reusable (a root cause, a gotcha, a decision), append it
   to `workspace/claude/context.md` (Findings) or `workspace/decisions.md`.
 - Log the day's work in the active dev's `workspace/log/<name>.md`, including any

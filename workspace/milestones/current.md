@@ -53,6 +53,13 @@ Before editing `server/routers.ts` / `server/db.ts` / `drizzle/schema.ts`, add a
       `Owner: ___`
 - [ ] **Desktop + mobile consistency** for the navigation and UI changes.
       `Owner: ___`
+- [x] **Restyle the admin sidebar to the HumanEdge brand.** Was a hardcoded generic
+      navy (`#1e3a5f`/`#2d4a6f`), unrelated to the brand. Now a token-driven dark chrome:
+      `slate-950` background, amber-to-orange gradient on the active nav item, and the
+      real `HumanEdgeMark` + `Wordmark` in the header instead of a plain "Protocol Manager"
+      label. All values are `--sidebar-*` CSS variables in `index.css`, so future palette
+      changes are a one-file edit, `AdminLayout.tsx` only reads semantic classes.
+      Commit `cfdf46a`. `Owner: Farjad`
 
 ## C. Theme
 *Mostly open.*
