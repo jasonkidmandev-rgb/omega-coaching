@@ -37,7 +37,12 @@ export const APP_TIMEZONE = "America/Denver";
  * - Date objects                 → pass through
  * - Numbers (unix ms)           → pass through
  */
-function normalizeToUTC(date: Date | string | number): Date {
+// Exported for tests. `server/timezone-fix.test.ts` used to keep its own copy of this
+// function and test the copy, which cannot catch a regression in the real one — and this
+// is the single choke-point for every timestamp in the app, so it's exactly the code that
+// must not silently drift. Exporting it is cheaper than testing it indirectly through
+// four formatters.
+export function normalizeToUTC(date: Date | string | number): Date {
   if (date instanceof Date) return date;
   if (typeof date === "number") return new Date(date);
 

@@ -1,4 +1,8 @@
 import { describe, it, expect } from "vitest";
+// Imports the REAL normalizeToUTC. This file used to keep its own copy and test that,
+// so it could not catch a regression in the function it names — and this is the single
+// choke-point every timestamp in the app passes through.
+import { normalizeToUTC } from "@/lib/timezone";
 
 /**
  * Test the normalizeToUTC logic that fixes the chat timestamp bug.
@@ -11,22 +15,6 @@ import { describe, it, expect } from "vitest";
  * are correctly parsed as UTC.
  */
 
-// Replicate the normalizeToUTC function from timezone.ts for server-side testing
-function normalizeToUTC(date: Date | string | number): Date {
-  if (date instanceof Date) return date;
-  if (typeof date === "number") return new Date(date);
-
-  const s = (date as string).trim();
-
-  // Already has Z suffix or timezone offset
-  if (/[Zz]$/.test(s) || /[+-]\d{2}:\d{2}$/.test(s) || /[+-]\d{4}$/.test(s)) {
-    return new Date(s);
-  }
-
-  // Bare string from MySQL/Drizzle — append Z to force UTC interpretation
-  const normalized = s.replace(" ", "T") + "Z";
-  return new Date(normalized);
-}
 
 describe("normalizeToUTC - the definitive timestamp fix", () => {
   // The exact scenario from the bug report:

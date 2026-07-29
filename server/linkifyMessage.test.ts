@@ -1,30 +1,10 @@
 import { describe, it, expect } from 'vitest';
-
-// Test the linkifyMessage logic (same regex logic as the client utility)
-function linkifyMessage(message: string, isCoachBubble: boolean = false): string {
-  const urlRegex = /(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+\.[^\s<>"']+)/gi;
-  
-  let result = message.replace(urlRegex, (url) => {
-    let cleanUrl = url;
-    const lastChar = cleanUrl[cleanUrl.length - 1];
-    let trailing = '';
-    if (['.', ',', ';', ':', '!'].includes(lastChar) && !cleanUrl.match(/\.\w+$/)) {
-      trailing = lastChar;
-      cleanUrl = cleanUrl.slice(0, -1);
-    }
-    
-    const href = cleanUrl.startsWith('www.') ? `https://${cleanUrl}` : cleanUrl;
-    const linkColor = isCoachBubble 
-      ? 'color: #bfdbfe; text-decoration: underline;' 
-      : 'color: #2563eb; text-decoration: underline;';
-    
-    return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="${linkColor}">${cleanUrl}</a>${trailing}`;
-  });
-  
-  result = result.replace(/\n/g, '<br />');
-  
-  return result;
-}
+// Imports the REAL function. This file previously defined its own copy of the regex
+// logic and tested that, which meant it could not fail no matter what the app did — and
+// the copy had already drifted from `client/src/lib/linkify.ts` (the real one strips a
+// wider set of trailing punctuation, `/[.,;:!?)]+$/`). Testing a stale copy is worse than
+// having no test: it reports green about code that no longer exists.
+import { linkifyMessage } from '@/lib/linkify';
 
 describe('linkifyMessage', () => {
   it('should convert https URLs to clickable links', () => {
