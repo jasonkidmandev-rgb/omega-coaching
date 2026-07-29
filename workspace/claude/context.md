@@ -98,6 +98,17 @@ The gate is the existing choke point, renamed `isStaging()` → `sideEffectsDisa
     data — every gate needs the owner path too.
   - Tokens go in `sessionStorage`, never the URL: a URL token lands in browser history and
     in the `Referer` header sent to Stripe.
+- **The suite's flaky failures were a timeout, not bad luck — fixed globally 2026-07-30.**
+  `vitest.config.ts` now sets `testTimeout: 30_000` (was the 5s default). A large part of this
+  suite does a heavy `await import(...)` *inside* the test body — `./routers` alone is a
+  ~9.6k-line module graph, and some files re-import it under `vi.resetModules()`. Cold, or
+  with workers under load, those take 4-10s, so the **same** tests passed in isolation and
+  failed in a full run: `waiver-invite-welcome.test.ts` measures **10.1s** and could never
+  have passed a 5s budget. That's why the failure count moved between runs on identical code.
+  Deleting the offending tests was whack-a-mole (three more surfaced after the first batch);
+  raising the budget fixes the class. **If you see a test "fail" only in a full run, suspect
+  this before suspecting your change.** It does not make those tests valuable — most assert
+  only that a name exists.
 - **`pnpm db:push` is broken in this repo (relevant to Farjad as migration owner).**
   `drizzle-kit generate` produces invalid MySQL from `drizzle/schema.ts`: **zero**
   `PRIMARY KEY` clauses anywhere in the generated file (MySQL `ERROR 1075`), and
