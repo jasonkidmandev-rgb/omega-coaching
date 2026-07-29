@@ -17,53 +17,16 @@ Before editing `server/routers.ts` / `server/db.ts` / `drizzle/schema.ts`, add a
 
 ---
 
-## ⛔ Blocked on someone else
-*Nobody working in this repo can close these alone. Raised 2026-07-29 by Saboor.*
+## ⛔ Waiting on someone else
+*Open questions for Farjad and Jason live in `workspace/decisions.md` under "Open / to decide",
+not here — this file is tasks. Only the follow-up actions sit below.*
 
-### For Farjad (owns DB / schema migrations)
-- [ ] **`pnpm db:push` cannot work on this repo — don't rely on it for the cutover.**
-      `drizzle-kit generate` emits invalid MySQL from `drizzle/schema.ts`:
-      - **zero** `PRIMARY KEY` clauses in the entire generated file → MySQL
-        `ERROR 1075: there can be only one auto column and it must be defined as a key`;
-      - `DEFAULT 'CURRENT_TIMESTAMP'` emitted **quoted**, so it's a string literal →
-        `ERROR 1067: Invalid default value`.
-      Root cause: the table definitions are missing `.primaryKey()`. Found while trying to
-      build a test DB from the schema; worked around by extracting DDL from
-      `cutover/local-data/peptidecoach_snapshot_20260701.sql` instead (which is what
-      `test-harness/README.md` documents anyway). **Decide:** fix `drizzle/schema.ts`, or
-      declare snapshot-extraction the only supported path and say so in the README.
-      `Owner: Farjad`
-- [ ] **Confirm the raw-SQL `personId` trap is retired by your migration.**
-      `cutover/phase4-people-rename.sql` is supposed to make `personId` physical. Until it
-      runs, every `` sql`` `` template using `personId` is a live bug that **nothing**
-      catches — not tsc, not the ratchet, not the unit suite. Confirm timing.
-      `Owner: Farjad`
-
-### For Jason (product decisions)
-- [ ] **Returning clients can no longer resume the intake form in-browser.**
-      `createDirectEnrollment` now issues an access token only for enrollments it *creates*.
-      On the "you already have an enrollment" branch it issues none, because there the email
-      address is an **unverified claim** — handing out a token would mean knowing a client's
-      email is enough to read their full medical intake. Effect: a returning client must
-      reopen from their enrollment email instead of re-entering name + email. **Confirm this
-      trade is acceptable, or we need email verification on that branch.**
-      `Owner: Jason`
-- [ ] **Does `support@humanedge.health` exist and is it monitored?** It is now printed on the
-      custom-order payment screens; client mail bounces if the alias isn't real.
-      `Owner: Jason`
-- [ ] **Coaching checkout: keep or retire?** Now that purchases run through the Omega
-      Longevity funnel, decide whether the app still sells coaching plans directly. Governs
-      how much of the payment surface we build vs remove.
-      `Owner: Jason`
-- [ ] **`isDiscountable` currently does nothing** — every item is discounted regardless of
-      the flag. Correcting it **raises some client totals**, so it needs his sign-off.
-      `Owner: Jason`
-
-### Needs Railway access
-- [ ] **Confirm `VITE_APP_URL` is set on the Railway service.** The fallback is correct now
-      (`https://www.humanedge.health`), so nothing breaks if it's missing — but we should
-      know rather than assume.
-      `Owner: ___`
+- [ ] **Confirm `VITE_APP_URL` is set on the Railway service** (needs Railway access). The
+      fallback is correct now (`https://www.humanedge.health`), so nothing breaks if it's
+      missing — but we should know rather than assume. `Owner: ___`
+- [ ] **Act on the `pnpm db:push` decision** once Farjad makes it (see decisions.md): either
+      add `.primaryKey()` across `drizzle/schema.ts` or document snapshot-extraction as the
+      only supported path in `test-harness/README.md`. `Owner: ___`
 
 ---
 

@@ -1248,7 +1248,7 @@ export default function AdminEnrollments() {
                           ]},
                           { title: 'Sleep & Stress', fields: [
                             { label: 'Sleep Duration', value: d.sleepDuration },
-                            { label: 'Sleep Quality', value: d.sleepQuality ? `${d.sleepQuality}/5` : null },
+                            { label: 'Sleep Quality', value: d.sleepQuality ? `${d.sleepQuality}/10` : null },
                             { label: 'Stress Level', value: d.stressLevel },
                             { label: 'Main Stressors', value: d.mainStressors },
                             { label: 'Stress Management', value: d.stressManagementMethods },
@@ -1356,7 +1356,7 @@ export default function AdminEnrollments() {
                         ]},
                         { title: 'Sleep & Stress', fields: [
                           { label: 'Sleep Duration', value: d.sleepDuration },
-                          { label: 'Sleep Quality', value: d.sleepQuality ? `${d.sleepQuality}/5` : null },
+                          { label: 'Sleep Quality', value: d.sleepQuality ? `${d.sleepQuality}/10` : null },
                           { label: 'Stress Level', value: d.stressLevel },
                           { label: 'Main Stressors', value: d.mainStressors },
                           { label: 'Stress Management', value: d.stressManagementMethods },

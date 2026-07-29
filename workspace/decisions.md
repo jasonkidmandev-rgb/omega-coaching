@@ -5,6 +5,33 @@ coordination decisions go here. When an open decision is made, move it down to "
 with the date and the reason.
 
 ## Open / to decide
+
+### Farjad (owns DB / schema migrations)
+- **`pnpm db:push`: fix the schema, or declare it unsupported?** `drizzle-kit generate` emits
+  invalid MySQL from `drizzle/schema.ts` — **zero** `PRIMARY KEY` clauses in the whole
+  generated file (`ERROR 1075`), and `DEFAULT 'CURRENT_TIMESTAMP'` quoted into a string
+  literal (`ERROR 1067`). Root cause: the table definitions are missing `.primaryKey()`.
+  Either add them, or declare snapshot-extraction the only supported path and say so in
+  `test-harness/README.md`. Found 2026-07-29 while building a test DB; worked around by
+  extracting DDL from the prod snapshot.
+- **When does `cutover/phase4-people-rename.sql` run?** It's what makes `personId` physical.
+  Until it does, every `` sql`` `` template using `personId` is a live bug that **nothing**
+  catches — not tsc, not the ratchet, not the unit suite. That's how the chat outage shipped,
+  so the timing decides how long we carry the risk.
+
+### Jason (product)
+- **Returning clients can no longer resume the intake form in-browser** (changed 2026-07-29).
+  `createDirectEnrollment` issues an access token only for enrollments it *creates*; the
+  "you already have an enrollment" branch gets none, because there the email address is an
+  **unverified claim** and a token would make knowing a client's email enough to read their
+  full medical intake. Effect: a returning client reopens from their enrollment email instead
+  of re-entering name + email. Accept the trade, or we add email verification to that branch.
+- **Does `support@humanedge.health` exist and is it monitored?** Now printed on the
+  custom-order payment screens; client mail bounces if the alias isn't real.
+- **Coaching checkout: keep or retire?** Purchases now run through the Omega Longevity funnel.
+  Governs how much of the payment surface we build vs remove.
+- **`isDiscountable` does nothing today** — every item is discounted regardless of the flag.
+  Correcting it **raises some client totals**, so it needs his sign-off.
 - Keep or drop each of: Notification Analysis, Notification History, Job Health,
   Team Email Preferences, KPI Dashboard.
 - Site Settings: review and decide what stays (keep it simple).
