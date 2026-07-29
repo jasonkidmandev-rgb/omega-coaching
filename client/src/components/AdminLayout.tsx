@@ -1,5 +1,6 @@
 import { useAuth } from "../_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { HumanEdgeMark, Wordmark } from "@/components/HumanEdgeBrand";
 import { NotificationBell } from "./NotificationBell";
 import { Badge } from "@/components/ui/badge";
 import { GlobalSearch, SearchTrigger } from "./GlobalSearch";
@@ -555,40 +556,39 @@ function AdminLayoutContent({
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
-          className="border-r-0 bg-[#1e3a5f]"
+          className="border-r-0 bg-sidebar"
           disableTransition={isResizing}
         >
-          <SidebarHeader className="h-16 justify-center bg-[#1e3a5f]">
+          <SidebarHeader className="h-16 justify-center bg-sidebar">
             <div className="flex items-center gap-3 px-2 transition-all w-full">
               <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-[#2d4a6f] rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 shrink-0"
+                className="h-8 w-8 flex items-center justify-center hover:bg-sidebar-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring shrink-0"
                 aria-label="Toggle navigation"
               >
-                <PanelLeft className="h-4 w-4 text-white/70" />
+                <PanelLeft className="h-4 w-4 text-sidebar-foreground" />
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate text-white">
-                    Protocol Manager
-                  </span>
+                  <HumanEdgeMark className="h-6 w-6 shrink-0 rounded-md" />
+                  <Wordmark className="truncate text-base text-sidebar-foreground" />
                 </div>
               ) : null}
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0 bg-[#1e3a5f] overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb:hover]:bg-white/30">
+          <SidebarContent className="gap-0 bg-sidebar overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-foreground/20 [&::-webkit-scrollbar-thumb:hover]:bg-sidebar-foreground/30">
             {/* Sidebar Search */}
             {!isCollapsed && (
               <div className="px-3 py-2">
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-sidebar-foreground/40" />
                   <Input
                     type="text"
                     placeholder="Search menu..."
                     value={sidebarSearch}
                     onChange={(e) => setSidebarSearch(e.target.value)}
-                    className="pl-8 h-9 bg-[#2d4a6f] border-white/10 text-white placeholder:text-white/40 focus:border-amber-500 focus:ring-amber-500/20"
+                    className="pl-8 h-9 bg-sidebar-accent border-sidebar-border text-sidebar-accent-foreground placeholder:text-sidebar-foreground/40 focus:border-sidebar-ring focus:ring-sidebar-ring/20"
                   />
                 </div>
               </div>
@@ -599,7 +599,7 @@ function AdminLayoutContent({
                 <SidebarMenuButton
                   onClick={() => setLocation("/launchpad")}
                   tooltip="Home"
-                  className="h-10 transition-all font-normal text-white/70 hover:text-white hover:bg-[#2d4a6f]"
+                  className="h-10 transition-all font-normal text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                 >
                   <Home className="h-4 w-4" />
                   <span>Home</span>
@@ -614,8 +614,8 @@ function AdminLayoutContent({
                   tooltip="Dashboard"
                   className={`h-10 transition-all font-normal ${
                     location === "/admin"
-                      ? "bg-amber-500 text-white hover:bg-amber-600"
-                      : "text-white/70 hover:text-white hover:bg-[#2d4a6f]"
+                      ? "bg-linear-to-r from-sidebar-primary to-sidebar-primary-to text-sidebar-primary-foreground shadow-sm shadow-sidebar-primary/20"
+                      : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                   }`}
                 >
                   <LayoutDashboard className="h-4 w-4" />
@@ -637,8 +637,8 @@ function AdminLayoutContent({
                         tooltip={item.label}
                         className={`h-10 transition-all font-normal ${
                           isActive
-                            ? "bg-amber-500 text-white hover:bg-amber-600"
-                            : "text-white/70 hover:text-white hover:bg-[#2d4a6f]"
+                            ? "bg-linear-to-r from-sidebar-primary to-sidebar-primary-to text-sidebar-primary-foreground shadow-sm shadow-sidebar-primary/20"
+                            : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                         }`}
                       >
                         <item.icon className="h-4 w-4" />
@@ -656,7 +656,7 @@ function AdminLayoutContent({
                 })}
 
               {/* Separator between pinned items and categories */}
-              <div className="my-1.5 mx-2 border-t border-white/10" />
+              <div className="my-1.5 mx-2 border-t border-sidebar-border" />
 
               {/* Collapsible Categories */}
               {filteredCategories
@@ -686,8 +686,8 @@ function AdminLayoutContent({
                             tooltip={category.label}
                             className={`h-10 transition-all font-normal ${
                               isCatActive && !isOpen
-                                ? "bg-amber-500/30 text-amber-300 hover:bg-amber-500/40"
-                                : "text-white/70 hover:text-white hover:bg-[#2d4a6f]"
+                                ? "bg-sidebar-primary/15 text-sidebar-primary hover:bg-sidebar-primary/25"
+                                : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                             }`}
                           >
                             <category.icon className="h-4 w-4" />
@@ -701,7 +701,7 @@ function AdminLayoutContent({
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                          <SidebarMenuSub className="border-white/10 ml-2">
+                          <SidebarMenuSub className="border-sidebar-border ml-2">
                             {accessibleItems.map((item) => {
                               const isActive = location === item.path;
                               const badgeCount = item.badge ? getBadgeCount(item.badge) : 0;
@@ -712,8 +712,8 @@ function AdminLayoutContent({
                                     onClick={() => setLocation(item.path)}
                                     className={`cursor-pointer ${
                                       isActive
-                                        ? "bg-amber-500 text-white"
-                                        : "text-white/60 hover:text-white hover:bg-[#2d4a6f]"
+                                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                                        : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                                     }`}
                                   >
                                     <item.icon className="h-4 w-4" />
@@ -738,20 +738,20 @@ function AdminLayoutContent({
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="p-3 bg-[#1e3a5f]">
+          <SidebarFooter className="p-3 bg-sidebar">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-[#2d4a6f] transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-                  <Avatar className="h-9 w-9 border border-white/20 shrink-0">
-                    <AvatarFallback className="text-xs font-medium bg-amber-500 text-white">
+                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-sidebar-accent transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
+                  <Avatar className="h-9 w-9 border border-sidebar-border shrink-0">
+                    <AvatarFallback className="text-xs font-medium bg-sidebar-primary text-sidebar-primary-foreground">
                       {user?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                    <p className="text-sm font-medium truncate leading-none text-white">
+                    <p className="text-sm font-medium truncate leading-none text-sidebar-accent-foreground">
                       {user?.name || "-"}
                     </p>
-                    <p className="text-xs text-white/60 truncate mt-1.5">
+                    <p className="text-xs text-sidebar-foreground/70 truncate mt-1.5">
                       {user?.email || "-"}
                     </p>
                   </div>
