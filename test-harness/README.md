@@ -19,6 +19,53 @@ pnpm testdb:down          # stop + wipe the DB
 
 ---
 
+## The 2026-07-30 cleanup — read before adding a test
+
+**55 unit-test files (~10,000 lines, ~735 tests) were deleted** because not one of them
+imported a single line of product code. The suite went 1622 → 887 tests and lost **zero**
+coverage, because there was none to lose. The business rules those files encoded are
+preserved in **`RULES-TO-COVER.md`** as an integration-test backlog.
+
+The one-line test for whether a test is worth writing:
+
+> **Could this test go red because of a change to the application?**
+
+If the answer is no, it isn't a test. Four ways files here failed it:
+
+1. **Asserts a literal against itself.** The clearest specimen, from `kanban-dnd.test.ts`:
+   ```ts
+   const strategy = "rectIntersection";
+   expect(strategy).toBe("rectIntersection");
+   ```
+2. **Re-implements the logic in the test.** ~20 files opened with a comment like
+   `// Simulate the formatPhoneNumber function` or `// mirrors frontend logic`, defined a copy,
+   and tested the copy. `linkifyMessage`'s copy had already **drifted** from the real function.
+3. **Reads source text and greps it.** Goes red on a harmless rename and green on a real
+   behavioural break.
+4. **Calls the real function with no DB**, hitting an early `if (!db) return []`.
+   `inbox.test.ts` did this and stayed green through a live, total admin-chat outage.
+
+**The case that should settle any argument:** `client-edit-tabs.test.ts` asserted the *correct*
+discountable-item rule and passed, while `ClientEdit.tsx` used `isDiscountable !== false`
+against a MySQL tinyint `0` — so production discounted everything. The test handed itself a
+clean JS `false` and never saw real data. See the top of `RULES-TO-COVER.md`.
+
+### Rules for new tests
+- **Import the real thing.** If the logic is inline in a component or middleware, **extract it
+  to a module first**, then test the module. Two files were fixed this way instead of deleted
+  (`linkifyMessage`, `timezone-fix`) — 27 tests went from zero coverage to real coverage with
+  no product change. Prefer that to deletion whenever the function can be exported.
+- **Anything touching the DB, money, or identity goes in `*.integration.test.ts`** here, against
+  the real schema. A DB-free "unit" test of a data path is how this mess accumulated.
+- **Don't test constants, labels, colours, or the existence of a name.** A table of tier prices
+  asserted against a copy of that table proves nothing.
+- **Form validation and UI gating belong in a browser checklist**, not in a mirrored copy —
+  see the "Not harvested" section of `RULES-TO-COVER.md`.
+
+Note `testTimeout` is **30s** (`vitest.config.ts`), not the 5s default. Several tests do a heavy
+`await import()` inside the test body; at 5s they passed in isolation and failed in a full run,
+which made the suite's failure count wander on identical code.
+
 ## Why this exists (important context)
 
 The pre-existing `*.test.ts` suite **looks** comprehensive but gives **near-zero
