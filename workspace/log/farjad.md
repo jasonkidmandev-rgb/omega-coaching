@@ -4,6 +4,35 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-07-30
+- **Dug into "Launchpad Settings"** after Jason's doc flagged it ("get rid of this, clean
+  up launchpad... but the clients have their own launchpad right? How would this work?").
+  Traced the admin settings page end to end against the real client-facing `/launchpad`
+  page: found they are **completely disconnected**. The admin page is a real, working
+  form, but it writes to a `launchpad_items` table that the client page never reads —
+  the client page is entirely hardcoded content. So every edit an admin ever made there
+  changed nothing a client saw. Also found a second table (`hub_links`) fetched by the
+  client page and then silently discarded, unused. A prior internal doc had incorrectly
+  documented these as connected; the code says otherwise.
+- Mapped the client page's actual content against Jason's list item by item (what to
+  keep: Omega Elite, PeptidePro, Podcast; what to cut: Practitioner, duplicate Omega
+  Free; what to send external: Trusted Partners, Coaching Plans -> omegalongevity.com)
+  and flagged the one genuinely ambiguous line in his note before touching anything
+  revenue-related (a paid $69/mo signup card), rather than guessing on it.
+- Implemented the client-page content trim to match, leaving the Real Results /
+  testimonials section untouched as instructed.
+- Followed the investigation to its conclusion: removed Launchpad Settings entirely —
+  the admin page, both its tRPC routers, all 15 related database functions, the sidebar
+  nav entry, breadcrumb and search-index references, and the three underlying database
+  tables (schema removed from code; physical `DROP TABLE` prepared but left for a
+  deliberate manual step once row counts are confirmed, not run blind). Archived the
+  now-dead seed script rather than deleting it outright, matching how the codebase
+  already handles retired one-off scripts.
+- Kept the live `/launchpad` URL itself untouched throughout, it's linked from 5 real
+  transactional emails, so it had to keep working regardless of what happened to the
+  admin side.
+- Hours: ~
+
 ## 2026-07-29 (continued)
 - Reviewed Saboor's incoming work (security fixes, chat fix, dead-code removal, env
   seal) and refreshed the milestone plan against it: reformatted `current.md` for

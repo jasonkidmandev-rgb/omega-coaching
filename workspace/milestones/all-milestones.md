@@ -14,11 +14,15 @@ Legend: `[x]` done, `[~]` partial / in progress, `[ ]` open.
 - [~] Dead links / 404: 404 restored for `/admin/*` (a43fb6f); verify remaining paths.
 - [ ] Audit the 36 `window.location.href` + 11 internal `<a href="/…">` hard-reload
       spots; convert internal navs to wouter, keep logout/external/post-payment.
-- [ ] Dashboard / launchpad dead-ends cleanup.
+- [x] Launchpad Settings (admin page + `launchpadRouter`/`hubLinksRouter` + DB tables)
+      removed entirely, was fully disconnected from the real client `/launchpad` page.
+      Full detail in `current.md` / `claude/context.md`.
+- [ ] Dashboard / launchpad dead-ends cleanup (remaining nav cleanup, unrelated to the
+      settings removal above).
 - [ ] Verify Home page (HumanEdge cover) resolved across entry points.
 ### UI / UX
-- [ ] Consolidate ~15 settings pages into one tabbed Settings page (`Settings`,
-      5x `Notification*`, 3x `Email*`, `Calendly`, `Integration`, `Launchpad`, `Templates`).
+- [ ] Consolidate ~14 settings pages into one tabbed Settings page (`Settings`,
+      5x `Notification*`, 3x `Email*`, `Calendly`, `Integration`, `Templates`).
 - [ ] Layout tidy on the highest-traffic admin pages.
 - [ ] Desktop + mobile consistency for nav/UI changes.
 ### Theme
@@ -36,10 +40,13 @@ Legend: `[x]` done, `[~]` partial / in progress, `[ ]` open.
 - [ ] Daily Tools, remove.
 - [ ] Payment reminders, remove from protocol build.
 ### Simplify / reorganize
-- [ ] Launchpad rework: strip/replace. Client launchpad keeps Omega Elite link,
-      PeptidePro, Podcast; links out Trusted Partners -> omegalongevity.com/resources,
-      Real results -> testimonials page, Coaching plans -> coaching-paths; removes
-      practitioner, Omega Free, and the "ecosystem" section.
+- [x] Launchpad Hub content trimmed to Jason's list (dd24c24, a74d986): keeps Omega Elite,
+      PeptidePro, Podcast; Trusted Partners + Coaching Plans now link out to
+      omegalongevity.com; removed Practitioner + the duplicate Omega Free card. Real
+      Results / testimonials deliberately left untouched (explicit instruction, not
+      relinked to the omegalongevity.com testimonial page). Admin settings for this page
+      removed entirely, see the M1 entry above; the page itself was always hardcoded, not
+      DB-driven, so removal was pure JSX edits.
 - [ ] Peptide cheat sheet: export current as image + link out to Omega Elite.
 - [ ] Email branding: keep but simplify.
 - [ ] Email preview: link to Email Branding, or remove.

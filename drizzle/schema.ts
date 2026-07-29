@@ -1285,18 +1285,6 @@ export const healthieInvoices = mysqlTable("healthie_invoices", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-export const hubLinks = mysqlTable("hub_links", {
-	id: int().autoincrement().notNull(),
-	name: varchar({ length: 255 }).notNull(),
-	description: text(),
-	url: text().notNull(),
-	icon: varchar({ length: 100 }),
-	category: mysqlEnum(['platform','course','coaching','resource']).default('platform'),
-	isActive: tinyint().default(1).notNull(),
-	sortOrder: int().default(0).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-});
-
 export const intakeFormConfig = mysqlTable("intake_form_config", {
 	id: int().autoincrement().notNull(),
 	sectionKey: varchar({ length: 100 }).notNull(),
@@ -1495,35 +1483,6 @@ export const journeyNotes = mysqlTable("journey_notes", {
 	index("journey_note_user_idx").on(table.userId),
 	index("journey_note_protocol_idx").on(table.clientProtocolId),
 	index("journey_note_date_idx").on(table.noteDate),
-]);
-
-export const launchpadItemVideos = mysqlTable("launchpad_item_videos", {
-	id: int().autoincrement().notNull(),
-	launchpadItemId: int().notNull(),
-	title: varchar({ length: 255 }).notNull(),
-	description: text(),
-	videoUrl: text().notNull(),
-	videoType: mysqlEnum(['loom','youtube','vimeo','other']).default('loom'),
-	sortOrder: int().default(0).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-});
-
-export const launchpadItems = mysqlTable("launchpad_items", {
-	id: int().autoincrement().notNull(),
-	key: varchar({ length: 100 }).notNull(),
-	name: varchar({ length: 255 }).notNull(),
-	shortDescription: text(),
-	longDescription: text(),
-	linkUrl: text(),
-	icon: varchar({ length: 100 }),
-	category: mysqlEnum(['platform','course','coaching','resource']).default('platform'),
-	isActive: tinyint().default(1).notNull(),
-	sortOrder: int().default(0).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("launchpad_items_key_unique").on(table.key),
 ]);
 
 export const lifecycleStages = mysqlTable("lifecycle_stages", {

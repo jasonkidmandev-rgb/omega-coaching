@@ -47,7 +47,6 @@ import {
   Bell,
   Layers,
   BarChart3,
-  Rocket,
   Warehouse,
   TrendingUp,
   Settings,

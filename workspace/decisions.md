@@ -85,3 +85,9 @@ with the date and the reason.
   predictable payments plus a review per completed order.
 - 2026-07-29, v1 launch scope kept general to Jason, milestones specific internally. Why:
   room to fold in what we find while protecting the launch date.
+- 2026-07-30, Remove Launchpad Settings entirely (admin page, `launchpadRouter` +
+  `hubLinksRouter`, and the `hub_links`/`launchpad_items`/`launchpad_item_videos` tables);
+  keep the live `/launchpad` client page (`LaunchpadHub.tsx`), separately trimmed to
+  Jason's list. Why: investigation showed the admin settings page and the real client
+  page were fully disconnected, admin edits never affected what clients saw, so the
+  settings page was pure maintenance overhead. Full writeup in `claude/context.md`.

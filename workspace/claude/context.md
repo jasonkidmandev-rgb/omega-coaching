@@ -137,5 +137,38 @@ The gate is the existing choke point, renamed `isStaging()` → `sideEffectsDisa
       admin inbox was throwing in production**. Deleted: a test that cannot fail is worse
       than no test, it advertises coverage that isn't there. The suite is still mostly
       unit-level with a DB-free harness; real behavioural coverage is a v2 project.
-- Settings are still ~15 separate admin pages (no tabbed page yet); consolidating them
-  is the main open M1 UI task.
+- Settings are still ~14 separate admin pages (no tabbed page yet); consolidating them
+  is the main open M1 UI task. (Was ~15; `LaunchpadSettings` is gone, see below.)
+- **Launchpad Settings was a fully disconnected admin page — now removed (Farjad, 2026-07-30).**
+  Investigated because Jason's doc flagged it ("clean up launchpad or get rid of it...
+  BUT the clients have their own launchpad right? How would this work?"). Traced it
+  end-to-end: the admin `LaunchpadSettings.tsx` page was a real, working CRUD form that
+  wrote to a `launchpad_items` table — but **nothing on the client side ever read that
+  table**. The client-facing `/launchpad` page (`LaunchpadHub.tsx`) is 100% hardcoded
+  JSX; every card, price, and link is baked into the file. It also fetched a second
+  unused table (`hub_links`) and threw the result away without rendering it. So editing
+  "Launchpad Settings" in admin did **nothing visible** to what clients saw, ever — the
+  only way to change the real page was a code edit + redeploy. A prior doc
+  (`docs/investigation-audit.md`) had incorrectly documented these as connected; that
+  claim didn't match the code.
+  - **Removed:** `LaunchpadSettings.tsx` (admin page) + its route, sidebar nav entry,
+    breadcrumb label, and global-search entry; `launchpadRouter` and `hubLinksRouter`
+    (`server/routers.ts`); all 15 related `server/db.ts` functions; the `hub_links` /
+    `launchpad_items` / `launchpad_item_videos` table definitions (`drizzle/schema.ts`);
+    the now-dead `scripts/seed-launchpad.mjs` (archived, not deleted, matching the
+    existing `scripts/archive/` convention).
+  - **Kept:** the live `/launchpad` page itself (`LaunchpadHub.tsx` + its route) — it's
+    linked from 5 places in real transactional emails (welcome, signup, payment
+    confirmation), so the URL has to keep working regardless of what happens to admin
+    settings. Its content was separately trimmed to match Jason's explicit list
+    (`dd24c24`, `a74d986`): kept Omega Elite / PeptidePro / Podcast, removed the
+    Practitioner card and a duplicate Omega Free card, sent Trusted Partners and the
+    "Coaching Plans" CTAs out to omegalongevity.com. Real Results / testimonials
+    deliberately untouched per explicit instruction.
+  - **Not yet done:** the physical `DROP TABLE` for the 3 orphaned tables. DDL is saved
+    in `cutover/dropped-tables-ddl.sql` (schema-derived, row counts NOT verified — no DB
+    access from this pass). Whoever has DB access should confirm 0 rows, then run
+    `DROP TABLE hub_links, launchpad_items, launchpad_item_videos;`.
+  - **Lesson for future "is X still used" questions:** an admin CRUD page existing and
+    working is not evidence anything downstream reads it — grep the actual consumer
+    (`trpc.<router>.*` in `client/src`) before trusting an admin settings page's premise.

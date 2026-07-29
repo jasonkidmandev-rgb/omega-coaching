@@ -18,7 +18,6 @@ import {
   affiliateClicks,
   protocolComments,
   coachingPackages,
-  hubLinks,
   InsertCategory,
   InsertProtocolItem,
   InsertTemplate,
@@ -33,14 +32,9 @@ import {
   InsertAffiliateClick,
   InsertProtocolComment,
   InsertCoachingPackage,
-  InsertHubLink,
   referrals,
-  launchpadItems,
-  launchpadItemVideos,
   purchases,
   InsertReferral,
-  InsertLaunchpadItem,
-  InsertLaunchpadItemVideo,
   InsertPurchase,
   inventoryCategories,
   inventoryItems,
@@ -2347,119 +2341,8 @@ export async function deleteCoachingPackage(id: number) {
   await db.delete(coachingPackages).where(eq(coachingPackages.id, id));
 }
 
-// ============ HUB LINKS ============
-export async function getAllHubLinks() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(hubLinks)
-    .where(eq(hubLinks.isActive, true))
-    .orderBy(asc(hubLinks.sortOrder));
-}
-
-export async function getHubLinksByCategory(category: 'platform' | 'course' | 'coaching' | 'resource') {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(hubLinks)
-    .where(and(
-      eq(hubLinks.isActive, true),
-      eq(hubLinks.category, category)
-    ))
-    .orderBy(asc(hubLinks.sortOrder));
-}
-
-export async function createHubLink(data: InsertHubLink) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(hubLinks).values(data);
-  return { id: result[0].insertId, ...data };
-}
-
-export async function updateHubLink(id: number, data: Partial<InsertHubLink>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(hubLinks).set(data).where(eq(hubLinks.id, id));
-}
-
-export async function deleteHubLink(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.delete(hubLinks).where(eq(hubLinks.id, id));
-}
-
-
 // ============ REFERRALS (REMOVED) ============
 // Referral program functions removed - keeping DB tables for historical data
-
-// ============ LAUNCHPAD ITEMS ============
-export async function getAllLaunchpadItems() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(launchpadItems)
-    .where(eq(launchpadItems.isActive, true))
-    .orderBy(asc(launchpadItems.sortOrder));
-}
-
-export async function getLaunchpadItemByKey(key: string) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.select().from(launchpadItems).where(eq(launchpadItems.key, key));
-  return result[0] || null;
-}
-
-export async function getLaunchpadItemById(id: number) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.select().from(launchpadItems).where(eq(launchpadItems.id, id));
-  return result[0] || null;
-}
-
-export async function createLaunchpadItem(data: InsertLaunchpadItem) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(launchpadItems).values(data);
-  return { id: result[0].insertId, ...data };
-}
-
-export async function updateLaunchpadItem(id: number, data: Partial<InsertLaunchpadItem>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(launchpadItems).set(data).where(eq(launchpadItems.id, id));
-  return getLaunchpadItemById(id);
-}
-
-export async function deleteLaunchpadItem(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(launchpadItems).set({ isActive: false }).where(eq(launchpadItems.id, id));
-}
-
-// ============ LAUNCHPAD ITEM VIDEOS ============
-export async function getLaunchpadItemVideos(launchpadItemId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(launchpadItemVideos)
-    .where(eq(launchpadItemVideos.launchpadItemId, launchpadItemId))
-    .orderBy(asc(launchpadItemVideos.sortOrder));
-}
-
-export async function createLaunchpadItemVideo(data: InsertLaunchpadItemVideo) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(launchpadItemVideos).values(data);
-  return { id: result[0].insertId, ...data };
-}
-
-export async function updateLaunchpadItemVideo(id: number, data: Partial<InsertLaunchpadItemVideo>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(launchpadItemVideos).set(data).where(eq(launchpadItemVideos.id, id));
-}
-
-export async function deleteLaunchpadItemVideo(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.delete(launchpadItemVideos).where(eq(launchpadItemVideos.id, id));
-}
 
 // ============ PURCHASES ============
 export async function createPurchase(data: InsertPurchase) {

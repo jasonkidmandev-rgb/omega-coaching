@@ -258,3 +258,54 @@ CREATE TABLE `coupons` (
   UNIQUE KEY `coupons_code_unique` (`code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=30001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+-- DDL of tables prepared for drop 2026-07-30 (Launchpad Settings cleanup).
+-- Code that read/wrote these has been fully removed (admin LaunchpadSettings page,
+-- launchpadRouter, hubLinksRouter, and every server/db.ts function). Row counts NOT
+-- verified here (no DB access from this pass) — check for rows before dropping. Kept
+-- so any of these can be recreated if the feature is revived. See
+-- workspace/claude/context.md for the investigation writeup (admin settings never
+-- actually drove what clients saw on /launchpad, which stays a hardcoded page and is
+-- NOT affected by this drop).
+
+CREATE TABLE `hub_links` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `description` text COLLATE utf8mb4_bin,
+  `url` text COLLATE utf8mb4_bin NOT NULL,
+  `icon` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL,
+  `category` enum('platform','course','coaching','resource') COLLATE utf8mb4_bin DEFAULT 'platform',
+  `isActive` tinyint(1) NOT NULL DEFAULT '1',
+  `sortOrder` int NOT NULL DEFAULT '0',
+  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `launchpad_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `key` varchar(100) COLLATE utf8mb4_bin NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `shortDescription` text COLLATE utf8mb4_bin,
+  `longDescription` text COLLATE utf8mb4_bin,
+  `linkUrl` text COLLATE utf8mb4_bin,
+  `icon` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL,
+  `category` enum('platform','course','coaching','resource') COLLATE utf8mb4_bin DEFAULT 'platform',
+  `isActive` tinyint(1) NOT NULL DEFAULT '1',
+  `sortOrder` int NOT NULL DEFAULT '0',
+  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `launchpad_items_key_unique` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE `launchpad_item_videos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `launchpadItemId` int NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `description` text COLLATE utf8mb4_bin,
+  `videoUrl` text COLLATE utf8mb4_bin NOT NULL,
+  `videoType` enum('loom','youtube','vimeo','other') COLLATE utf8mb4_bin DEFAULT 'loom',
+  `sortOrder` int NOT NULL DEFAULT '0',
+  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+

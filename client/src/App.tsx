@@ -196,7 +196,6 @@ function AdminRoutes() {
           {/* Supplements route removed - use /admin/items with filter tabs */}
           <Route path={"/admin/team"} component={AdminTeam} />
           <Route path={"/admin/programs"} component={AdminPrograms} />
-          <Route path={"/admin/launchpad-settings"}><Redirect to={"/admin/settings/launchpad"} /></Route>
           <Route path={"/admin/inventory"} component={AdminInventory} />
           <Route path={"/admin/settings/:tab"} component={AdminSettingsHub} />
           <Route path={"/admin/settings"} component={AdminSettingsHub} />

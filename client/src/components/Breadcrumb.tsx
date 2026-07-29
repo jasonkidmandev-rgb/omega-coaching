@@ -20,7 +20,6 @@ const routeLabels: Record<string, string> = {
   // supplements removed - consolidated into Protocol Items
   inventory: "Inventory",
   team: "Team",
-  "launchpad-settings": "Launchpad Settings",
   settings: "Site Settings",
   "affiliate-partners": "Affiliate Partners",
   "email-branding": "Email Branding",

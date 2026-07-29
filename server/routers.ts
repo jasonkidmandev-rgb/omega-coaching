@@ -3466,56 +3466,6 @@ const coachingPackagesRouter = router({
     }),
 });
 
-// ============ HUB LINKS ROUTER ============
-const hubLinksRouter = router({
-  list: publicProcedure.query(async () => {
-    return db.getAllHubLinks();
-  }),
-  byCategory: publicProcedure
-    .input(z.object({ category: z.enum(["platform", "course", "coaching", "resource"]) }))
-    .query(async ({ input }) => {
-      return db.getHubLinksByCategory(input.category);
-    }),
-  create: adminProcedure
-    .input(
-      z.object({
-        name: z.string().min(1),
-        description: z.string().optional(),
-        url: z.string().min(1),
-        icon: z.string().optional(),
-        category: z.enum(["platform", "course", "coaching", "resource"]).optional(),
-        sortOrder: z.number().optional(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      return db.createHubLink(input);
-    }),
-  update: adminProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        name: z.string().min(1).optional(),
-        description: z.string().optional(),
-        url: z.string().optional(),
-        icon: z.string().optional(),
-        category: z.enum(["platform", "course", "coaching", "resource"]).optional(),
-        isActive: z.boolean().optional(),
-        sortOrder: z.number().optional(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      const { id, ...data } = input;
-      await db.updateHubLink(id, data);
-      return { success: true };
-    }),
-  delete: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      await db.deleteHubLink(input.id);
-      return { success: true };
-    }),
-});
-
 // ============ REFERRAL ROUTER REMOVED ============
 // (Dead code cleaned up - referral system stubs removed)
 
@@ -3526,97 +3476,6 @@ const hubLinksRouter = router({
    has been removed. The referrals table still exists in the database for historical data.
 */
 
-// ============ LAUNCHPAD ITEMS ROUTER ============
-const launchpadRouter = router({
-  list: publicProcedure.query(async () => {
-    return db.getAllLaunchpadItems();
-  }),
-  byKey: publicProcedure
-    .input(z.object({ key: z.string() }))
-    .query(async ({ input }) => {
-      return db.getLaunchpadItemByKey(input.key);
-    }),
-  byId: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
-      return db.getLaunchpadItemById(input.id);
-    }),
-  create: adminProcedure
-    .input(z.object({
-      key: z.string().min(1),
-      name: z.string().min(1),
-      shortDescription: z.string().optional(),
-      longDescription: z.string().optional(),
-      linkUrl: z.string().optional(),
-      icon: z.string().optional(),
-      category: z.enum(['platform', 'course', 'coaching', 'resource']).optional(),
-      sortOrder: z.number().optional(),
-    }))
-    .mutation(async ({ input }) => {
-      return db.createLaunchpadItem(input);
-    }),
-  update: adminProcedure
-    .input(z.object({
-      id: z.number(),
-      key: z.string().min(1).optional(),
-      name: z.string().min(1).optional(),
-      shortDescription: z.string().optional(),
-      longDescription: z.string().optional(),
-      linkUrl: z.string().optional(),
-      icon: z.string().optional(),
-      category: z.enum(['platform', 'course', 'coaching', 'resource']).optional(),
-      isActive: z.boolean().optional(),
-      sortOrder: z.number().optional(),
-    }))
-    .mutation(async ({ input }) => {
-      const { id, ...data } = input;
-      return db.updateLaunchpadItem(id, data);
-    }),
-  delete: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      await db.deleteLaunchpadItem(input.id);
-      return { success: true };
-    }),
-  // Videos for launchpad items
-  getVideos: publicProcedure
-    .input(z.object({ launchpadItemId: z.number() }))
-    .query(async ({ input }) => {
-      return db.getLaunchpadItemVideos(input.launchpadItemId);
-    }),
-  createVideo: adminProcedure
-    .input(z.object({
-      launchpadItemId: z.number(),
-      title: z.string().min(1),
-      description: z.string().optional(),
-      videoUrl: z.string().min(1),
-      videoType: z.enum(['loom', 'youtube', 'vimeo', 'other']).optional(),
-      sortOrder: z.number().optional(),
-    }))
-    .mutation(async ({ input }) => {
-      return db.createLaunchpadItemVideo(input);
-    }),
-  updateVideo: adminProcedure
-    .input(z.object({
-      id: z.number(),
-      title: z.string().min(1).optional(),
-      description: z.string().optional(),
-      videoUrl: z.string().min(1).optional(),
-      videoType: z.enum(['loom', 'youtube', 'vimeo', 'other']).optional(),
-      sortOrder: z.number().optional(),
-    }))
-    .mutation(async ({ input }) => {
-      const { id, ...data } = input;
-      await db.updateLaunchpadItemVideo(id, data);
-      return { success: true };
-    }),
-  deleteVideo: adminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      await db.deleteLaunchpadItemVideo(input.id);
-      return { success: true };
-    }),
-});
 
 // ============ INVENTORY ROUTER ============
 const inventoryRouter = router({
@@ -6894,7 +6753,6 @@ export const appRouter = router({
   affiliate: affiliateRouter,
   comments: commentsRouter,
   coachingPackages: coachingPackagesRouter,
-  hubLinks: hubLinksRouter,
   // stripe: stripeRouter, // REMOVED - Using Venmo only
   orders: ordersRouter, // Order queries and management
   // Healthie integration removed - no license available
@@ -6911,7 +6769,6 @@ export const appRouter = router({
   calendly: calendlyRouter,
   outlook: outlookRouter,
   // referral router removed - dead code cleaned up
-  launchpad: launchpadRouter,
   inventory: inventoryRouter,
   waiver: waiverRouter,
   ageDisclaimer: ageDisclaimerRouter,

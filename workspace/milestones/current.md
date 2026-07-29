@@ -87,8 +87,24 @@ check-ins, so that account can test it. 3–6, 8 still open.
       `AdminLayoutContent`, a separate component in the same file. `AdminLayout` itself calls
       four hooks, all before every return. That false finding is what blocked these two
       conversions for a day. Retracted in STATE.md.
-- [ ] **Dashboard / launchpad dead-ends.** Clean up (LaunchpadSettings still present;
-      the full launchpad strip also sits in M2).
+- [x] **Launchpad Settings removed (admin page, DB tables, routers).** Dug into it first:
+      the admin "Launchpad Settings" page and the real client-facing `/launchpad` page
+      (`LaunchpadHub.tsx`) were **completely disconnected** — admin edited a `launchpad_items`
+      table that the client page never read at all; the client page is 100% hardcoded JSX.
+      Full writeup in `workspace/claude/context.md`. Removed: `LaunchpadSettings.tsx` (admin
+      page), its route + sidebar nav entry + breadcrumb/search-index entries, `launchpadRouter`
+      + `hubLinksRouter` (the second was orphaned as a side effect, its only caller was a dead
+      fetch already removed from `LaunchpadHub.tsx` in `dd24c24`), all 15 related `server/db.ts`
+      functions, and the `hub_links` / `launchpad_items` / `launchpad_item_videos` schema
+      definitions. Archived the now-dead `scripts/seed-launchpad.mjs`. DDL for the 3 tables
+      saved to `cutover/dropped-tables-ddl.sql` for recovery, **actual `DROP TABLE` not run
+      yet** (no DB access from this pass, and row counts weren't verified) — run manually
+      after checking for rows: `DROP TABLE hub_links, launchpad_items, launchpad_item_videos;`
+      The live `/launchpad` page itself is untouched by this and stays (linked from 5 email
+      templates); its content was separately trimmed to Jason's list in `dd24c24`/`a74d986`.
+      Commit `d0c2488`. `Owner: Farjad`
+- [ ] **Dashboard / launchpad dead-ends.** Remaining nav cleanup unrelated to the settings
+      removal above.
       `Owner: ___`
 - [ ] **Home page verification.** Confirm the HumanEdge cover is fully resolved across all entry points.
       `Owner: ___`
@@ -115,6 +131,11 @@ check-ins, so that account can test it. 3–6, 8 still open.
         in would mean nesting a router inside a tab.
       - **Needs a browser pass** (below): typecheck/build/tests can't see a tab that renders
         blank, and the panels need an admin session I can't get locally.
+      - **Follow-up (Farjad, same pass as the Launchpad Settings removal above):** this was
+        built with a "Launchpad" tab (13th route) wrapping the now-deleted
+        `LaunchpadSettings.tsx`. Removed that tab + its lazy import from `SettingsHub.tsx`
+        and the now-pointless `/admin/launchpad-settings` redirect from `App.tsx`, so it's
+        12 tabs now. Nothing else about the consolidation changed.
 - [ ] **Tidy the panels now they're tabs.** Each still renders its own `<h1>` and its own page
       padding, so there's a duplicate heading under the Settings title and inconsistent
       spacing between tabs. Cosmetic only; deliberately left out of the move so the

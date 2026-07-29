@@ -7,7 +7,10 @@ import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { useAuth } from "../../_core/hooks/useAuth";
 
 /**
- * One Settings page with tabs, replacing 13 separate admin settings routes.
+ * One Settings page with tabs, replacing 12 separate admin settings routes.
+ * (Was 13; a "Launchpad" tab wrapping LaunchpadSettings.tsx was removed along with the
+ * rest of that feature, admin settings there was fully disconnected from what clients
+ * actually saw on /launchpad. See workspace/claude/context.md.)
  *
  * Deliberately a *container*, not a rewrite: each tab renders the existing page component
  * untouched. Those pages keep their own headings and their own data fetching, so nothing
@@ -37,7 +40,6 @@ const EmailReportSettings = lazyWithRetry(() => import("./EmailReportSettings"))
 const EmailPreview = lazyWithRetry(() => import("./EmailPreview"));
 const IntegrationSettings = lazyWithRetry(() => import("./IntegrationSettings"));
 const CalendlySettings = lazyWithRetry(() => import("./CalendlySettings"));
-const LaunchpadSettings = lazyWithRetry(() => import("./LaunchpadSettings"));
 
 type TabDef = {
   /** URL segment — /admin/settings/<slug>. Keep stable; these get bookmarked. */
@@ -59,7 +61,6 @@ export const SETTINGS_TABS: TabDef[] = [
   { slug: "site", label: "Site", group: "General", Component: SiteSettings, legacyPath: "/admin/settings" },
   { slug: "integrations", label: "Integrations", group: "General", Component: IntegrationSettings, legacyPath: "/admin/integrations" },
   { slug: "calendly", label: "Calendly", group: "General", Component: CalendlySettings, legacyPath: "/admin/calendly-settings" },
-  { slug: "launchpad", label: "Launchpad", group: "General", Component: LaunchpadSettings, legacyPath: "/admin/launchpad-settings" },
 
   { slug: "notifications", label: "Notifications", group: "Notifications", Component: NotificationSettings, legacyPath: "/admin/notification-settings" },
   { slug: "notification-templates", label: "Templates", group: "Notifications", Component: NotificationTemplates, legacyPath: "/admin/notification-templates" },
