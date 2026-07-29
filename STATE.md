@@ -201,13 +201,15 @@ route went with it, along with the dead, unrouted `TransformationJourney.tsx` (2
 - **Cancelling a custom-order payment landed on a 404.** Stripe was sent
   `cancel_url = /custom-order/payment-cancelled/<id>` but the route was
   `/custom-order/:id/payment-cancelled` — the two never matched. Both shapes now route.
-- **`AdminLayout` violates the rules of hooks.** `useState`/`useAuth`/`useEffect` run, then the
-  component returns early for the loading / not-signed-in / not-staff cases (lines ~298-375),
-  and *more* hooks (`useLocation`, `useState`, `useMemo`…) are called after. Hook count
-  therefore changes between renders as `loading` flips. Not currently observed to misbehave, but
-  it is a real latent bug and it is why the two `window.location.href` calls in that file were
-  left alone — fixing them properly means hoisting every hook above the early returns, which
-  restructures the shell and wants runtime verification.
+- ~~**`AdminLayout` violates the rules of hooks.**~~ **RETRACTED 2026-07-30 — this was wrong.**
+  I read `useLocation`/`useState`/`useMemo` as running after `AdminLayout`'s early returns.
+  They don't: they belong to **`AdminLayoutContent`**, a *separate* component declared further
+  down the same file. Hooks in a different component say nothing about this one's hook order.
+  `AdminLayout` itself calls exactly four hooks (`useState` ×2, `useAuth`, `useEffect`, lines
+  285-292) and every `return` comes after all of them, so the hook count is stable.
+  Lesson: "hooks after an early return" has to be checked **within one function body**, not by
+  scanning a file. The false finding blocked the two `window.location.href` conversions in that
+  file for a day; both are now plain client-side navigations.
 
 ### 🟡 Smaller, confirmed
 - **Sleep Quality renders `/5` but is stored 1–10** (slider and server both `max 10`). Four admin

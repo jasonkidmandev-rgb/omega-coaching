@@ -71,15 +71,22 @@ check-ins, so that account can test it. 3–6, 8 still open.
 - [~] **Broken / dead links.** 404 page restored for unmatched `/admin/*` (`a43fb6f`).
       Verify the remaining paths identified in the app review.
       `Owner: ___`
-- [ ] **Remaining hard reloads.** 36x `window.location.href` + 11x internal `<a href="/…">`.
-      Convert internal navigation that shouldn't reload to wouter; keep logout / external / post-payment.
-      Smaller job now the main re-render is fixed. Triage already done, see
-      `docs/risks/2026-07-29-navigation-rerender-trace.md`:
-      - 4 of the `window.location.href` are auth-boundary redirects and **should stay** a hard reload.
-      - `/terms` + `/privacy` anchors from public pages are fine as plain `<a>`.
-      - The ones that actually bite staff: `CheckinHistoryTab.tsx:369` (check-in detail, daily use),
-        `AdminLayout.tsx:359,368`, `client-edit/DetailsTab.tsx:550` → `/admin/programs`.
-      `Owner: ___`
+- [x] **Remaining hard reloads — done.** `Owner: Saboor`
+      Every internal `window.location.href` that shouldn't reload is now a wouter navigation.
+      `AdminLayout` ×2 (Access Denied buttons), `Booking` → `/`, `CoachingPrograms` ×2.
+      `CheckinHistoryTab` and `client-edit/DetailsTab` were converted in yesterday's sweep.
+      **Six remain and all six are deliberate** — leave them:
+      - `AdminLayout:320`, `DashboardLayout:76` → `/login?returnTo=…`: auth boundary, the
+        session is changing, so the app must re-bootstrap.
+      - `AgeDisclaimer:22` → `/age-restricted`, `AgeRestricted:42` → `/`: age-gate boundary.
+      - `AcceptInvite:47` → `/admin`: the user's role changed a moment ago; a soft nav would
+        render admin against stale auth state.
+      - `CustomOrderPaymentCancelled:25` → `/`: post-payment, per the original triage.
+      ⚠️ **Correction:** `STATE.md` previously claimed `AdminLayout` violated the rules of
+      hooks, and that was **wrong** — the hooks I saw "after the early returns" belong to
+      `AdminLayoutContent`, a separate component in the same file. `AdminLayout` itself calls
+      four hooks, all before every return. That false finding is what blocked these two
+      conversions for a day. Retracted in STATE.md.
 - [ ] **Dashboard / launchpad dead-ends.** Clean up (LaunchpadSettings still present;
       the full launchpad strip also sits in M2).
       `Owner: ___`

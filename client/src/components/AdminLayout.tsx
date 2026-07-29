@@ -288,6 +288,9 @@ export default function AdminLayout({
   });
   const [rememberMe, setRememberMe] = useState(true);
   const { loading, user } = useAuth();
+  // Declared with the other hooks, above every early return, so the hook count stays
+  // stable as `loading` flips. Used by the Access Denied buttons below.
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -352,19 +355,17 @@ export default function AdminLayout({
             </p>
           </div>
           <div className="flex gap-3 w-full">
+            {/* Client-side navigation: the user is signed in, just not staff, so there's no
+                session change to force a reload for. */}
             <Button
-              onClick={() => {
-                window.location.href = '/';
-              }}
+              onClick={() => setLocation('/')}
               variant="outline"
               className="flex-1"
             >
               Go to Launchpad
             </Button>
             <Button
-              onClick={() => {
-                window.location.href = '/account';
-              }}
+              onClick={() => setLocation('/account')}
               className="flex-1"
             >
               My Account

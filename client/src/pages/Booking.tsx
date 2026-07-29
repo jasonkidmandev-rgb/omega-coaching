@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 type BookingStep = "type" | "date" | "time" | "details" | "confirmation";
 
 export default function Booking() {
+  const [, setLocation] = useLocation();
   const [step, setStep] = useState<BookingStep>("type");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedType, setSelectedType] = useState<number | null>(null);
@@ -131,7 +133,7 @@ export default function Booking() {
             </div>
             <Button 
               className="mt-6 w-full bg-orange-500 hover:bg-orange-600"
-              onClick={() => window.location.href = "/"}
+              onClick={() => setLocation("/")}
             >
               Return Home
             </Button>

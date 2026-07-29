@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,6 +56,7 @@ function PaymentMethodModal({
 }
 
 export default function CoachingPrograms() {
+  const [, setLocation] = useLocation();
   const [selectedProgram, setSelectedProgram] = useState<{ name: string; price: string } | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
@@ -414,7 +416,7 @@ export default function CoachingPrograms() {
             <Button
               size="lg"
               className="bg-gradient-to-r from-amber-400 to-orange-500 text-black hover:from-amber-500 hover:to-orange-600"
-              onClick={() => window.location.href = '/peptide-cheat-sheet'}
+              onClick={() => setLocation('/peptide-cheat-sheet')}
             >
               View Peptide Reference
               <ArrowRight className="h-4 w-4 ml-2" />
@@ -423,7 +425,7 @@ export default function CoachingPrograms() {
               size="lg"
               variant="outline"
               className="border-slate-600 text-white hover:bg-slate-700"
-              onClick={() => window.location.href = '/orders'}
+              onClick={() => setLocation('/orders')}
             >
               View Order History
               <ArrowRight className="h-4 w-4 ml-2" />
