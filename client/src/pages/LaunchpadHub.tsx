@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
-import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import {
   Pill,
@@ -40,12 +39,6 @@ export default function LaunchpadHub() {
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const consultUrl = "https://calendly.com/jason-vigilanttechs/20-minute-consult-95";
-  
-  const { data: hubLinks = [] } = trpc.hubLinks.list.useQuery();
-
-  const platformLinks = hubLinks.filter(l => l.category === 'platform');
-
-  
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -307,26 +300,7 @@ export default function LaunchpadHub() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Omega Free Community */}
-            <div 
-              className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center hover:bg-white/20 hover:shadow-lg hover:shadow-amber-500/20 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
-              onClick={() => setLocation('/community')}
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/40 transition-all duration-300">
-                <Users className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-white font-semibold text-lg mb-2">Free Community</h3>
-              <p className="text-white/60 text-sm mb-3">
-                Learn peptide basics and connect with like-minded optimizers
-              </p>
-              <Badge className="bg-emerald-500 text-white border-0 mb-3">Free to Join</Badge>
-              <div className="flex items-center justify-center gap-1 text-white/50 text-xs group-hover:text-emerald-400 transition-colors">
-                <ArrowRight className="h-4 w-4" />
-                <span>Get started</span>
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Omega Store - hidden for compliance
             <div 
               className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center hover:bg-white/20 hover:shadow-lg hover:shadow-amber-500/20 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
@@ -571,13 +545,13 @@ export default function LaunchpadHub() {
               From self-guided protocols to comprehensive 6-month transformations — find the coaching plan that fits your goals.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button 
-                size="lg"
-                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90 px-8 py-3 text-lg"
-                onClick={() => setLocation('/transformation')}
+              <Button
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10"
+                onClick={() => window.open('https://omegalongevity.com/coaching-paths', '_blank')}
               >
                 View Coaching Plans
-                <ArrowRight className="h-5 w-5 ml-2" />
+                <ExternalLink className="h-4 w-4 ml-2" />
               </Button>
             </div>
             <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-8 text-white/70">
@@ -608,7 +582,7 @@ export default function LaunchpadHub() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Omega Elite Community */}
             <Card id="omega-elite" className="bg-white border border-gray-200 hover:border-amber-300 hover:shadow-lg transition-all group relative overflow-hidden">
               <div className="absolute top-4 right-4">
@@ -684,50 +658,6 @@ export default function LaunchpadHub() {
               </CardContent>
             </Card>
 
-            {/* Omega Peptide Practitioner */}
-            <Card id="practitioner" className="bg-white border border-gray-200 hover:border-amber-300 hover:shadow-lg transition-all group">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Star className="h-7 w-7 text-white" />
-                  </div>
-                  <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-amber-500 transition-colors" />
-                </div>
-                <CardTitle className="text-gray-900 text-xl">Omega Peptide Practitioner</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Get started with your peptide journey. Connect with our practitioner network.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-amber-300" onClick={() => window.open('https://getstarted.omegalongevity.com/practitioner', '_blank')}>
-                  Get Started
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Omega Free Community */}
-            <Card id="omega-free" className="bg-white border border-gray-200 hover:border-emerald-300 hover:shadow-lg transition-all group">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Users className="h-7 w-7 text-white" />
-                  </div>
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Free</Badge>
-                </div>
-                <CardTitle className="text-gray-900 text-xl">Omega Free Community</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Start your peptide education journey. Access basic protocols, connect with others, and learn the fundamentals.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="w-full bg-gradient-to-r from-emerald-400 to-teal-500 text-white hover:from-emerald-500 hover:to-teal-600" onClick={() => setLocation('/community')}>
-                  Join Free Community
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-
             {/* Trusted Partners */}
             <Card id="partners" className="bg-white border border-gray-200 hover:border-amber-300 hover:shadow-lg transition-all group">
               <CardHeader>
@@ -735,7 +665,7 @@ export default function LaunchpadHub() {
                   <div className="w-14 h-14 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Handshake className="h-7 w-7 text-white" />
                   </div>
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Vetted</Badge>
+                  <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-amber-500 transition-colors" />
                 </div>
                 <CardTitle className="text-gray-900 text-xl">Trusted Partners</CardTitle>
                 <CardDescription className="text-gray-600">
@@ -743,9 +673,9 @@ export default function LaunchpadHub() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-amber-300" onClick={() => setLocation('/partners')}>
+                <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-amber-300" onClick={() => window.open('https://omegalongevity.com/resources', '_blank')}>
                   View Partners & Discounts
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ExternalLink className="h-4 w-4 ml-2" />
                 </Button>
               </CardContent>
             </Card>
@@ -848,11 +778,12 @@ export default function LaunchpadHub() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-lg px-8 py-6 shadow-lg shadow-amber-500/25"
-              onClick={() => setLocation("/transformation")}
+              variant="outline"
+              className="border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6"
+              onClick={() => window.open('https://omegalongevity.com/coaching-paths', '_blank')}
             >
               Get Started — See Coaching Plans
-              <ArrowRight className="h-5 w-5 ml-2" />
+              <ExternalLink className="h-5 w-5 ml-2" />
             </Button>
             <Button
               size="lg"
