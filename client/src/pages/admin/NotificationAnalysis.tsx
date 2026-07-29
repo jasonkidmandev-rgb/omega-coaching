@@ -410,7 +410,7 @@ export default function NotificationAnalysis() {
 
   return (
     <>
-    <div className="container max-w-7xl py-8 px-4">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">

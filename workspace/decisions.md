@@ -34,6 +34,17 @@ with the date and the reason.
   Correcting it **raises some client totals**, so it needs his sign-off.
 - Keep or drop each of: Notification Analysis, Notification History, Job Health,
   Team Email Preferences, KPI Dashboard.
+  **Notes from consolidating them into tabs (Saboor, 2026-07-30)** — seeing all 14 side by
+  side, these are the removal candidates worth putting to Jason. Actual removal is M2:
+  - **Email → Preview** (`EmailPreview`, 155 lines) overlaps **Email → Templates**
+    (`EmailTemplatePreview`, 889 lines). Not duplicates — the small one is a read-only viewer
+    on the `emailTracking` router, the big one is the editor on `emailTemplates` with
+    customization, versions, test sends and engagement stats. But the small one shows a subset
+    of what the big one already renders. Strongest candidate.
+  - **Notifications → Report / Analysis / History** are three separate read-only views over
+    notification activity. Plausibly one tab with a filter.
+  - **Launchpad** settings may be moot now the launchpad hub is trimmed to Jason's keep list
+    (`a74d986`, Farjad) — worth checking whether anything still reads these.
 - Site Settings: review and decide what stays (keep it simple).
 - Email preview: link it to Email Branding, or remove it.
 - Milestone placement to confirm: client-facing check-in consolidation (M3 vs v2),

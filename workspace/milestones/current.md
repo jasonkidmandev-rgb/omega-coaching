@@ -132,16 +132,27 @@ check-ins, so that account can test it. 3–6, 8 still open.
       - **Needs a browser pass** (below): typecheck/build/tests can't see a tab that renders
         blank, and the panels need an admin session I can't get locally.
       - **Follow-up (Farjad, same pass as the Launchpad Settings removal above):** this was
-        built with a "Launchpad" tab (13th route) wrapping the now-deleted
-        `LaunchpadSettings.tsx`. Removed that tab + its lazy import from `SettingsHub.tsx`
-        and the now-pointless `/admin/launchpad-settings` redirect from `App.tsx`, so it's
-        12 tabs now. Nothing else about the consolidation changed.
-- [ ] **Tidy the panels now they're tabs.** Each still renders its own `<h1>` and its own page
-      padding, so there's a duplicate heading under the Settings title and inconsistent
-      spacing between tabs. Cosmetic only; deliberately left out of the move so the
-      consolidation stayed behaviour-neutral. `Owner: ___`
-- [ ] **Flag removable settings** while consolidating (actual removal happens in M2).
-      `Owner: ___`
+        built with a "Launchpad" tab wrapping the now-deleted `LaunchpadSettings.tsx`. Removed
+        that tab + its lazy import from `SettingsHub.tsx` and the now-pointless
+        `/admin/launchpad-settings` redirect from `App.tsx`. Nothing else about the
+        consolidation changed. (Small correction: that leaves **13** tabs, not 12 —
+        `SETTINGS_TABS` has 13 entries.)
+- [x] **Tidy the panels now they're tabs.** `Owner: Saboor`
+      The panels disagreed on their outer wrapper — `space-y-6` (7 of them),
+      `container mx-auto py-6` (4), `p-6 max-w-4xl mx-auto`, `space-y-6 p-6 max-w-6xl`,
+      `container max-w-7xl py-8 px-4` — so switching tabs visibly shifted the content and
+      double-padded inside the hub. All 13 now use `space-y-6`. Class strings only; a
+      brace/paren balance check guarded every edit against JSX damage.
+      Tab rail also scrolls horizontally rather than wrapping: 13 tabs plus 3 group labels
+      stacked into four or five rows on a phone and pushed the panel off-screen.
+      **Panel `<h1>`s deliberately kept:** they read as the section heading under the Settings
+      title, which is normal for tabbed settings, and stripping 13 of them would be real JSX
+      surgery for no functional gain.
+- [x] **Flag removable settings** while consolidating. `Owner: Saboor`
+      Candidates recorded in `decisions.md` for Jason: Email → Preview (overlaps Email →
+      Templates), and the three read-only Notification views (Report / Analysis / History).
+      Launchpad settings is no longer a candidate — Farjad removed it outright above.
+      Removal of the rest is M2.
 - [ ] **Layout tidy** on the highest-traffic admin pages.
       `Owner: ___`
 - [ ] **Desktop + mobile consistency** for the navigation and UI changes.

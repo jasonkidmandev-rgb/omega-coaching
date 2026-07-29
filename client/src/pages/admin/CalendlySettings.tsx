@@ -122,7 +122,7 @@ export default function CalendlySettings() {
   if (!status?.configured) {
     return (
       <>
-        <div className="p-6 max-w-4xl mx-auto">
+        <div className="space-y-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Calendly Integration</h1>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
             <div className="flex items-center gap-3 mb-2">
@@ -143,7 +143,7 @@ export default function CalendlySettings() {
 
   return (
     <>
-      <div className="p-6 max-w-4xl mx-auto space-y-8">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

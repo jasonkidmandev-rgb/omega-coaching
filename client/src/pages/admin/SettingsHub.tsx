@@ -133,7 +133,10 @@ export default function SettingsHub() {
         onValueChange={(slug) => setLocation(`/admin/settings/${slug}`, { replace: true })}
         className="space-y-6"
       >
-        <TabsList className="w-full flex flex-wrap justify-start h-auto gap-1 bg-transparent p-0 border-b rounded-none">
+        {/* Scrolls horizontally rather than wrapping: 14 tabs plus 3 group labels would
+            stack into four or five rows on a phone and push the panel off-screen. One row
+            that scrolls keeps the content where it should be at every width. */}
+        <TabsList className="w-full flex flex-nowrap justify-start h-auto gap-1 bg-transparent p-0 border-b rounded-none overflow-x-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
           {GROUP_ORDER.map((group) => {
             const groupTabs = tabs.filter((t) => t.group === group);
             if (groupTabs.length === 0) return null;
