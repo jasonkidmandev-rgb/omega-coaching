@@ -3,6 +3,51 @@
 Only Saboor edits this. Newest entry at top. A short running list of what you worked on
 each day, so Farjad and both Claude sessions can see progress.
 
+## 2026-07-29 (late)
+- **All 6 unauthenticated endpoints now closed, and runtime-verified.**
+- ⚠️ **Correction to my earlier entry:** I reported `getEnrollmentPublic` as fixed. It was —
+  but the fix was **bypassable**, because `completePaymentPublic` would mint and *return* a
+  30-day `authToken` for any `enrollmentId`, unauthenticated, with no proof of payment
+  (`paymentId` was optional). Gating an endpoint on a token is worthless while anyone can
+  mint the token. It also overwrote the enrollment's `email`/`clientName` from the request
+  body, so the verification email went wherever the caller asked — takeover, not just
+  disclosure. **Deleted**; only caller in repo history was the unrouted
+  `TransformationJourney.tsx` (already gone in `4a15cc3`).
+- Gated the intake family (`getIntakeForm`/`saveIntakeForm`/`submitIntakeForm`) on
+  **staff role | signed-in owner | enrollment token**, and the check-in pair
+  (`getForClient`/`submit`) on **protocol token | signed-in owner**. The **write** siblings
+  were as open as the reads — anyone could overwrite a client's medical intake or post
+  responses onto their check-in. Check-in emails now carry `?token=`.
+- Token rides in `sessionStorage` (reusing the keys `TransformationVerify.tsx` already wrote
+  and nothing read), never the URL — a URL token lands in history and in the `Referer` sent
+  to Stripe, and this one opens a medical file.
+- **Deliberate UX change, needs Jason's nod:** `createDirectEnrollment` returns a token only
+  for enrollments it *creates*. The resume-by-email branch gets none: `email` there is an
+  unverified claim, so issuing one would make knowing a client's address enough to read
+  their intake. Returning clients must reopen from their email link.
+- **Actually verified this time.** Real server + real MySQL + 14 HTTP cases: no token, wrong
+  token, cross-client token, expired token, non-existent id (identical error — no id
+  probing), plus the positive paths. Inspected the DB afterwards to confirm rejected writes
+  didn't land and accepted ones did. One case (`checkin.submit`) came back "rejected" for the
+  **wrong reason** — the global check-in kill switch fired before my gate — so I enabled
+  check-ins and re-ran it properly. A pass for the wrong reason is not a pass.
+- **Still unverified:** staff-session and signed-in-owner paths (need real OAuth) and guest
+  checkout through Stripe in a browser. Typecheck/tests/build all pass on code where the
+  client funnel is broken, so those aren't evidence.
+- Extended the integration harness 10 → 17 tables (check-ins, intake form, notifications,
+  site settings) from the prod snapshot; verified they load on a fresh volume.
+- **Two harness/tooling findings, both Farjad's territory:** `pnpm db:push` **cannot work** —
+  `drizzle-kit generate` emits **zero** `PRIMARY KEY` clauses and a quoted
+  `DEFAULT 'CURRENT_TIMESTAMP'`, both rejected by MySQL. And `pnpm testdb:up` returns healthy
+  while init scripts are still running, so an immediate query sees an empty schema.
+- Deleted `phone-collection.test.ts` + `enrollment-notifications-csv.test.ts` (363 lines,
+  every assertion a literal compared to itself, all about the deleted endpoint) and the same
+  junk block inside `intakeFormFlow.test.ts` — kept that file, it genuinely exercises the
+  mailer. Also fixed a latent cold-cache flake there: each test re-imports `emailService`
+  under `vi.resetModules()` (~4s) against a 5s default, so it passed warm and failed cold.
+- Suite: **1623 passing / 121 files** (was 1661/123 — exactly the 38 junk tests removed).
+  Ratchet 720 vs baseline 723. Build clean.
+
 ## 2026-07-29 (evening)
 - **Sealed local dev.** `APP_ENV` defaulted to `'production'`, so with the committed `.env`
   (prod DB + real Resend sender) simply running `pnpm dev` started ~20 crons mailing real

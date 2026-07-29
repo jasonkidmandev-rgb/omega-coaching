@@ -82,7 +82,35 @@ The gate is the existing choke point, renamed `isStaging()` → `sideEffectsDisa
   (`getAppBaseUrl()` / `getRequestBaseUrl(origin)`), fallback `https://www.humanedge.health`.
   **Action for whoever has Railway access: confirm `VITE_APP_URL` is actually set on the
   service.**
-- **Six unauthenticated endpoints expose client data (launch blockers).** `publicProcedure`
+- **✅ All six unauthenticated endpoints are now closed (2026-07-29, Saboor). Read this
+  before touching any client-facing endpoint.** The pattern to copy is
+  `authorizeEnrollmentAccess` in `transformationRouter.ts` and `authorizeCheckinAccess` in
+  `checkinRouter.ts`: **staff role | signed-in owner | token**, throwing an *identical*
+  error for "not found" and "not yours" so ids can't be probed.
+  - **The lesson worth keeping:** `completePaymentPublic` was a **master key**. It was
+    unauthenticated, took any `enrollmentId`, needed no proof of payment, and **returned a
+    30-day `authToken`**. So the token gate on `getEnrollmentPublic` — which I'd already
+    marked fixed — was bypassable. *Gating an endpoint on a token proves nothing until you
+    also check what can mint that token.* Grep for anything that returns `authToken` or
+    `accessToken` to its caller before trusting a token gate.
+  - Client accounts have role `'user'`, which is NOT in `STAFF_ROLES`
+    (`admin|manager|viewer|finance`). A staff-only check locks clients out of their own
+    data — every gate needs the owner path too.
+  - Tokens go in `sessionStorage`, never the URL: a URL token lands in browser history and
+    in the `Referer` header sent to Stripe.
+- **`pnpm db:push` is broken in this repo (relevant to Farjad as migration owner).**
+  `drizzle-kit generate` produces invalid MySQL from `drizzle/schema.ts`: **zero**
+  `PRIMARY KEY` clauses anywhere in the generated file (MySQL `ERROR 1075`), and
+  `DEFAULT 'CURRENT_TIMESTAMP'` emitted as a quoted string (`ERROR 1067`). The schema
+  definitions are missing `.primaryKey()`. To build a test DB, extract DDL from
+  `cutover/local-data/peptidecoach_snapshot_20260701.sql` instead — that's what
+  `test-harness/README.md` documents anyway.
+- **`pnpm testdb:up` returns before the schema is loaded.** `--wait` satisfies the
+  `mysqladmin ping` healthcheck while `docker-entrypoint-initdb.d` scripts are still
+  running, so a query issued immediately after sees **zero tables** and looks like a broken
+  harness. Poll for the tables, not the container. (Harness now covers 17 tables — the
+  check-in and intake-form tables were added 2026-07-29 to make the auth work verifiable.)
+- **(historical, now fixed) Six unauthenticated endpoints exposed client data.** `publicProcedure`
   is bare `t.procedure` — no middleware, only a 3000-req/15-min IP limit. Worst is
   `transformation.getIntakeForm({enrollmentId})`: no token, returns the full health intake
   (DOB, address, medications, diagnoses, mental-health history, substance use, emergency

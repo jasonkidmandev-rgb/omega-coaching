@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { router, adminProcedure, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { getDb, getSiteSetting, setSiteSetting } from "../db";
 import { 
@@ -17,6 +18,66 @@ async function db() {
   const database = await getDb();
   if (!database) throw new Error("Database not available");
   return database;
+}
+
+/**
+ * Authorize access to a single check-in.
+ *
+ * `/checkin/:id` is reachable two ways, so both have to keep working:
+ *   1. the emailed link, which carries the owning protocol's `accessToken` as `?token=`
+ *   2. the logged-in client dashboard (`CheckinLatest.tsx`), which links with no token
+ *
+ * Until 2026-07-29 this was neither: `getForClient` took a bare sequential integer and
+ * returned the check-in to anyone, exposing 397 records. Staff are deliberately NOT given
+ * a bypass here — admin surfaces have their own adminProcedure endpoints.
+ *
+ * Throws rather than returning null so callers can't accidentally treat "not allowed" as
+ * "not found" and carry on.
+ */
+async function authorizeCheckinAccess(
+  checkinId: number,
+  token: string | undefined,
+  userEmail: string | undefined,
+) {
+  const database = await db();
+
+  const [checkin] = await database
+    .select()
+    .from(checkins)
+    .where(eq(checkins.id, checkinId));
+
+  if (!checkin) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Check-in not found" });
+  }
+
+  // Path 1: magic-link token from the check-in email.
+  if (token) {
+    const { getClientProtocolByToken } = await import("../db");
+    const protocol = await getClientProtocolByToken(token);
+    if (protocol && protocol.id === checkin.clientProtocolId) {
+      return checkin;
+    }
+  }
+
+  // Path 2: signed-in client whose email owns the protocol this check-in belongs to.
+  // Same resolution rule as getClientHistoryAuth, kept case-insensitive.
+  if (userEmail) {
+    const [protocol] = await database
+      .select({ id: clientProtocols.id })
+      .from(clientProtocols)
+      .where(and(
+        eq(clientProtocols.id, checkin.clientProtocolId),
+        sql`LOWER(${clientProtocols.clientEmail}) = LOWER(${userEmail})`,
+      ));
+    if (protocol) {
+      return checkin;
+    }
+  }
+
+  throw new TRPCError({
+    code: "UNAUTHORIZED",
+    message: "This check-in link is invalid or has expired. Please use the link from your most recent check-in email.",
+  });
 }
 
 // MySQL json() columns come back as strings when the driver doesn't auto-parse
@@ -1416,17 +1477,10 @@ export const checkinRouter = router({
     }),
 
   getForClient: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
+    .input(z.object({ id: z.number(), token: z.string().optional() }))
+    .query(async ({ input, ctx }) => {
       const database = await db();
-      const [checkin] = await database
-        .select()
-        .from(checkins)
-        .where(eq(checkins.id, input.id));
-
-      if (!checkin) {
-        throw new Error("Check-in not found");
-      }
+      const checkin = await authorizeCheckinAccess(input.id, input.token, ctx.user?.email);
 
       // Get the template questions; fall back to default template if templateId is missing/invalid
       let [template] = checkin.templateId
@@ -1453,6 +1507,9 @@ export const checkinRouter = router({
   submit: publicProcedure
     .input(z.object({
       checkinId: z.number(),
+      // Same gate as getForClient — without this, anyone could post responses onto any
+      // client's check-in by guessing a sequential id.
+      token: z.string().optional(),
       responses: z.array(z.object({
         questionId: z.string(),
         questionText: z.string(),
@@ -1463,7 +1520,7 @@ export const checkinRouter = router({
         selectValue: z.string().optional(),
       })),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // Honor the global kill switch — when check-ins are disabled platform-wide,
       // reject submissions too, so outstanding links already in inboxes cannot be
       // completed while off.
@@ -1473,15 +1530,8 @@ export const checkinRouter = router({
 
       const database = await db();
 
-      // Get the check-in
-      const [checkin] = await database
-        .select()
-        .from(checkins)
-        .where(eq(checkins.id, input.checkinId));
-
-      if (!checkin) {
-        throw new Error("Check-in not found");
-      }
+      // Get the check-in (throws if the caller doesn't own it)
+      const checkin = await authorizeCheckinAccess(input.checkinId, input.token, ctx.user?.email);
 
       if (checkin.status === 'submitted' || checkin.status === 'reviewed') {
         throw new Error("Check-in already submitted");
@@ -2145,7 +2195,8 @@ export const checkinRouter = router({
       
       // Build the email
       const clientName = protocol.clientName || 'Client';
-      const checkinUrl = `${process.env.VITE_APP_URL || ''}/checkin/${checkinId}`;
+      // Token authorizes the client to open this check-in; getForClient rejects without it.
+      const checkinUrl = `${getAppBaseUrl()}/checkin/${checkinId}?token=${encodeURIComponent(protocol.accessToken)}`;
       
       const subject = (template.subject || 'Weekly Check-in')
         .replace(/\{\{clientName\}\}/g, clientName)
@@ -2240,7 +2291,7 @@ export const checkinRouter = router({
       
       const coachName = process.env.OWNER_NAME || 'Your Coach';
       const clientName = protocol.clientName || 'Client';
-      const checkinUrl = `${process.env.VITE_APP_URL || ''}/checkin/${checkin.id}`;
+      const checkinUrl = `${getAppBaseUrl()}/checkin/${checkin.id}?token=${encodeURIComponent(protocol.accessToken)}`;
       const weekNumber = checkin.weekNumber || 1;
       
       const subject = (template.subject || 'Weekly Check-in Reminder')

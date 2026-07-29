@@ -452,7 +452,8 @@ export async function sendScheduledCheckins() {
       // Send the consolidated check-in email (includes progress tracking from former progressReminderCron)
       if (protocol.clientEmail) {
         const clientName = protocol.clientName || 'Client';
-        const checkinUrl = `${getAppBaseUrl()}/checkin/${checkinId}`;
+        // Token authorizes the client to open this check-in; getForClient rejects without it.
+        const checkinUrl = `${getAppBaseUrl()}/checkin/${checkinId}?token=${encodeURIComponent(protocol.accessToken)}`;
         const dashboardUrl = `${getAppBaseUrl()}/dashboard`;
         
         // Fetch progress tracking data for this user
@@ -663,7 +664,7 @@ export async function sendCheckinReminders() {
         .where(eq(siteSettings.key, 'checkin_reminder_escalation_hours'));
       const reminderEscalationHours = reminderSetting?.value ? parseInt(reminderSetting.value) : 48;
       
-      const checkinUrl = `${process.env.VITE_APP_URL || ''}/checkin/${checkin.id}`;
+      const checkinUrl = `${getAppBaseUrl()}/checkin/${checkin.id}?token=${encodeURIComponent(protocol.accessToken)}`;
       
       // Send 24h reminder (between 24 hours and escalation hours)
       if (hoursSinceSent >= 24 && hoursSinceSent < reminderEscalationHours && !has24hReminder && reminder24Template) {

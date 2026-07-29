@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { IntakeFormWizard } from "@/components/IntakeFormWizard";
+import { rememberEnrollmentAccess } from "@/lib/enrollmentAccess";
 import {
   ClipboardList,
   Shield,
@@ -41,6 +42,9 @@ export default function IntakeLanding() {
         website: honeypot, // Honeypot - should always be empty for real users
       });
       if (result.success) {
+        // Authorizes the intake form for this guest. Only returned for a newly created
+        // enrollment — a resumed one has no token and must be reopened from the email.
+        rememberEnrollmentAccess(result.enrollmentId, (result as { accessToken?: string }).accessToken);
         setEnrollmentId(result.enrollmentId);
         if (result.existingEnrollment) {
           toast.info("Welcome back! Resuming your intake form.");

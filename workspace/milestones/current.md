@@ -97,21 +97,42 @@ Before editing `server/routers.ts` / `server/db.ts` / `drizzle/schema.ts`, add a
       `Owner: Saboor`
 - [x] **Test suite green + stable**, no-value tests removed (`7851dd8`).
       `Owner: Saboor`
-- [~] **LAUNCH BLOCKER — unauthenticated endpoints, 3 of 6 closed.**
-      `Owner: Saboor` (open items unassigned)
+- [x] **LAUNCH BLOCKER — unauthenticated endpoints, all 6 closed.** `Owner: Saboor`
       - ✅ `getEnrollmentPublic`: was handing out the `authToken` magic-link column to anyone
         counting integers, now requires that token and returns an explicit allow-list.
       - ✅ `capturePaymentPublic`: **deleted**. Marked orders paid with no Stripe check and had
         no caller, every `success_url` goes to `/payment/success`, the signed webhook was
         always the real path.
       - ✅ `refund.getByClient`: admin-gated (zero callers).
-      - ⛔ **Still open, and these are the hard ones:**
-        - `getIntakeForm`, 36 clients' full health intake by sequential id (the worst of the six).
-        - `checkin.getForClient`, 397 check-ins.
-        - `completePaymentPublic`, trusts client-supplied amount/tier.
-      - Each needs a token threaded through a client-facing flow that carries none today.
-        **Cannot be verified locally until the cron/`.env` item below is fixed**, so that's the real unblocker.
-      `Owner: ___`
+      - ✅ `completePaymentPublic`: **deleted.** ⚠️ This one was the *master key*: unauthenticated,
+        took any `enrollmentId`, required no proof of payment (`paymentId` was optional), and
+        **returned a freshly minted 30-day `authToken`** — so the token gate added to
+        `getEnrollmentPublic` was bypassable while it existed. It also overwrote the
+        enrollment's `email`/`clientName` with caller-supplied values, sending the
+        verification email wherever the caller asked (takeover, not just disclosure).
+        Its only caller in repo history was the unrouted `TransformationJourney.tsx`,
+        deleted in `4a15cc3`.
+      - ✅ `getIntakeForm` + `saveIntakeForm` + `submitIntakeForm`: gated on
+        **staff role | signed-in owner | enrollment `authToken`**. The two write siblings were
+        as open as the read — anyone could overwrite a client's medical intake.
+      - ✅ `checkin.getForClient` + `checkin.submit`: gated on
+        **protocol `accessToken` | signed-in owner**. `submit` was equally open (anyone could
+        post responses onto any client's check-in). Check-in emails now carry
+        `?token=<protocol accessToken>`.
+      - Tokens ride in `sessionStorage`, never the URL (a URL-borne token lands in browser
+        history and in the `Referer` sent to Stripe). Reuses the keys
+        `TransformationVerify.tsx` already wrote and nothing read.
+      - ⚠️ **Behaviour change to confirm with Jason:** `createDirectEnrollment` issues a token
+        only for enrollments it *creates*. The "resuming your existing journey" branch gets
+        none, because there `email` is an unverified claim — issuing one would make knowing a
+        client's email enough to read their medical history. Returning clients must reopen
+        from their email link.
+      - **Verified at runtime**, not just typechecked: real server, real MySQL, 14 HTTP cases
+        including cross-client tokens, expired tokens, and non-existent ids (which return an
+        identical error, so ids can't be probed). DB inspected afterwards to confirm the
+        rejected writes really didn't land. See `workspace/log/saboor.md`.
+      - **Still unverified:** the staff-session and signed-in-owner paths (need a real OAuth
+        login) and guest checkout through Stripe in a browser. Worth a pass before handoff.
 - [x] **Gate cron init so local dev can't mail real clients.** `Owner: Saboor`
       `server/_core/appEnv.ts` now derives the environment instead of defaulting to
       `'production'`. Railway and staging behave exactly as before; `pnpm dev` / vitest
@@ -128,6 +149,24 @@ Before editing `server/routers.ts` / `server/db.ts` / `drizzle/schema.ts`, add a
       `Owner: ___`
 - [ ] **Sleep Quality shows `/5` but is stored 1-10** (slider + server both `max 10`). 4-line fix.
       Surfaces: `ClientEdit.tsx:2448,2542`, `Enrollments.tsx:1252,1360`.
+      `Owner: ___`
+- [x] **Integration harness extended, 10 → 17 tables.** `Owner: Saboor`
+      The auth work couldn't be runtime-verified because the harness only had the identity
+      tables. Added `checkin_templates`, `checkins`, `checkin_responses`,
+      `intake_form_responses`, `intake_form_signatures`, `notifications`, `site_settings`,
+      extracted from the prod snapshot per the documented method and confirmed to load on a
+      fresh volume.
+- [ ] **⚠️ FARJAD (migration owner): `pnpm db:push` cannot work on this repo.**
+      `drizzle-kit generate` emits invalid MySQL from `drizzle/schema.ts` — **zero**
+      `PRIMARY KEY` clauses in the entire generated file, and `DEFAULT 'CURRENT_TIMESTAMP'`
+      quoted as a string literal. MySQL rejects both (`ERROR 1075`, then `ERROR 1067`).
+      Found while trying to build a test DB from the schema; worked around by extracting DDL
+      from the prod snapshot instead. The schema definitions are missing `.primaryKey()`.
+      `Owner: ___`
+- [ ] **`pnpm testdb:up` returns before the DB is ready.** `--wait` passes the `mysqladmin
+      ping` healthcheck while the `docker-entrypoint-initdb.d` scripts are still running, so
+      querying immediately after shows an empty schema and looks like a broken harness.
+      Wait for the tables, not the container. Worth a note in `test-harness/README.md`.
       `Owner: ___`
 
 ---

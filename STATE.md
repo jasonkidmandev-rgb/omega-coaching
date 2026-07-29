@@ -142,29 +142,54 @@ files, each in a client-facing link, all defaulting to the **old Manus site** �
 
 ## Open, verified problems
 
-### 🔴 Unauthenticated endpoints — 3 of 6 fixed 2026-07-29, 3 still open
+### ✅ Unauthenticated endpoints — all 6 closed 2026-07-29 (+3 write holes found alongside)
 `publicProcedure` is bare `t.procedure`, no middleware; only a 3000-req/15-min IP limit sits in
-front. Each takes a **sequential integer ID** and returns real client data.
+front. Each took a **sequential integer ID** and returned real client data.
 
 | Endpoint | Exposure | Status |
 |---|---|---|
-| `transformation.getIntakeForm` | Full health intake — DOB, address, medications, diagnoses, mental-health history, substance use, emergency contacts. **36 live forms in prod.** | 🔴 **OPEN — the worst one** |
-| `checkin.getForClient` | Any check-in by id (397 in prod) | 🔴 OPEN |
-| `transformation.completePaymentPublic` | Trusts client-supplied `amount` / `tier` / `clientEmail` | 🔴 OPEN |
+| `transformation.getIntakeForm` | Full health intake — DOB, address, medications, diagnoses, mental-health history, substance use, emergency contacts. **36 live forms in prod.** | ✅ staff \| owner \| token |
+| `transformation.saveIntakeForm` | **Write.** Overwrite any client's intake | ✅ same gate |
+| `transformation.submitIntakeForm` | **Write.** Submit any client's intake | ✅ same gate |
+| `checkin.getForClient` | Any check-in by id (397 in prod) | ✅ token \| owner |
+| `checkin.submit` | **Write.** Post responses onto any client's check-in | ✅ token \| owner |
+| `transformation.completePaymentPublic` | Marked paid with no payment proof **and returned a 30-day `authToken` for any enrollment** | ✅ **deleted** — see below |
 | `transformation.getEnrollmentPublic` | `SELECT *` + spread leaked the `authToken` magic-link column | ✅ requires the token, returns an explicit allow-list |
-| `customOrders.capturePaymentPublic` | Marked an order **paid with no Stripe verification** | ✅ **deleted** — see below |
+| `customOrders.capturePaymentPublic` | Marked an order **paid with no Stripe verification** | ✅ **deleted** |
 | `refund.getByClient` | Refund history by id | ✅ `adminProcedure` (it had no caller at all) |
 
-The correct pattern already exists in this codebase — `checkin.getClientHistory`,
-`getClientInventory`, `getClientDocuments` and `paymentPortal.getMyPayments` all resolve a
-protocol from an access token and scope the query to it. Copy it; this is not a rearchitecture.
+**The gate:** `authorizeEnrollmentAccess` (`transformationRouter.ts`) and
+`authorizeCheckinAccess` (`checkinRouter.ts`). Both accept **staff role | signed-in owner |
+token**, and both throw an *identical* error for "doesn't exist" and "not yours" so ids can't
+be probed. Client accounts are role `'user'` — not in `STAFF_ROLES` — so the owner path is
+required, not a nicety.
 
-**Why the remaining three are harder:** each is reached by a *client-facing flow* that currently
-carries no credential — the intake wizard is handed only an `enrollmentId`, and check-in emails
-link to `/checkin/<id>`. Securing them means threading a token through those flows (and
-re-issuing outstanding check-in links). That is very doable, but it changes the funnel, and
-**the funnel cannot be verified locally while the cron/prod-`.env` problem stands** (see the
-warning above). Gating the crons first is the cheapest way to de-risk this.
+> **⚠️ The correction worth remembering.** `getEnrollmentPublic` was marked fixed earlier the
+> same day, and that fix was **bypassable**. `completePaymentPublic` minted and *returned* a
+> 30-day `authToken` for any `enrollmentId`, unauthenticated, with `paymentId` optional — so
+> anyone could mint the very token the gate demanded. It also overwrote the enrollment's
+> `email`/`clientName` from the request body, sending the verification email wherever the
+> caller asked: account takeover, not just disclosure.
+> **A token gate proves nothing until you check what can mint the token.**
+> Its only caller in repo history was the unrouted `TransformationJourney.tsx` (deleted in
+> `4a15cc3`), so it was removed rather than secured.
+
+**How the token reaches clients:** `sessionStorage`, under the keys
+`TransformationVerify.tsx` already wrote and nothing read — never the URL, because a URL-borne
+token is written to browser history and sent to Stripe in the `Referer` header. Check-in emails
+now carry `?token=<protocol accessToken>`; `createDirectEnrollment` returns one **only for
+enrollments it creates**, never for one resumed by email (there, `email` is an unverified
+claim, so a token would make knowing an address enough to read a medical file). Returning
+clients must reopen from their email link — **a funnel change to confirm with Jason.**
+
+**Verification status — read before trusting this row.**
+Verified at runtime: real server, real MySQL (17-table harness), 14 HTTP cases — no token,
+wrong token, cross-client token, expired token, non-existent id, plus the positive paths; the
+DB was inspected afterwards to confirm rejected writes did not land and accepted ones did.
+**Not verified:** the staff-session and signed-in-owner paths (need a real OAuth login) and
+guest checkout through Stripe in a browser. Note that typecheck, the unit suite and the build
+*all passed* on an intermediate state where the entire client intake funnel was broken — they
+are not evidence for this area.
 
 **`capturePaymentPublic` was deleted rather than secured.** Every Stripe `success_url` in the
 codebase points at `/payment/success`; nothing linked to `/custom-order/:id/payment-success`.

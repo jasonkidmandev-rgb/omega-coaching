@@ -3,6 +3,7 @@ import { useLocation, useSearch } from "wouter";
 import { trpc } from "../lib/trpc";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { IntakeFormWizard } from "@/components/IntakeFormWizard";
+import { rememberEnrollmentAccess } from "@/lib/enrollmentAccess";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -292,6 +293,9 @@ export default function TransformationCheckout() {
 
       clearTimeout(timeoutId);
       if (result.success) {
+        // Persisted so the intake form still authorizes after the Stripe round-trip,
+        // which returns to /payment/success with only ?enrollmentId= in the URL.
+        rememberEnrollmentAccess(result.enrollmentId, (result as { accessToken?: string }).accessToken);
         setEnrollmentId(result.enrollmentId);
         if (result.existingEnrollment) {
           toast.info(result.message);

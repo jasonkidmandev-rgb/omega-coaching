@@ -17,6 +17,83 @@ async function db() {
   return database;
 }
 
+const STAFF_ROLES = ['admin', 'manager', 'viewer', 'finance'];
+
+/**
+ * Authorize access to one enrollment's intake form.
+ *
+ * The intake form is the most sensitive record in the app — DOB, address, medications,
+ * diagnoses, mental-health history, substance use, emergency contacts. Until 2026-07-29
+ * `getIntakeForm` / `saveIntakeForm` / `submitIntakeForm` took a bare sequential
+ * `enrollmentId` and served or overwrote any of the 36 live forms for anyone who could
+ * count.
+ *
+ * Three legitimate callers, so three accepted proofs:
+ *   1. staff session — the admin screens (Enrollments, ClientEdit) read this endpoint
+ *      directly and rely on its `data`-nested shape, so they keep using it
+ *   2. the signed-in client who owns the enrollment (matched on userId, else on email).
+ *      Client accounts have role 'user', which is NOT in STAFF_ROLES, so without this
+ *      path a logged-in client is locked out of their own intake form.
+ *   3. the enrollment's own `authToken`, which is what the intake email link carries
+ *
+ * Note the token is deliberately NOT accepted once expired, and `createDirectEnrollment`
+ * only hands one out for enrollments it just created — never for one resumed by email —
+ * otherwise knowing a client's email address would be enough to read their medical file.
+ */
+async function authorizeEnrollmentAccess(
+  enrollmentId: number,
+  accessToken: string | undefined,
+  user: { id?: number; email?: string | null; role?: string } | null | undefined,
+) {
+  if (user?.role && STAFF_ROLES.includes(user.role)) {
+    return;
+  }
+
+  const database = await db();
+  const result = await database.execute(sql`
+    SELECT userId, email, authToken, authTokenExpiresAt
+    FROM transformation_enrollments
+    WHERE id = ${enrollmentId}
+    LIMIT 1
+  `);
+  const rows = (result[0] as unknown) as any[];
+  const enrollment = rows?.[0];
+
+  // Deliberately identical error for "no such enrollment" and "not yours", so this can't
+  // be used to probe which enrollment ids exist.
+  const deny = () => {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "This link is invalid or has expired. Please use the most recent link from your enrollment email.",
+    });
+  };
+
+  if (!enrollment) deny();
+
+  // The signed-in owner of this enrollment.
+  if (user) {
+    if (enrollment.userId != null && user.id != null && enrollment.userId === user.id) {
+      return;
+    }
+    if (
+      typeof user.email === "string" && user.email.length > 0 &&
+      typeof enrollment.email === "string" &&
+      enrollment.email.toLowerCase() === user.email.toLowerCase()
+    ) {
+      return;
+    }
+  }
+
+  const tokenOk =
+    typeof accessToken === "string" && accessToken.length > 0 &&
+    typeof enrollment.authToken === "string" &&
+    enrollment.authToken.length > 0 &&
+    enrollment.authToken === accessToken &&
+    (!enrollment.authTokenExpiresAt || new Date(enrollment.authTokenExpiresAt) > new Date());
+
+  if (!tokenOk) deny();
+}
+
 // ============================================
 // ACCESS CODE MANAGEMENT
 // ============================================
@@ -416,11 +493,22 @@ export const transformationRouter = router({
       
       // Create enrollment without access code - always store name
       const clientName = name || ctx.user?.name || null;
+
+      // Mint the intake access token up front, for THIS newly created enrollment only.
+      // The caller just supplied the details, so handing them the token is safe here — and
+      // it's what lets them fill in the intake form in the same browser session, before any
+      // payment has happened. The two "existing enrollment" branches above deliberately
+      // return no token: there, `email` is an unverified claim, and issuing one would let
+      // anyone read a client's medical intake just by knowing their address.
+      const { randomBytes } = await import('crypto');
+      const accessToken = randomBytes(32).toString('hex');
+      const accessTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
       const result = await database.execute(sql`
-        INSERT INTO transformation_enrollments (userId, clientName, email, programType, tier, status, vipConcierge, vipConciergeFee)
-        VALUES (${userId}, ${clientName}, ${email}, ${programType}, ${tier}, 'enrolled', ${vipConcierge ? 1 : 0}, ${vipConciergeFee || null})
+        INSERT INTO transformation_enrollments (userId, clientName, email, programType, tier, status, vipConcierge, vipConciergeFee, authToken, authTokenExpiresAt)
+        VALUES (${userId}, ${clientName}, ${email}, ${programType}, ${tier}, 'enrolled', ${vipConcierge ? 1 : 0}, ${vipConciergeFee || null}, ${accessToken}, ${accessTokenExpiresAt.toISOString().slice(0, 19).replace('T', ' ')})
       `);
-      
+
       const insertId = (result[0] as any).insertId;
       
       // Admin notification
@@ -489,7 +577,7 @@ export const transformationRouter = router({
         await autoCreateOrLinkClient(database, insertId, email, name || ctx.user?.name || null);
       }
       
-       return { success: true, enrollmentId: insertId, tier, vipConcierge };
+       return { success: true, enrollmentId: insertId, tier, vipConcierge, accessToken };
     }),
 
   // Send checkout confirmation email after completing the full checkout flow
@@ -2012,8 +2100,9 @@ export const transformationRouter = router({
 
   // Get intake form data (public - for clients)
   getIntakeForm: publicProcedure
-    .input(z.object({ enrollmentId: z.number() }))
-    .query(async ({ input }) => {
+    .input(z.object({ enrollmentId: z.number(), accessToken: z.string().optional() }))
+    .query(async ({ input, ctx }) => {
+      await authorizeEnrollmentAccess(input.enrollmentId, input.accessToken, ctx.user);
       const database = await db();
       const result = await database.execute(sql`
         SELECT * FROM intake_form_responses WHERE enrollmentId = ${input.enrollmentId} LIMIT 1
@@ -2127,12 +2216,14 @@ export const transformationRouter = router({
   saveIntakeForm: publicProcedure
     .input(z.object({
       enrollmentId: z.number(),
+      accessToken: z.string().optional(),
       currentSection: z.number(),
       completedSections: z.array(z.number()),
       formData: z.record(z.string(), z.any()),
       signatures: z.record(z.string(), z.string()),
     }))
     .mutation(async ({ input, ctx }) => {
+      await authorizeEnrollmentAccess(input.enrollmentId, input.accessToken, ctx.user);
       const database = await db();
       const { enrollmentId, currentSection, completedSections, formData, signatures } = input;
       
@@ -2322,10 +2413,12 @@ export const transformationRouter = router({
   submitIntakeForm: publicProcedure
     .input(z.object({
       enrollmentId: z.number(),
+      accessToken: z.string().optional(),
       formData: z.record(z.string(), z.any()),
       signatures: z.record(z.string(), z.string()),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await authorizeEnrollmentAccess(input.enrollmentId, input.accessToken, ctx.user);
       const database = await db();
       const { enrollmentId, formData, signatures } = input;
       const fd = formData;
@@ -2868,141 +2961,27 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
     }),
 
   // ============================================
-  // PUBLIC PAYMENT COMPLETION (for guest users)
+  // PUBLIC PAYMENT COMPLETION — REMOVED 2026-07-29
   // ============================================
-
-  // Complete payment and generate magic link token for guest users
-  // Called after successful PayPal payment to update enrollment and allow seamless continuation
-  completePaymentPublic: publicProcedure
-    .input(z.object({
-      enrollmentId: z.number(),
-      paymentId: z.string().optional(), // Stripe payment intent ID or legacy PayPal order ID
-      paymentMethod: z.enum(["stripe", "manual", "paypal", "venmo"]),
-      clientEmail: z.string().email(),
-      clientName: z.string(),
-      clientPhone: z.string().optional(),
-      tier: z.string(),
-      amount: z.number(),
-      promoCodeId: z.number().optional(),
-      promoCode: z.string().optional(),
-      originalAmount: z.number().optional(),
-      discountAmount: z.number().optional(),
-    }))
-    .mutation(async ({ input }) => {
-      const database = await db();
-      const { enrollmentId, paymentId, paymentMethod, clientEmail, clientName, clientPhone, tier, amount, promoCodeId, promoCode, originalAmount, discountAmount } = input;
-      
-      console.log('[completePaymentPublic] Processing payment completion:', { enrollmentId, paymentMethod, clientEmail, tier, amount });
-      
-      // Verify enrollment exists
-      const enrollmentResult = await database.execute(sql`
-        SELECT * FROM transformation_enrollments WHERE id = ${enrollmentId}
-      `);
-      const enrollmentRows = (enrollmentResult[0] as unknown) as any[];
-      if (!enrollmentRows || enrollmentRows.length === 0) {
-        throw new Error("Enrollment not found");
-      }
-      
-      const enrollment = enrollmentRows[0];
-      
-      // Generate a secure magic link token (valid for 24 hours)
-      const crypto = await import('crypto');
-      const authToken = crypto.randomBytes(32).toString('hex');
-      const authTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-      
-      // Update enrollment with payment info, client info, and auth token
-      await database.execute(sql`
-        UPDATE transformation_enrollments 
-        SET 
-          status = 'coaching_paid',
-          coachingFeePaid = TRUE,
-          coachingFeePaidAt = NOW(),
-          coachingFeeAmount = ${amount},
-          coachingFeeStripePaymentId = ${paymentId || null},
-          email = ${clientEmail},
-          clientName = ${clientName},
-          phone = ${clientPhone || null},
-          authToken = ${authToken},
-          authTokenExpiresAt = ${authTokenExpiresAt.toISOString().slice(0, 19).replace('T', ' ')},
-          updatedAt = NOW()
-        WHERE id = ${enrollmentId}
-      `);
-      
-      console.log('[completePaymentPublic] Enrollment updated with payment and auth token');
-      
-      // Create in-app admin notification for payment received
-      try {
-        const notifDb = await db();
-        await notifDb.execute(sql`
-          INSERT INTO notifications (userId, type, title, message, createdAt)
-          SELECT u.id, 'payment_received',
-            ${`Payment Received: ${clientName} - $${amount}`},
-            ${`${clientName} (${clientEmail}) paid $${amount} via ${paymentMethod} for ${tier} tier transformation program`},
-            NOW()
-          FROM users u WHERE u.role = 'admin'
-        `);
-      } catch (notifErr) {
-        console.error('[completePaymentPublic] Failed to create in-app notification:', notifErr);
-      }
-      
-      // Send payment confirmation emails
-      try {
-        const baseUrl = getAppBaseUrl();
-        
-        await sendTransformationPaymentConfirmationEmail({
-          to: clientEmail,
-          clientName: clientName,
-          tier: tier,
-          amount: amount,
-          paymentMethod: paymentMethod,
-          baseUrl: baseUrl,
-          enrollmentId: enrollmentId,
-        });
-        
-        await sendTransformationPaymentAdminNotification({
-          clientName: clientName,
-          clientEmail: clientEmail,
-          tier: tier,
-          amount: amount,
-          paymentMethod: paymentMethod,
-          baseUrl: baseUrl,
-        });
-        
-        // Send verification email with magic link for account setup
-        const { sendGuestEnrollmentVerificationEmail, sendIntakeFormEmail } = await import('../emailService');
-        await sendGuestEnrollmentVerificationEmail({
-          to: clientEmail,
-          clientName: clientName,
-          tier: tier,
-          authToken: authToken,
-          enrollmentId: enrollmentId,
-          baseUrl: baseUrl,
-        });
-        
-        // Send dedicated intake form email with direct link
-        await sendIntakeFormEmail({
-          to: clientEmail,
-          clientName: clientName,
-          tier: tier,
-          enrollmentId: enrollmentId,
-          baseUrl: baseUrl,
-          authToken: authToken,
-        });
-        
-        console.log('[completePaymentPublic] Payment confirmation, verification, and intake form emails sent');
-      } catch (emailError) {
-        console.error('[completePaymentPublic] Failed to send payment emails:', emailError);
-        // Don't fail the whole operation if email fails
-      }
-      
-      // Return the auth token so frontend can use it for seamless continuation
-      return {
-        success: true,
-        authToken,
-        enrollmentId,
-        message: "Payment completed successfully. Use the auth token to continue your journey.",
-      };
-    }),
+  //
+  // `completePaymentPublic` was deleted. It was an unauthenticated mutation that took an
+  // arbitrary `enrollmentId` and a client-supplied `amount`/`tier`/`clientEmail`, marked the
+  // enrollment `coaching_paid` with NO payment verification (`paymentId` was optional), and
+  // then RETURNED a freshly minted 30-day `authToken` for that enrollment.
+  //
+  // That made it a master key: anyone could mint the magic-link token for any enrollment id,
+  // which defeats the token check on `getEnrollmentPublic` / `getIntakeForm`. It also
+  // overwrote the enrollment's `email` and `clientName` with attacker-supplied values, so the
+  // verification email went wherever the caller asked — account takeover, not just disclosure.
+  //
+  // Its only caller in the entire history of the repo was `TransformationJourney.tsx`, which
+  // was unrouted and was deleted in 4a15cc3. The live checkout (`TransformationCheckout.tsx`)
+  // uses `createDirectEnrollment` + `sendCheckoutConfirmation`; manual/Venmo payments are
+  // recorded through the authenticated admin surface. Nothing client-facing regressed.
+  //
+  // If a guest payment-completion endpoint is ever needed again, it MUST verify the payment
+  // against the provider (or accept only the signed webhook) and MUST NOT return an authToken
+  // to its caller — mail the magic link to the address already on the enrollment instead.
 
   // Verify auth token and get enrollment (for magic link authentication)
   verifyAuthToken: publicProcedure

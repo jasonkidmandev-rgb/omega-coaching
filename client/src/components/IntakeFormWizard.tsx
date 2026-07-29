@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { toLocaleTimeStringMT } from '@/lib/timezone';
+import { getEnrollmentAccess } from '@/lib/enrollmentAccess';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -186,6 +187,8 @@ interface IntakeFormWizardProps {
   userName?: string;
   userEmail?: string;
   userDob?: string;
+  /** Overrides the stored token; normally left unset so it resolves from sessionStorage. */
+  accessToken?: string;
   onComplete: () => void;
 }
 
@@ -195,8 +198,12 @@ export const IntakeFormWizard: React.FC<IntakeFormWizardProps> = ({
   userName,
   userEmail,
   userDob,
+  accessToken: accessTokenProp,
   onComplete,
 }) => {
+  // Guests prove ownership of the enrollment with this token. Signed-in clients and staff
+  // are authorized by session instead, and for them this is correctly undefined.
+  const accessToken = accessTokenProp ?? getEnrollmentAccess(enrollmentId);
   const [currentSection, setCurrentSection] = useState(1);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [signatures, setSignatures] = useState<Record<string, string>>({});
@@ -207,7 +214,7 @@ export const IntakeFormWizard: React.FC<IntakeFormWizardProps> = ({
 
   // Load existing form data
   const { data: existingForm, isLoading } = trpc.transformation.getIntakeForm.useQuery(
-    { enrollmentId },
+    { enrollmentId, accessToken },
     { enabled: !!enrollmentId }
   );
 
@@ -276,6 +283,7 @@ export const IntakeFormWizard: React.FC<IntakeFormWizardProps> = ({
     setIsSaving(true);
     await saveMutation.mutateAsync({
       enrollmentId,
+      accessToken,
       currentSection,
       completedSections,
       formData,
@@ -284,7 +292,7 @@ export const IntakeFormWizard: React.FC<IntakeFormWizardProps> = ({
     if (showToast) {
       toast.success('Progress saved');
     }
-  }, [enrollmentId, currentSection, completedSections, formData, signatures]);
+  }, [enrollmentId, accessToken, currentSection, completedSections, formData, signatures]);
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -408,6 +416,7 @@ export const IntakeFormWizard: React.FC<IntakeFormWizardProps> = ({
 
     await submitMutation.mutateAsync({
       enrollmentId,
+      accessToken,
       formData,
       signatures,
     });

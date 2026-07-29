@@ -14,7 +14,7 @@ import {
   Smile, Frown, Meh, Camera, Scale
 } from "lucide-react";
 import { format } from "date-fns";
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
 
 interface Question {
@@ -35,14 +35,18 @@ interface Response {
 export default function ClientCheckin() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
+  const search = useSearch();
   const checkinId = parseInt(params.id || "0");
+  // Check-in emails link to /checkin/:id?token=<protocol accessToken>. Signed-in clients
+  // arrive from the dashboard with no token and are authorized by session instead.
+  const token = new URLSearchParams(search).get("token") || undefined;
   
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<Response[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Fetch check-in details
-  const { data: checkin, isLoading, error } = trpc.checkin.getForClient.useQuery({ id: checkinId });
+  const { data: checkin, isLoading, error } = trpc.checkin.getForClient.useQuery({ id: checkinId, token });
   
   // Submit mutation
   const submitMutation = trpc.checkin.submit.useMutation({
@@ -117,6 +121,7 @@ export default function ClientCheckin() {
     const questionsData = checkin?.questions as Question[] || [];
     submitMutation.mutate({
       checkinId,
+      token,
       responses: responses.map((r, idx) => {
         const q = questionsData[idx];
         return {

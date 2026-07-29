@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Every test here calls vi.resetModules() and then re-imports emailService, so the module
+// graph is rebuilt from scratch each time (~4s cold). That raced the default 5s timeout and
+// failed only on a cold Vite cache — passing locally, failing on CI. Raise the budget rather
+// than hoist the import: the import has to happen AFTER vi.stubEnv, so it can't move.
+vi.setConfig({ testTimeout: 30000 });
+
 // Test the sendIntakeFormEmail function
 describe('sendIntakeFormEmail', () => {
   beforeEach(() => {
@@ -280,67 +286,5 @@ describe('Auto-Open Intake Form URL Params', () => {
     expect(intakeFormUrl).toContain('autoIntake=true');
     expect(intakeFormUrl).toContain('token=abc123');
     expect(intakeFormUrl).toContain('enrollmentId=210005');
-  });
-});
-
-// Test that intake form email is sent from all payment paths
-describe('Intake Form Email Integration Points', () => {
-  it('should be called from completePaymentPublic path', () => {
-    // Verify the integration exists by checking the function signature
-    const expectedParams = {
-      to: 'client@example.com',
-      clientName: 'Client',
-      tier: 'flagship',
-      enrollmentId: 1,
-      baseUrl: 'https://peptidecoach.pro',
-      authToken: 'token123',
-    };
-
-    expect(expectedParams).toHaveProperty('to');
-    expect(expectedParams).toHaveProperty('clientName');
-    expect(expectedParams).toHaveProperty('tier');
-    expect(expectedParams).toHaveProperty('enrollmentId');
-    expect(expectedParams).toHaveProperty('baseUrl');
-    expect(expectedParams).toHaveProperty('authToken');
-  });
-
-  it('should be called from adminUpdateEnrollmentStep path', () => {
-    const expectedParams = {
-      to: 'client@example.com',
-      clientName: 'Client',
-      tier: 'flagship',
-      enrollmentId: 1,
-      baseUrl: 'https://peptidecoach.pro',
-      // No authToken for admin-triggered path
-    };
-
-    expect(expectedParams).toHaveProperty('to');
-    expect(expectedParams).toHaveProperty('enrollmentId');
-    expect(expectedParams).not.toHaveProperty('authToken');
-  });
-
-  it('should be called from verifyPendingPayment path', () => {
-    const expectedParams = {
-      to: 'client@example.com',
-      clientName: 'Client',
-      tier: 'flagship',
-      enrollmentId: 1,
-      baseUrl: 'https://peptidecoach.pro',
-    };
-
-    expect(expectedParams).toHaveProperty('enrollmentId');
-    expect(expectedParams).toHaveProperty('baseUrl');
-  });
-
-  it('should be called from retryPaymentRecording paths', () => {
-    const expectedParams = {
-      to: 'client@example.com',
-      clientName: 'Client',
-      tier: 'flagship',
-      enrollmentId: 1,
-      baseUrl: 'https://peptidecoach.pro',
-    };
-
-    expect(expectedParams).toHaveProperty('enrollmentId');
   });
 });

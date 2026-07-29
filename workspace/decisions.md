@@ -15,6 +15,25 @@ with the date and the reason.
 - Data migration approach: full history at go-live vs backfill afterward (the ~1 week track).
 
 ## Decided (append-only: date, decision, why)
+- 2026-07-29, Client-facing endpoints authorize as **staff role | signed-in owner | token**,
+  and return an identical error for "doesn't exist" and "not yours". Helpers:
+  `authorizeEnrollmentAccess`, `authorizeCheckinAccess`. Why: `publicProcedure` is bare
+  `t.procedure`, so a sequential integer id was the only thing standing between the internet
+  and 36 clients' medical intakes. Client accounts are role `'user'`, so a staff-only check
+  would lock clients out of their own records — the owner path is required, not optional.
+- 2026-07-29, Access tokens live in `sessionStorage`, never in a URL. Why: the intake token
+  opens a full medical history; a URL-borne one is written to browser history and sent to
+  Stripe in the `Referer` header. sessionStorage is per-tab and dies with the tab, which
+  matches the life of the checkout flow.
+- 2026-07-29, `createDirectEnrollment` returns an access token **only for enrollments it
+  creates**, never for one resumed by email. Why: on the resume branch `email` is an
+  unverified claim, so returning a token would mean knowing a client's email address is
+  enough to read their medical intake. Cost: returning clients must reopen from their email
+  link rather than resuming in-browser. **Flag to Jason before launch.**
+- 2026-07-29, A token gate is only as strong as the mint. Before trusting one, grep for
+  anything that returns `authToken`/`accessToken` to its caller. Why: `completePaymentPublic`
+  minted and returned a 30-day token for any enrollment id, unauthenticated — which silently
+  defeated the token gate already shipped on `getEnrollmentPublic`.
 - 2026-07-29, `server/lib/appUrl.ts` is the only place the app's base URL is defined; never
   write a domain literal. Why: ~70 duplicated fallbacks all named the **old Manus site**, so
   a missing `VITE_APP_URL` would silently mail clients back to peptidecoach.pro instead of
