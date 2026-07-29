@@ -4,6 +4,22 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-07-29 (continued)
+- Reviewed Saboor's incoming work (security fixes, chat fix, dead-code removal, env
+  seal) and refreshed the milestone plan against it: reformatted `current.md` for
+  readability, marked done/partial items, added the open unauthenticated-endpoints
+  and env-seal findings under a new correctness section.
+- Reviewed the app's styling architecture (Tailwind v4, token-based but only ~30% of
+  the app actually uses the tokens) and, hands-on, restyled the admin sidebar: replaced
+  hardcoded navy with a proper token set, added the real HumanEdge mark/wordmark to the
+  header in place of a plain text label. Shipped `cfdf46a`.
+- Compared the app's dark theme against the real Omega Longevity site (screenshot) and
+  found it was noticeably darker and more saturated than the brand, hands-on, matched
+  the sidebar, login, and cover pages to the actual navy + flat gold palette, and set
+  it up as shared `--brand-*` tokens so the three surfaces stay in sync. Shipped `4cb2f75`.
+- Kept `current.md`/`CLAUDE.md` current as I went (auto-tracked both pieces of work).
+- Hours: ~
+
 ## 2026-07-29
 - Working session with Saboor: aligned scope, sequencing, and ownership; split the work
   so we avoid collisions in the big shared files.

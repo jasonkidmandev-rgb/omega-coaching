@@ -65,10 +65,21 @@ Before editing `server/routers.ts` / `server/db.ts` / `drizzle/schema.ts`, add a
 *Mostly open.*
 
 - [x] **Tailwind Typography plugin enabled**, fixes inert `prose` app-wide. Commit `57c3e00`.
-- [ ] **Extend the Omega Longevity / HumanEdge brand** (colours, fonts, buttons) across the
-      admin app, from the shared `HumanEdgeBrand` component.
+- [x] **Match sidebar/login/cover to the real Omega Longevity palette.** Was a neutral
+      near-black (`slate-950`) + amber-to-orange gradient, noticeably darker/more
+      saturated than the brand. Matched against `docs/OmegaLongevity.png`: deep navy
+      `#141b2e` background, flat champagne gold `#c9a869` accent (not a gradient),
+      dark-navy text on the gold CTA (matches the real button). Values are
+      `--brand-dark`/`--brand-gold` tokens in `index.css` (thin aliases over
+      `--sidebar-*`, one source of truth for all three surfaces). Commit `4cb2f75`.
+      `Owner: Farjad`
+- [ ] **Extend the Omega Longevity / HumanEdge brand further** (fonts, remaining admin
+      pages/buttons outside the sidebar) using the same `--brand-*` tokens.
       `Owner: ___`
-- [ ] **Set shared theme tokens** so styling stays consistent and easy to maintain.
+- [x] **Set shared theme tokens** so styling stays consistent and easy to maintain.
+      Done for the dark chrome (sidebar/login/cover) via `--sidebar-*`/`--brand-*`;
+      the wider app-page token sweep (178+ files on hardcoded Tailwind colors) is
+      still open, see the sidebar-restyle note above for the same pattern to reuse.
       `Owner: ___`
 
 ## D. Correctness / blockers found during the M1 app review
