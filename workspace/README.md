@@ -16,8 +16,13 @@ hygiene. All coordination, planning, and technical notes belong here.
   lives here. **Pick a task, put your name in its Owner slot, tick it when done.**
 - `claude/context.md`, shared context and findings for both Claude sessions. Read it
   when you start; add what you discover so the other's Claude doesn't repeat the work.
+- `claude/task-notes.md`, implementation detail behind `current.md` tasks. Claude-only —
+  `current.md` stays a clean one-line-per-task list; the technical trail (checklists,
+  exact values, edge cases) lives here instead, linked from `current.md` by heading.
 - `log/farjad.md` and `log/saboor.md`, each person's daily log. **Edit only your own.**
-- `decisions.md`, a short record of decisions and why.
+- `decisions.md`, open questions that need Farjad's or Jason's judgment call, plus a
+  dated record of what was decided and why. If it's a choice someone has to make, it
+  belongs here, not in `current.md`.
 
 ## Rules that keep us conflict-free
 - **Edit only your own log file.** Per-person files never conflict.

@@ -1,130 +1,81 @@
-# HumanEdge, Launch Milestones (v1, target ~Aug 12)
+# HumanEdge — Launch Milestones (target ~Aug 12)
 
-Specific deliverables per milestone. Each milestone is roughly one week; Farjad ~40h
-billed + planning, Saboor full-time. When a new requirement appears, add it under the
-most relevant milestone here (and, if current, into `current.md`).
+Roughly one milestone per week. Farjad ~40h billed + planning, Saboor full-time. When a
+new requirement appears, add it under the most relevant milestone here (and into
+`current.md` too if it belongs in the active one).
 
-Status refreshed 2026-07-29 against the code and the "Human Edge - To Farjad" doc.
-Legend: `[x]` done, `[~]` partial / in progress, `[ ]` open.
+Status refreshed 2026-07-30. Legend: `[x]` done · `[~]` partial/in progress · `[ ]` open.
 
-## M1, Stabilize + UI + theme (Week 1)  [ACTIVE]
-### Navigation & stability
-- [x] Whole-app re-render on every admin navigation fixed (5273297).
-- [x] Back buttons app-wide (T4 sweep 17f43d4 + 6607f58).
-- [~] Dead links / 404: 404 restored for `/admin/*` (a43fb6f); verify remaining paths.
-- [ ] Audit the 36 `window.location.href` + 11 internal `<a href="/…">` hard-reload
-      spots; convert internal navs to wouter, keep logout/external/post-payment.
-- [x] Launchpad Settings (admin page + `launchpadRouter`/`hubLinksRouter` + DB tables)
-      removed entirely, was fully disconnected from the real client `/launchpad` page.
-      Full detail in `current.md` / `claude/context.md`.
-- [ ] Dashboard / launchpad dead-ends cleanup (remaining nav cleanup, unrelated to the
-      settings removal above).
-- [ ] Verify Home page (HumanEdge cover) resolved across entry points.
-### UI / UX
-- [ ] Consolidate ~14 settings pages into one tabbed Settings page (`Settings`,
-      5x `Notification*`, 3x `Email*`, `Calendly`, `Integration`, `Templates`).
-- [ ] Layout tidy on the highest-traffic admin pages.
-- [ ] Desktop + mobile consistency for nav/UI changes.
-### Theme
-- [x] Tailwind Typography plugin enabled, `prose` works app-wide (57c3e00).
-- [ ] Extend Omega Longevity brand (colours, fonts, buttons) across admin app.
-- [ ] Shared theme tokens.
+## M1 — Stabilize, declutter nav, align theme (Week 1) [ACTIVE]
+Full task list lives in `current.md`. Summary: navigation stability and back-buttons are
+mostly done; what's left is the settings-tabs QA pass, extending the brand/theme across
+the rest of the admin app, and a handful of correctness fixes found during the initial
+app review.
 
-## M2, Declutter + chat (Week 2)
-### Remove (keep/go "go")
-- [x] AuditLogs, ContactAdmin, DataIntegrityAudit, EmailEngagement, OnboardingManager (5be7c4f).
-- [x] 14 dead tables dropped; 33 dead root `.mjs` scripts archived.
-- [ ] Programs, remove in settings + protocol build (remove dependencies too).
-- [ ] MasterclassVideos, remove; link out to the GHL masterclass instead.
-- [ ] AffiliatePartners, remove (first verify it is NOT wired into protocol building).
-- [ ] Daily Tools, remove.
-- [ ] Payment reminders, remove from protocol build.
-### Simplify / reorganize
-- [x] Launchpad Hub content trimmed to Jason's list (dd24c24, a74d986): keeps Omega Elite,
-      PeptidePro, Podcast; Trusted Partners + Coaching Plans now link out to
-      omegalongevity.com; removed Practitioner + the duplicate Omega Free card. Real
-      Results / testimonials deliberately left untouched (explicit instruction, not
-      relinked to the omegalongevity.com testimonial page). Admin settings for this page
-      removed entirely, see the M1 entry above; the page itself was always hardcoded, not
-      DB-driven, so removal was pure JSX edits.
-- [ ] Peptide cheat sheet: export current as image + link out to Omega Elite.
-- [ ] Email branding: keep but simplify.
-- [ ] Email preview: link to Email Branding, or remove.
-- [ ] Web Traffic: move under Team & Settings.
-- [ ] Kill redundant / duplicate views.
-### Team & roles
-- [~] Team -> People rename + security fix (People view added; `Team.tsx` still present;
-      finish rename and wire up per-person roles).
-### Chat
-- [x] Chat formatting (spacing + lists).
-- [ ] Show sender name in the universal chat.
+## M2 — Declutter + chat (Week 2)
+- [x] Remove unused admin pages (AuditLogs, ContactAdmin, DataIntegrityAudit,
+      EmailEngagement, OnboardingManager).
+- [x] Drop 14 dead database tables; archive 33 dead scripts.
+- [x] Trim the Launchpad hub page to Jason's keep list; send Trusted Partners and
+      Coaching Plans out to omegalongevity.com.
+- [ ] Remove Programs (from settings and the protocol build).
+- [ ] Remove Masterclass Videos; link out to the GHL masterclass instead.
+- [ ] Remove Affiliate Partners (verify first it isn't wired into protocol building).
+- [ ] Remove Daily Tools.
+- [ ] Remove payment reminders from the protocol build.
+- [ ] Export the peptide cheat sheet as an image; link out to Omega Elite.
+- [ ] Simplify email branding; decide the fate of Email Preview (see `decisions.md`).
+- [ ] Move Web Traffic under Team & Settings.
+- [ ] Remove redundant/duplicate views.
+- [~] Finish the Team → People rename and per-person roles.
+- [x] Fix chat formatting (spacing and lists).
+- [ ] Show the sender's name in the universal chat.
 - [ ] Move chat to the top of the client dashboard.
-- [ ] Edit messages in chat.
-- [ ] Fix chat photo uploads (Lisa: broken).
-- [ ] Basic to-do / action-item capability (review + optimize `MyActionItems`).
+- [ ] Support editing messages in chat.
+- [ ] Fix chat photo uploads.
+- [ ] Basic to-do / action-item capability.
 
-## M3, Core workflows + accurate data (Week 3)
-### Protocol build
-- [x] Client-buys vs we-ship handling (8a0d17a, a03358a, 8dee7b9, 9e1c234, 4c89ad6).
-- [ ] 2 / 3 / 6-month protocol lengths.
-- [ ] Remove Program dependencies from the build.
-- [ ] Sleep & Stress 7/5 rating bug (should be x/10).
-### Custom orders
-- [~] Client-facing + internal notes (script started).
-- [ ] View / change shipping address at checkout (this shipment or save to client record).
+## M3 — Core workflows and accurate data (Week 3)
+- [x] Handle client-buys vs we-ship correctly in the protocol build.
+- [ ] Support 2 / 3 / 6-month protocol lengths.
+- [ ] Remove Program dependencies from the protocol build.
+- [ ] Fix the Sleep & Stress rating bug (shows out of 5, stored out of 10).
+- [~] Client-facing and internal notes on custom orders.
+- [ ] Let staff view/change the shipping address at checkout.
 - [ ] Fix inaccurate product prices.
-### Fulfillment / packing slips
-- [~] Packing-slip insurance amount (script started).
-- [ ] Fulfillment-friendly slip for Kari: address, instructions, only stocked items,
-      exclude membership fee, insurance off-slip, invoice access.
-- [ ] Drop-ship breakdown (Omega vs drop-ship, multi-vendor) + tracking.
-- [ ] Payment-ready notification for custom orders (so team knows to ship).
-### Money / data
-- [x] Protocol pricing / totals accuracy (5a209df, d23c346, 2b557a2, a03358a).
-- [ ] Payment history: verify; fix Payment Mode (Jason: doesn't work).
-- [ ] Inventory accuracy (Kari: off at times).
-### Check-ins (client-facing)
-- [ ] Consolidate the client check-in from 8-10 screens into a few (keep required questions).
-- [ ] Progress photos: notice/list on the check-in screen + fix the oversized display.
-### Lisa project management
-- [ ] Add/remove tasks & subtasks in an individual project from the Master template.
+- [~] Packing-slip insurance amount.
+- [ ] Build a fulfillment-friendly packing slip: address, instructions, stocked items
+      only, no membership fee, insurance kept off the slip, invoice access.
+- [ ] Break down drop-ship vs Omega-stocked items, with tracking.
+- [ ] Notify the team when a custom order is paid and ready to ship.
+- [x] Fix protocol pricing/totals accuracy.
+- [ ] Verify payment history is accurate; fix Payment Mode.
+- [ ] Fix inventory accuracy.
+- [ ] Consolidate the client check-in from 8-10 screens down to a few.
+- [ ] Surface progress photos on the check-in screen; fix the oversized display.
+- [ ] Let a project's tasks/subtasks be added or removed from the Master template.
 
-## M4, Data migration + go-live (Week 4)
-- [ ] Migrate client history/records from Peptidecoach.pro (messages, protocols, results).
-- [ ] Final QA + fixes.
-- [ ] Switch fully off Manus.
-- Note: test suite cleaned (148 failing -> 15, 5df455d), so a red run now means something.
+## M4 — Data migration and go-live (Week 4)
+- [ ] Migrate client history from Peptidecoach.pro (messages, protocols, results).
+- [ ] Final QA pass.
+- [ ] Fully switch off Manus.
 
-## Held for v2 (post-launch, NOT in this launch)
-- Consolidated single-screen check-in workspace (Jason's #1).
-- Custom check-in templates per goal (energy vs weight-loss, etc.).
-- Private 1:1 chats.
-- Universal chat send-as / impersonate.
-- Master delegation list + action-items-for-clients (during check-in/chats); Siri = far future.
-- Twilio SMS (text <-> same message thread).
-- Broadcast messages to everyone.
-- Super-admin switch.
-- Peptide calculator, linkable to chats.
-- Account credits at checkout.
-- At-a-glance call dates + scheduling reminders; separate scheduling links per session.
-- Tag teammates in internal notes.
-- Pirate Ship integration.
-- Client dashboard overhaul (only necessary info).
-- Workflow template simplify (needs Lisa + Shannon collaboration).
-- Full granular role system + per-role landing pages.
-- Already built ahead: Shannon acquisition/retention dashboard + lead-pipeline consolidation.
+## Held for v2 (not part of this launch)
+Single-screen check-in workspace, custom check-in templates per goal, private 1:1 chats,
+send-as/impersonate in the universal chat, delegation list + client-facing action items,
+Twilio SMS, broadcast messages, a super-admin switch, a peptide calculator linked to
+chats, account credits at checkout, call-date/scheduling reminders, tagging teammates in
+notes, Pirate Ship integration, a client dashboard overhaul, workflow template
+simplification, and a full role system with per-role landing pages.
 
-## Decisions to make (Farjad; record in decisions.md)
-- Keep or drop: Notification Analysis, Notification History, Job Health, Team Email
-  Preferences, KPI Dashboard.
-- Site Settings: review, keep only what's needed.
-- Email preview: link to branding vs remove.
-
-## Keep as-is (no action)
+## Keep as-is (no action planned)
 Calendly, Categories, Coaching promos, Forms editor, Integrations, Protocol Items,
-Templates (keep the ability to add future templates; only Master is used today).
+Templates.
 
-## Pending input / reference
-- Loom #2 (protocol-build issues) not yet watched; likely adds M3 items.
-- Compare to Autotask, Jason to share an example.
-- Alex / GHL work on Omega side, coordinate via Vee.
+## Open decisions
+Tracked in `decisions.md`, not duplicated here.
+
+## Pending input
+- Loom #2 (protocol-build issues) — not yet watched, likely adds M3 items.
+- Compare to Autotask — Jason to share an example.
+- Alex / GHL work on the Omega side — coordinate via Vee.
