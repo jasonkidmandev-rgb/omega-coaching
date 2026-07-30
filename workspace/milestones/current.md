@@ -59,7 +59,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Seal local dev so it can't fire prod crons/emails. `Owner: Saboor` (notes: `context.md`)
 - [x] Extend the test-DB harness to cover the auth-related tables. `Owner: Saboor`
 - [ ] Confirm `VITE_APP_URL` is actually set on the Railway service. `Owner: ___`
-- [ ] Fix Sleep Quality showing `/5` when it's stored out of 10. `Owner: ___` (`ClientEdit.tsx:2448,2542`, `Enrollments.tsx:1252,1360`)
+- [x] Fix Sleep Quality showing `/5` when it's stored out of 10. `Owner: Saboor`
 - [ ] Fix `pnpm db:push` (blocked on Farjad's decision, see `decisions.md`). `Owner: Farjad`
 - [ ] Fix `pnpm testdb:up` returning before the DB is ready. `Owner: ___`
 - [ ] Browser-test the session-based auth paths (needs a real login, can't be done automated). `Owner: ___` (checklist: `task-notes.md#auth-browser-pass`)
