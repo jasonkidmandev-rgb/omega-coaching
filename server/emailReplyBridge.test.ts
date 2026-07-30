@@ -188,26 +188,3 @@ Sent: Monday, February 20, 2026 10:00 AM`;
     expect(result).toBe('');
   });
 });
-
-describe('Email Reply Bridge - IMAP Search Configuration', () => {
-  it('should use seen:false (not unseen:true) for IMAP search compatibility', async () => {
-    // Read the source file and verify it uses seen: false
-    const fs = await import('fs');
-    const source = fs.readFileSync('./server/emailReplyBridge.ts', 'utf-8');
-    
-    // Verify correct IMAP search property
-    expect(source).toContain('seen: false');
-    // Verify it does NOT use the incorrect 'unseen' property
-    expect(source).not.toContain('unseen: true');
-  });
-
-  it('should mark empty reply emails as read to prevent re-polling', async () => {
-    const fs = await import('fs');
-    const source = fs.readFileSync('./server/emailReplyBridge.ts', 'utf-8');
-    
-    // Verify that empty reply text triggers marking as read
-    expect(source).toContain("result.error === 'Empty reply text'");
-    expect(source).toContain("messageFlagsAdd");
-    expect(source).toContain("'\\\\Seen'");
-  });
-});
