@@ -25,7 +25,7 @@ interface ClientChatPanelProps {
 export function ClientChatPanel({ clientProtocolId, clientName, accessToken, className }: ClientChatPanelProps) {
   const [, setLocation] = useLocation();
   const editorRef = useRef<ChatEditorHandle>(null);
-  const scrollEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const previousLength = useRef<number | null>(null);
   const [loomUrl, setLoomUrl] = useState("");
   const [showLoomInput, setShowLoomInput] = useState(false);
@@ -50,8 +50,12 @@ export function ClientChatPanel({ clientProtocolId, clientName, accessToken, cla
   }, [clientProtocolId, comments.length]);
 
   useEffect(() => {
+    // Scroll only the message list itself, not scrollIntoView() - that walks up
+    // every scrollable ancestor (including the whole page) to bring the target
+    // into view, which was dragging the page scroll along with every new message.
     if (previousLength.current !== null && comments.length > previousLength.current) {
-      scrollEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      const el = messagesContainerRef.current;
+      el?.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     }
     previousLength.current = comments.length;
   }, [comments.length]);
@@ -104,7 +108,7 @@ export function ClientChatPanel({ clientProtocolId, clientName, accessToken, cla
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
         {comments.length === 0 ? (
           <p className="text-center text-sm text-gray-400 py-8">
             No messages yet. Say hello to your coach!
@@ -145,7 +149,6 @@ export function ClientChatPanel({ clientProtocolId, clientName, accessToken, cla
             </div>
           ))
         )}
-        <div ref={scrollEndRef} />
       </div>
 
       <div className="border-t border-gray-200 p-3 space-y-2 shrink-0">
