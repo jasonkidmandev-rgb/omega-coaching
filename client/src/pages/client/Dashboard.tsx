@@ -15,21 +15,15 @@ import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import {
   FileText,
-  ShoppingBag,
   MessageSquare,
   Calendar,
   ExternalLink,
   ChevronRight,
   Sparkles,
-  Sun,
-  Moon,
-  CloudSun,
   Package,
   Pill,
   Clock,
-  TrendingUp,
   CheckCircle,
-  AlertCircle,
   Play,
   BookOpen,
   Users,
@@ -42,9 +36,6 @@ import {
   Plus,
   Image,
   X,
-  Smile,
-  Meh,
-  Frown,
   Battery,
   BedDouble,
   Upload,
@@ -56,12 +47,9 @@ import {
   FolderOpen,
   Scale,
   ArrowLeft,
-  Gift,
-  FileCheck,
   Crown,
 } from "lucide-react";
 import { WelcomeMessage } from "@/components/WelcomeMessage";
-import { QuickStats } from "@/components/QuickStats";
 import { FullPageLoader } from "@/components/LoadingSpinner";
 import { SkeletonDashboard } from "@/components/ui/skeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -71,7 +59,6 @@ import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 export default function ClientDashboard() {
   const { user, loading: isAuthLoading } = useAuth();
   const [, setLocation] = useLocation();
-  const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
   const [showChatDrawer, setShowChatDrawer] = useState(false);
 
   // Fetch client's protocols grouped by visibility
@@ -242,25 +229,6 @@ export default function ClientDashboard() {
     return () => clearInterval(interval);
   }, [user]);
 
-  // Show welcome toast on first visit
-  useEffect(() => {
-    if (user && !hasSeenWelcome) {
-      const welcomeKey = `dashboard_welcome_${user.id}`;
-      const hasSeenBefore = localStorage.getItem(welcomeKey);
-      if (!hasSeenBefore) {
-        toast.success(
-          `Welcome to your dashboard, ${user.name?.split(' ')[0] || 'there'}!`,
-          {
-            duration: 4000,
-            icon: '👋',
-          }
-        );
-        localStorage.setItem(welcomeKey, 'true');
-      }
-      setHasSeenWelcome(true);
-    }
-  }, [user, hasSeenWelcome]);
-
   if (isAuthLoading || isProtocolLoading) {
     return (
       <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -366,52 +334,75 @@ export default function ClientDashboard() {
     },
   ];
 
-  // Client Corner links
-  const clientCornerLinks = [
+  // One consolidated action grid - was previously split across a "Quick Actions"
+  // button row and a separately-styled "Client Corner" card linking to mostly the
+  // same destinations. Referral Program dropped: that feature was removed elsewhere
+  // in the app and its route no longer exists.
+  const quickActions = [
     {
-      title: "Weekly Check-Ins",
-      description: "Submit your weekly progress check-in",
+      title: "Weekly Check-In",
+      description: "Submit your progress update",
       icon: ClipboardCheck,
-      href: "/checkin/latest",
-      color: "text-cyan-500",
-      bg: "bg-cyan-500/10",
+      color: "text-cyan-600",
+      bg: "bg-cyan-50",
+      onClick: () => setLocation('/checkin/latest'),
     },
     {
       title: "My Documents",
-      description: "Access labs, reports, and resources",
+      description: "Labs, reports & resources",
       icon: FolderOpen,
-      href: "/documents",
-      color: "text-indigo-500",
-      bg: "bg-indigo-500/10",
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
+      onClick: () => setLocation('/documents'),
     },
     {
       title: "My Inventory",
-      description: "Track your supplement inventory",
+      description: "Track supplies & reorder",
       icon: Package,
-      href: "/inventory",
-      color: "text-orange-500",
-      bg: "bg-orange-500/10",
+      color: "text-orange-600",
+      bg: "bg-orange-50",
+      onClick: () => setLocation('/inventory'),
     },
     {
       title: "My Metrics",
-      description: "Track weight, body fat, and progress",
+      description: "Weight, body fat & progress",
       icon: Scale,
-      href: "/metrics",
-      color: "text-pink-500",
-      bg: "bg-pink-500/10",
+      color: "text-pink-600",
+      bg: "bg-pink-50",
+      onClick: () => setLocation('/metrics'),
+    },
+    {
+      title: "Coaching Sessions",
+      description: "View & book your sessions",
+      icon: Calendar,
+      color: "text-violet-600",
+      bg: "bg-violet-50",
+      onClick: () => setLocation('/sessions'),
+    },
+    {
+      title: "Progress Photos",
+      description: "Upload & track your transformation",
+      icon: Camera,
+      color: "text-rose-600",
+      bg: "bg-rose-50",
+      onClick: () => {
+        const el = document.getElementById('progress-tracking');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        else setShowPhotoUpload(true);
+      },
     },
     {
       title: "Peptide Cheat Sheet",
-      description: "Quick reference guide for protocols",
+      description: "Quick reference guide",
       icon: BookOpen,
-      href: "/peptide-cheat-sheet",
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+      onClick: () => setLocation('/peptide-cheat-sheet'),
     },
-
   ];
 
-  // Resources section
+  // Resources section - "Educational Resources" dropped, it linked to the same
+  // Peptide Cheat Sheet page as the quick action above.
   const resources = [
     {
       title: "Omega Elite Community",
@@ -426,13 +417,6 @@ export default function ClientDashboard() {
       icon: Calendar,
       href: "https://peptidepro.app",
       external: true,
-    },
-    {
-      title: "Educational Resources",
-      description: "Learn about peptides and supplements",
-      icon: BookOpen,
-      href: "/peptide-cheat-sheet",
-      external: false,
     },
   ];
 
@@ -577,7 +561,7 @@ export default function ClientDashboard() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 px-4 bg-white border-blue-300 hover:bg-blue-50 hover:border-blue-400 justify-start group transition-all"
-                  onClick={() => setLocation('/masterclass')}
+                  onClick={() => setLocation('/transformation/masterclass')}
                 >
                   <div className="flex items-center gap-3 w-full">
                     <div className="p-2 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg group-hover:from-blue-200 group-hover:to-indigo-200 transition-all">
@@ -640,154 +624,117 @@ export default function ClientDashboard() {
           </Card>
         )}
 
-        {/* Quick Stats */}
+        {/* Protocol Overview - one hero replacing what used to be three separate
+            displays of the same status/duration info (a stats row, a status banner
+            further down the page, and again inside the milestone tracker). */}
         {myProtocol && (
-          <QuickStats
-            totalItems={includedItems.length}
-            durationMonths={myProtocol.durationMonths || 12}
-            totalCost={totalCost}
-            peptideCount={peptideCount}
-            supplementCount={supplementCount}
-            showCost={true}
-            className="mb-8"
-          />
+          <Card className="mb-8 border-gray-200 shadow-sm overflow-hidden py-0 gap-0">
+            <div className="bg-[#1e3a5f] px-6 py-5 flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-full ${
+                  myProtocol.status === 'active' ? 'bg-green-500/20' :
+                  myProtocol.status === 'approved' ? 'bg-blue-500/20' :
+                  'bg-amber-500/20'
+                }`}>
+                  {myProtocol.status === 'active' ? (
+                    <Play className="h-6 w-6 text-green-400" />
+                  ) : myProtocol.status === 'approved' ? (
+                    <CheckCircle className="h-6 w-6 text-blue-400" />
+                  ) : (
+                    <Clock className="h-6 w-6 text-amber-400" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    {myProtocol.status === 'active' ? 'Protocol Active' :
+                     myProtocol.status === 'approved' ? 'Protocol Approved' :
+                     myProtocol.status === 'pending_approval' ? 'Awaiting Your Approval' :
+                     'Protocol Status'}
+                  </h3>
+                  <p className="text-sm text-white/70">
+                    {myProtocol.status === 'pending_approval'
+                      ? 'Review and approve your protocol to get started'
+                      : `${myProtocol.durationMonths || 12} month program`}
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => myProtocol.accessToken && setLocation(`/protocol/${myProtocol.accessToken}`)}
+                className="bg-amber-500 hover:bg-amber-600 text-black"
+              >
+                {myProtocol.status === 'pending_approval' ? 'Review Protocol' : 'View Protocol'}
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-100 bg-white">
+              <div className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-50 shrink-0">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold text-gray-900">{myProtocol.durationMonths || 12} mo</p>
+                  <p className="text-xs text-gray-500">Duration</p>
+                </div>
+              </div>
+              <div className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-50 shrink-0">
+                  <Package className="h-4 w-4 text-purple-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold text-gray-900">{includedItems.length}</p>
+                  <p className="text-xs text-gray-500">Total Items</p>
+                </div>
+              </div>
+              <div className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-emerald-50 shrink-0">
+                  <Pill className="h-4 w-4 text-emerald-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold text-gray-900">{peptideCount}</p>
+                  <p className="text-xs text-gray-500">Peptides</p>
+                </div>
+              </div>
+              <div className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-50 shrink-0">
+                  <Award className="h-4 w-4 text-amber-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold text-gray-900">${totalCost.toFixed(0)}</p>
+                  <p className="text-xs text-gray-500">Investment</p>
+                </div>
+              </div>
+            </div>
+          </Card>
         )}
 
-        {/* Quick Actions - Urgent Items */}
+        {/* Quick Actions - one consolidated grid, was previously split across this
+            section and a separately-styled "Client Corner" card further down. */}
         {myProtocol && (
-          <Card className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+          <Card className="mb-8 bg-white border-gray-200 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-gray-900 flex items-center gap-2">
                 <Zap className="h-5 w-5 text-amber-500" />
                 Quick Actions
               </CardTitle>
               <CardDescription className="text-gray-600">
-                Items that need your attention
+                Everything you need, in one place
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Pending Check-In Action */}
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 px-4 bg-blue-50 border-blue-200 hover:bg-blue-100 justify-start"
-                  onClick={() => setLocation('/checkin/latest')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <ClipboardCheck className="h-5 w-5 text-blue-600" />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {quickActions.map((action) => (
+                  <div
+                    key={action.title}
+                    onClick={action.onClick}
+                    className="group p-4 rounded-xl bg-white border border-gray-200 hover:border-amber-300 hover:shadow-md transition-all cursor-pointer"
+                  >
+                    <div className={`inline-flex p-2.5 rounded-lg ${action.bg} mb-3`}>
+                      <action.icon className={`h-5 w-5 ${action.color}`} />
                     </div>
-                    <div className="text-left">
-                      <p className="font-medium text-gray-900">Weekly Check-In</p>
-                      <p className="text-xs text-gray-500">Submit your progress update</p>
-                    </div>
+                    <p className="font-medium text-gray-900 text-sm">{action.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{action.description}</p>
                   </div>
-                </Button>
-
-                {/* View Documents Action */}
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 px-4 bg-purple-50 border-purple-200 hover:bg-purple-100 justify-start"
-                  onClick={() => setLocation('/documents')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <FolderOpen className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium text-gray-900">My Documents</p>
-                      <p className="text-xs text-gray-500">View uploaded files & labs</p>
-                    </div>
-                  </div>
-                </Button>
-
-                {/* View Inventory Action */}
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 px-4 bg-green-50 border-green-200 hover:bg-green-100 justify-start"
-                  onClick={() => setLocation('/inventory')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Package className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium text-gray-900">My Inventory</p>
-                      <p className="text-xs text-gray-500">Track supplies & reorder</p>
-                    </div>
-                  </div>
-                </Button>
-
-                {/* View Metrics Action */}
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 px-4 bg-amber-50 border-amber-200 hover:bg-amber-100 justify-start"
-                  onClick={() => setLocation('/metrics')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-amber-100 rounded-lg">
-                      <Scale className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium text-gray-900">My Metrics</p>
-                      <p className="text-xs text-gray-500">View health measurements</p>
-                    </div>
-                  </div>
-                </Button>
-
-                {/* Referral Program Action */}
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 px-4 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 justify-start"
-                  onClick={() => setLocation('/referrals')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-100 rounded-lg">
-                      <Gift className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium text-gray-900">Referral Program</p>
-                      <p className="text-xs text-gray-500">Earn rewards by referring friends</p>
-                    </div>
-                  </div>
-                </Button>
-
-                {/* Coaching Sessions Action */}
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 px-4 bg-indigo-50 border-indigo-200 hover:bg-indigo-100 justify-start"
-                  onClick={() => setLocation('/sessions')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
-                      <Calendar className="h-5 w-5 text-indigo-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium text-gray-900">Coaching Sessions</p>
-                      <p className="text-xs text-gray-500">View & book your sessions</p>
-                    </div>
-                  </div>
-                </Button>
-                {/* Progress Photos Action */}
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 px-4 bg-pink-50 border-pink-200 hover:bg-pink-100 justify-start"
-                  onClick={() => {
-                    const el = document.getElementById('progress-tracking');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    else setShowPhotoUpload(true);
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-pink-100 rounded-lg">
-                      <Camera className="h-5 w-5 text-pink-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium text-gray-900">Progress Photos</p>
-                      <p className="text-xs text-gray-500">Upload & track your transformation</p>
-                    </div>
-                  </div>
-                </Button>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -1239,51 +1186,6 @@ export default function ClientDashboard() {
           </CardContent>
         </Card>
 
-        {/* Protocol Status Banner */}
-        {myProtocol && (
-          <Card className="mb-8 bg-[#1e3a5f] border-[#1e3a5f]">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-full ${
-                    myProtocol.status === 'active' ? 'bg-green-500/20' :
-                    myProtocol.status === 'approved' ? 'bg-blue-500/20' :
-                    'bg-amber-500/20'
-                  }`}>
-                    {myProtocol.status === 'active' ? (
-                      <Play className="h-6 w-6 text-green-400" />
-                    ) : myProtocol.status === 'approved' ? (
-                      <CheckCircle className="h-6 w-6 text-blue-400" />
-                    ) : (
-                      <Clock className="h-6 w-6 text-amber-400" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      {myProtocol.status === 'active' ? 'Protocol Active' :
-                       myProtocol.status === 'approved' ? 'Protocol Approved' :
-                       myProtocol.status === 'pending_approval' ? 'Awaiting Your Approval' :
-                       'Protocol Status'}
-                    </h3>
-                    <p className="text-sm text-white/70">
-                      {myProtocol.status === 'pending_approval' 
-                        ? 'Review and approve your protocol to get started'
-                        : `${myProtocol.durationMonths || 12} month program`}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => myProtocol.accessToken && setLocation(`/protocol/${myProtocol.accessToken}`)}
-                  className="bg-amber-500 hover:bg-amber-600 text-black"
-                >
-                  {myProtocol.status === 'pending_approval' ? 'Review Protocol' : 'View Protocol'}
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Quick Links Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {quickLinks.map((link) => (
@@ -1316,47 +1218,6 @@ export default function ClientDashboard() {
             </Card>
           ))}
         </div>
-
-        {/* Client Corner Section */}
-        <Card className="mb-8 bg-white border-gray-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-gray-900 flex items-center gap-2">
-              <Heart className="h-5 w-5 text-pink-500" />
-              Client Corner
-            </CardTitle>
-            <CardDescription className="text-gray-600">
-              Your personal health tracking hub
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {clientCornerLinks.map((link: any) => (
-                <div
-                  key={link.title}
-                  className="p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all cursor-pointer border border-gray-200 hover:border-amber-300"
-                  onClick={() => {
-                    if (link.external) {
-                      window.open(link.href, '_blank');
-                    } else if (link.href) {
-                      setLocation(link.href);
-                    } else if (link.noProtocolMessage) {
-                      alert(link.noProtocolMessage);
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={`p-2 rounded-lg ${link.bg}`}>
-                      <link.icon className={`h-5 w-5 ${link.color}`} />
-                    </div>
-                    <span className="font-medium text-gray-900">{link.title}</span>
-                    {link.external && <ExternalLink className="h-3 w-3 text-gray-400" />}
-                  </div>
-                  <p className="text-sm text-gray-500 ml-11">{link.description}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Resources Section */}
         <Card className="bg-white border-gray-200">
