@@ -65,11 +65,14 @@ import { QuickStats } from "@/components/QuickStats";
 import { FullPageLoader } from "@/components/LoadingSpinner";
 import { SkeletonDashboard } from "@/components/ui/skeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { ClientChatPanel } from "@/components/ClientChatPanel";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 
 export default function ClientDashboard() {
   const { user, loading: isAuthLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+  const [showChatDrawer, setShowChatDrawer] = useState(false);
 
   // Fetch client's protocols grouped by visibility
   const { data: myProtocols, isLoading: isProtocolLoading, refetch: refetchProtocols } = trpc.clientProtocol.getMyProtocols.useQuery(
@@ -456,7 +459,9 @@ export default function ClientDashboard() {
       </header>
 
       <PullToRefresh onRefresh={handleRefresh}>
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="lg:flex lg:items-start lg:gap-6">
+        <div className="flex-1 min-w-0 max-w-6xl">
         {/* Welcome Message */}
         <WelcomeMessage
           name={user.name || "Client"}
@@ -464,9 +469,10 @@ export default function ClientDashboard() {
           className="mb-6"
         />
 
-        {/* Recent Messages - kept near the top so a client sees new coach messages first */}
+        {/* Messages preview - mobile/tablet only; on desktop the chat panel to the
+            right is always visible, so this would just repeat the same content. */}
         {comments.length > 0 && (
-          <Card className="mb-8 bg-white border-gray-200 shadow-sm">
+          <Card className="mb-8 bg-white border-gray-200 shadow-sm lg:hidden">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-gray-900 flex items-center gap-2">
@@ -480,9 +486,9 @@ export default function ClientDashboard() {
                   variant="ghost"
                   size="sm"
                   className="text-purple-600 hover:text-purple-700"
-                  onClick={() => myProtocol?.accessToken && setLocation(`/protocol/${myProtocol.accessToken}#comments`)}
+                  onClick={() => setShowChatDrawer(true)}
                 >
-                  View All
+                  Open Chat
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
@@ -493,7 +499,7 @@ export default function ClientDashboard() {
                   <div
                     key={comment.id}
                     className="p-3 rounded-lg bg-gray-50 flex items-start gap-3 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => myProtocol?.accessToken && setLocation(`/protocol/${myProtocol.accessToken}#comments`)}
+                    onClick={() => setShowChatDrawer(true)}
                   >
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                       comment.authorType === 'coach' ? 'bg-amber-100' : 'bg-blue-100'
@@ -929,7 +935,7 @@ export default function ClientDashboard() {
                   My Progress Journey
                 </CardTitle>
                 <CardDescription className="text-gray-600">
-                  Track your transformation with photos and notes
+                  Track your transformation with photos, notes, and protocol milestones
                 </CardDescription>
               </div>
               <div className="flex gap-2">
@@ -965,6 +971,12 @@ export default function ClientDashboard() {
                   <FileEdit className="h-4 w-4 mr-1" />
                   Notes ({journeyNotes.length})
                 </TabsTrigger>
+                {myProtocol && includedItems.length > 0 && (
+                  <TabsTrigger value="progress" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+                    <Target className="h-4 w-4 mr-1" />
+                    Milestones
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="photos">
@@ -1123,121 +1135,109 @@ export default function ClientDashboard() {
                   </div>
                 )}
               </TabsContent>
+
+              {myProtocol && includedItems.length > 0 && (
+                <TabsContent value="progress">
+                  {/* Progress Overview */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">Overall Progress</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {Math.round((myProtocol.status === 'completed' ? 100 :
+                          myProtocol.status === 'active' ? 50 :
+                          myProtocol.status === 'approved' ? 25 : 10))}%
+                      </span>
+                    </div>
+                    <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-linear-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                        style={{ width: `${myProtocol.status === 'completed' ? 100 :
+                          myProtocol.status === 'active' ? 50 :
+                          myProtocol.status === 'approved' ? 25 : 10}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Milestones */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className={`p-4 rounded-lg ${myProtocol.status !== 'draft' ? 'bg-green-50 border border-green-200' : 'bg-gray-100'}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        {myProtocol.status !== 'draft' ? (
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <Clock className="h-5 w-5 text-gray-400" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900">Protocol Created</span>
+                      </div>
+                      <p className="text-xs text-gray-500">Your personalized protocol</p>
+                    </div>
+
+                    <div className={`p-4 rounded-lg ${['approved', 'active', 'completed'].includes(myProtocol.status) ? 'bg-green-50 border border-green-200' : 'bg-gray-100'}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        {['approved', 'active', 'completed'].includes(myProtocol.status) ? (
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <Clock className="h-5 w-5 text-gray-400" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900">Approved</span>
+                      </div>
+                      <p className="text-xs text-gray-500">Reviewed and confirmed</p>
+                    </div>
+
+                    <div className={`p-4 rounded-lg ${['active', 'completed'].includes(myProtocol.status) ? 'bg-green-50 border border-green-200' : 'bg-gray-100'}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        {['active', 'completed'].includes(myProtocol.status) ? (
+                          <Zap className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <Clock className="h-5 w-5 text-gray-400" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900">Active</span>
+                      </div>
+                      <p className="text-xs text-gray-500">Protocol in progress</p>
+                    </div>
+
+                    <div className={`p-4 rounded-lg ${myProtocol.status === 'completed' ? 'bg-amber-50 border border-amber-200' : 'bg-gray-100'}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        {myProtocol.status === 'completed' ? (
+                          <Award className="h-5 w-5 text-amber-600" />
+                        ) : (
+                          <Clock className="h-5 w-5 text-gray-400" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900">Completed</span>
+                      </div>
+                      <p className="text-xs text-gray-500">Journey complete!</p>
+                    </div>
+                  </div>
+
+                  {/* Item Breakdown */}
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <h4 className="text-sm font-medium text-gray-900 mb-4">Protocol Items</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <Pill className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-lg font-semibold text-gray-900">{peptideCount}</p>
+                          <p className="text-xs text-gray-500">Peptides</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
+                        <div className="p-2 bg-emerald-100 rounded-lg">
+                          <Package className="h-4 w-4 text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-lg font-semibold text-gray-900">{supplementCount}</p>
+                          <p className="text-xs text-gray-500">Supplements</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
             </Tabs>
           </CardContent>
         </Card>
-
-        {/* My Progress Tracker */}
-        {myProtocol && includedItems.length > 0 && (
-          <Card className="mb-8 bg-white border-gray-200 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-gray-900 flex items-center gap-2">
-                <Target className="h-5 w-5 text-amber-500" />
-                My Progress
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                Track your protocol journey and achievements
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Progress Overview */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Overall Progress</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {Math.round((myProtocol.status === 'completed' ? 100 : 
-                      myProtocol.status === 'active' ? 50 : 
-                      myProtocol.status === 'approved' ? 25 : 10))}%
-                  </span>
-                </div>
-                <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
-                    style={{ width: `${myProtocol.status === 'completed' ? 100 : 
-                      myProtocol.status === 'active' ? 50 : 
-                      myProtocol.status === 'approved' ? 25 : 10}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Milestones */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className={`p-4 rounded-lg ${myProtocol.status !== 'draft' ? 'bg-green-50 border border-green-200' : 'bg-gray-100'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {myProtocol.status !== 'draft' ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <Clock className="h-5 w-5 text-gray-400" />
-                    )}
-                    <span className="text-sm font-medium text-gray-900">Protocol Created</span>
-                  </div>
-                  <p className="text-xs text-gray-500">Your personalized protocol</p>
-                </div>
-
-                <div className={`p-4 rounded-lg ${['approved', 'active', 'completed'].includes(myProtocol.status) ? 'bg-green-50 border border-green-200' : 'bg-gray-100'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {['approved', 'active', 'completed'].includes(myProtocol.status) ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <Clock className="h-5 w-5 text-gray-400" />
-                    )}
-                    <span className="text-sm font-medium text-gray-900">Approved</span>
-                  </div>
-                  <p className="text-xs text-gray-500">Reviewed and confirmed</p>
-                </div>
-
-                <div className={`p-4 rounded-lg ${['active', 'completed'].includes(myProtocol.status) ? 'bg-green-50 border border-green-200' : 'bg-gray-100'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {['active', 'completed'].includes(myProtocol.status) ? (
-                      <Zap className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <Clock className="h-5 w-5 text-gray-400" />
-                    )}
-                    <span className="text-sm font-medium text-gray-900">Active</span>
-                  </div>
-                  <p className="text-xs text-gray-500">Protocol in progress</p>
-                </div>
-
-                <div className={`p-4 rounded-lg ${myProtocol.status === 'completed' ? 'bg-amber-50 border border-amber-200' : 'bg-gray-100'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {myProtocol.status === 'completed' ? (
-                      <Award className="h-5 w-5 text-amber-600" />
-                    ) : (
-                      <Clock className="h-5 w-5 text-gray-400" />
-                    )}
-                    <span className="text-sm font-medium text-gray-900">Completed</span>
-                  </div>
-                  <p className="text-xs text-gray-500">Journey complete!</p>
-                </div>
-              </div>
-
-              {/* Item Breakdown */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="text-sm font-medium text-gray-900 mb-4">Protocol Items</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Pill className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-lg font-semibold text-gray-900">{peptideCount}</p>
-                      <p className="text-xs text-gray-500">Peptides</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
-                    <div className="p-2 bg-emerald-100 rounded-lg">
-                      <Package className="h-4 w-4 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-lg font-semibold text-gray-900">{supplementCount}</p>
-                      <p className="text-xs text-gray-500">Supplements</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Protocol Status Banner */}
         {myProtocol && (
@@ -1468,8 +1468,48 @@ export default function ClientDashboard() {
             </CardContent>
           </Card>
         )}
+        </div>
 
-      </div>
+        {/* Chat panel - sticky to the right on desktop, always visible so a client
+            never has to leave the dashboard to read or reply to their coach. */}
+        <aside className="hidden lg:block w-90 shrink-0 sticky top-20 self-start h-[calc(100vh-6rem)]">
+          <div className="h-full rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <ClientChatPanel
+              clientProtocolId={myProtocol?.id}
+              clientName={user.name || undefined}
+              accessToken={myProtocol?.accessToken}
+              className="h-full"
+            />
+          </div>
+        </aside>
+        </div>
+        </div>
+
+        {/* Mobile/tablet: chat lives behind a floating button + slide-up drawer,
+            there's no room for a fixed side panel on a small screen. */}
+        <Button
+          size="icon"
+          className="lg:hidden fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full shadow-lg bg-purple-500 hover:bg-purple-600"
+          onClick={() => setShowChatDrawer(true)}
+        >
+          <MessageSquare className="h-6 w-6 text-white" />
+          {unreadComments > 0 && (
+            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+              {unreadComments}
+            </span>
+          )}
+        </Button>
+        <Drawer open={showChatDrawer} onOpenChange={setShowChatDrawer}>
+          <DrawerContent className="h-[85vh]">
+            <DrawerTitle className="sr-only">Messages</DrawerTitle>
+            <ClientChatPanel
+              clientProtocolId={myProtocol?.id}
+              clientName={user.name || undefined}
+              accessToken={myProtocol?.accessToken}
+              className="h-full"
+            />
+          </DrawerContent>
+        </Drawer>
 
       {/* Photo Upload Dialog */}
       <Dialog open={showPhotoUpload} onOpenChange={setShowPhotoUpload}>
