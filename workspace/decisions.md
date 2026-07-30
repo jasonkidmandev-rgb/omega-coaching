@@ -41,7 +41,9 @@ and the reason.
   become one view with a filter. Actually removing anything is M2 work, not now.
 - **Site Settings page: review what's actually needed and simplify it.**
 - **Which milestone do these belong in — M3 or v2?** Client-facing check-in
-  consolidation, progress photos, client dashboard overhaul, Lisa's project-task feature.
+  consolidation, surfacing progress photos on the check-in screen, Lisa's project-task
+  feature. (Client dashboard overhaul moved to M1; the progress-photo display-size bug
+  moved to M1 too — both were UI fixes, not the bigger feature question below them.)
 - **How do we migrate client history — everything at go-live, or backfill afterward?**
   Affects the ~1-week data-migration track in M4.
 

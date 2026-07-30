@@ -37,6 +37,11 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [ ] Layout tidy on the highest-traffic admin pages. `Owner: ___`
 - [ ] Desktop + mobile consistency pass on recent nav/UI changes. `Owner: ___`
 - [x] Restyle the admin sidebar to the HumanEdge brand. `Owner: Farjad`
+- [ ] Client dashboard overhaul (Jason: "needs an overhaul"). `Owner: ___`
+- [ ] Show sender name in the universal chat. `Owner: ___`
+- [ ] Move chat to the top of the client dashboard. `Owner: ___`
+- [ ] Move Web Traffic under Team & Settings. `Owner: ___`
+- [ ] Fix the oversized progress-photo display on the check-in screen. `Owner: ___`
 
 ## C. Theme
 - [x] Enable Tailwind Typography plugin (fixes `prose` app-wide). `Owner: Saboor`

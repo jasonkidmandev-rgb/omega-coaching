@@ -25,12 +25,9 @@ app review.
 - [ ] Remove payment reminders from the protocol build.
 - [ ] Export the peptide cheat sheet as an image; link out to Omega Elite.
 - [ ] Simplify email branding; decide the fate of Email Preview (see `decisions.md`).
-- [ ] Move Web Traffic under Team & Settings.
 - [ ] Remove redundant/duplicate views.
 - [~] Finish the Team → People rename and per-person roles.
 - [x] Fix chat formatting (spacing and lists).
-- [ ] Show the sender's name in the universal chat.
-- [ ] Move chat to the top of the client dashboard.
 - [ ] Support editing messages in chat.
 - [ ] Fix chat photo uploads.
 - [ ] Basic to-do / action-item capability.
@@ -39,7 +36,6 @@ app review.
 - [x] Handle client-buys vs we-ship correctly in the protocol build.
 - [ ] Support 2 / 3 / 6-month protocol lengths.
 - [ ] Remove Program dependencies from the protocol build.
-- [ ] Fix the Sleep & Stress rating bug (shows out of 5, stored out of 10).
 - [~] Client-facing and internal notes on custom orders.
 - [ ] Custom-order Internal Notes should also surface outside the Custom Orders view
       (e.g. on the client record), not just there.
@@ -54,7 +50,7 @@ app review.
 - [ ] Verify payment history is accurate; fix Payment Mode.
 - [ ] Fix inventory accuracy.
 - [ ] Consolidate the client check-in from 8-10 screens down to a few.
-- [ ] Surface progress photos on the check-in screen; fix the oversized display.
+- [ ] Surface progress photos on the check-in screen (display-size fix moved to M1).
 - [ ] Let a project's tasks/subtasks be added or removed from the Master template.
 
 ## M4 — Data migration and go-live (Week 4)
@@ -67,8 +63,8 @@ Single-screen check-in workspace, custom check-in templates per goal, private 1:
 send-as/impersonate in the universal chat, delegation list + client-facing action items,
 Twilio SMS, broadcast messages, a super-admin switch, a peptide calculator linked to
 chats, account credits at checkout, call-date/scheduling reminders, tagging teammates in
-notes, Pirate Ship integration, a client dashboard overhaul, workflow template
-simplification, and a full role system with per-role landing pages.
+notes, Pirate Ship integration, workflow template simplification, and a full role system
+with per-role landing pages.
 
 ## Keep as-is (no action planned)
 Calendly, Categories, Coaching promos, Forms editor, Integrations, Protocol Items,
