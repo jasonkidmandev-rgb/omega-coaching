@@ -255,8 +255,8 @@ export default function ClientDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button 
-              className="w-full bg-amber-500 hover:bg-amber-600 text-black"
+            <Button
+              className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90"
               onClick={() => window.location.href = getLoginUrl('/dashboard')}
             >
               Sign In
@@ -392,17 +392,17 @@ export default function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header with Logo - Navy Background */}
-      <header className="border-b border-gray-200 bg-[#1e3a5f] sticky top-0 z-40">
+      {/* Header - real Omega Longevity brand navy, matches the sidebar/login/cover */}
+      <header className="border-b border-brand-border bg-brand-dark sticky top-0 z-40">
         <div className="container max-w-6xl py-3 px-4">
           <div className="flex items-center justify-between">
             <a href="https://www.humanedge.health" className="bg-white rounded-lg px-3 py-1.5 inline-block">
               <img src="/omega-longevity-logo.png" alt="Omega Longevity" className="h-6 md:h-8" />
             </a>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="border-amber-400 text-amber-400 hover:bg-amber-500 hover:text-white hover:border-amber-500"
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-gold-foreground"
               onClick={() => setLocation("/launchpad")}
             >
               <Sparkles className="h-4 w-4 mr-2" />
@@ -599,7 +599,7 @@ export default function ClientDashboard() {
             further down the page, and again inside the milestone tracker). */}
         {myProtocol && (
           <Card className="mb-8 border-gray-200 shadow-sm overflow-hidden py-0 gap-0">
-            <div className="bg-[#1e3a5f] px-6 py-5 flex items-center justify-between flex-wrap gap-4">
+            <div className="bg-brand-dark px-6 py-5 flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-full ${
                   myProtocol.status === 'active' ? 'bg-green-500/20' :
@@ -630,7 +630,7 @@ export default function ClientDashboard() {
               </div>
               <Button
                 onClick={() => myProtocol.accessToken && setLocation(`/protocol/${myProtocol.accessToken}`)}
-                className="bg-amber-500 hover:bg-amber-600 text-black"
+                className="bg-brand-gold text-brand-gold-foreground hover:opacity-90"
               >
                 {myProtocol.status === 'pending_approval' ? 'Review Protocol' : 'View Protocol'}
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -1067,7 +1067,7 @@ export default function ClientDashboard() {
                     </div>
                     <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-linear-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                        className="h-full bg-brand-gold rounded-full transition-all duration-500"
                         style={{ width: `${myProtocol.status === 'completed' ? 100 :
                           myProtocol.status === 'active' ? 50 :
                           myProtocol.status === 'approved' ? 25 : 10}%` }}
