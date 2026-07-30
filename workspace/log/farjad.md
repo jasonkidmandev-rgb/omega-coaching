@@ -4,6 +4,14 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-07-30 (continued, 5)
+- Shrunk the welcome card on the client dashboard (was a full padded Card with an icon
+  circle and a sentence of copy just to say hello, now a slim inline row) and applied
+  the real Omega Longevity brand tokens to the page's chrome (header, status hero card,
+  primary buttons, progress bar) instead of the old ad-hoc navy/amber mix, matching the
+  sidebar/login/cover work from earlier this session. Left per-card accent colors alone.
+- Hours: ~
+
 ## 2026-07-30 (continued, 4)
 - Got sign-off to act on the dashboard audit list instead of leaving it as a proposal,
   plus real client credentials and a live screenshot to confirm the chat panel actually
