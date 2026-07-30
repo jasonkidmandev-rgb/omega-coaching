@@ -200,3 +200,30 @@ render the live JS-heavy site): deep navy `#141b2e` background, flat champagne g
 `--brand-dark` / `--brand-gold` in `index.css`, thin aliases over `--sidebar-*` so
 sidebar/login/cover share one source of truth. Use these tokens (not new hex values) when
 extending the brand to more of the app.
+
+## layout-tidy
+
+**Highest-traffic admin pages** — `page_views` has 9,449 rows but **zero `/admin` paths**
+(the tracker only covers public/client pages), so traffic can't be measured. Used the app's
+own signal instead: the pinned sidebar items (My Action Items, KPI Dashboard, Message Inbox,
+Fulfillment Queue — the last carries a comment calling it "the actual daily work tool for
+processing orders") plus the core-workflow pages (Clients, ClientEdit, Enrollments,
+Check-ins, Prospects).
+
+**Fixed: double page padding.** `AdminLayout` already wraps every admin page in
+`<main className="flex-1 p-3 md:p-6">`. Five pages added their own padding on top, so their
+content sat ~24px further in than the ~9 pages that use a bare `space-y-6`:
+MyActionItems, FulfillmentQueue, KPIDashboard (`p-6 …`), Prospects (`space-y-6 p-6`),
+Inbox (`p-3 sm:p-6`). Class strings only; each edit asserted a single unique match plus
+unchanged brace/paren counts.
+
+**Checked and NOT a problem: table overflow.** 18 admin pages appeared to have tables with no
+`overflow-x` container. All false positives — the shadcn `Table` primitive already wraps
+itself in `<div class="relative w-full overflow-x-auto">`. The only raw `<table>` without one
+(Inventory) is inside a print/export HTML template string, not JSX. No fix needed; don't
+re-investigate.
+
+**Open design question (needs the browser pass, not a code decision):** MyActionItems,
+FulfillmentQueue and KPIDashboard clamp to `max-w-7xl mx-auto`; the other ~9 admin pages are
+full-width. Left as-is deliberately — picking one is a design call, and it's a visible change
+best made while looking at the screens.

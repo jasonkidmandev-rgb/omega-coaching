@@ -34,7 +34,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Consolidate 13 settings pages into one tabbed Settings page. `Owner: Saboor` (notes: `task-notes.md#settings-tabs`)
 - [x] Tidy spacing and tab-rail scrolling on the new Settings tabs. `Owner: Saboor`
 - [ ] Browser-test the new Settings tabs page end to end. `Owner: ___` (checklist: `task-notes.md#settings-tabs-qa`)
-- [ ] Layout tidy on the highest-traffic admin pages. `Owner: ___`
+- [~] Layout tidy on the highest-traffic admin pages. `Owner: Saboor`
 - [ ] Desktop + mobile consistency pass on recent nav/UI changes. `Owner: ___`
 - [x] Restyle the admin sidebar to the HumanEdge brand. `Owner: Farjad`
 - [~] Client dashboard overhaul (Jason: "needs an overhaul"). `Owner: Farjad` (notes: `task-notes.md#client-dashboard`)

@@ -232,7 +232,7 @@ export default function AdminInbox() {
 
   return (
     <>
-      <div className="space-y-3 sm:space-y-6 p-3 sm:p-6">
+      <div className="space-y-3 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
