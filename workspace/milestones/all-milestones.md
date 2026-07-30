@@ -41,6 +41,8 @@ app review.
 - [ ] Remove Program dependencies from the protocol build.
 - [ ] Fix the Sleep & Stress rating bug (shows out of 5, stored out of 10).
 - [~] Client-facing and internal notes on custom orders.
+- [ ] Custom-order Internal Notes should also surface outside the Custom Orders view
+      (e.g. on the client record), not just there.
 - [ ] Let staff view/change the shipping address at checkout.
 - [ ] Fix inaccurate product prices.
 - [~] Packing-slip insurance amount.

@@ -44,6 +44,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [ ] Extend the brand palette to the rest of the admin app (178+ files still hardcode colors). `Owner: ___`
 
 ## D. Correctness / blockers found during app review
+- [ ] **Security:** the Team page can mark a client account as admin. `Owner: ___`
 - [x] Fix admin chat/inbox showing nothing. `Owner: Saboor`
 - [x] Centralize old-domain (peptidecoach.pro) links. `Owner: Saboor`
 - [x] Fix Stripe receipts showing a bare "Payment." `Owner: Saboor`
