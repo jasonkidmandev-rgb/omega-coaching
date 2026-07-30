@@ -304,36 +304,6 @@ export default function ClientDashboard() {
   ).length;
 
   // Quick links for the dashboard
-  const quickLinks = [
-    {
-      title: "View My Protocol",
-      description: "See your personalized health protocol",
-      icon: FileText,
-      href: myProtocol?.accessToken ? `/protocol/${myProtocol.accessToken}` : null,
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
-      badge: myProtocol?.status === 'pending_approval' ? 'Pending Review' : null,
-    },
-
-    {
-      title: "Messages",
-      description: "Chat with your coach",
-      icon: MessageSquare,
-      href: myProtocol?.accessToken ? `/protocol/${myProtocol.accessToken}#comments` : null,
-      color: "text-purple-500",
-      bg: "bg-purple-500/10",
-      badge: unreadComments > 0 ? `${unreadComments} New` : null,
-    },
-    {
-      title: "Launchpad",
-      description: "Access all your resources",
-      icon: Sparkles,
-      href: "/launchpad",
-      color: "text-amber-500",
-      bg: "bg-amber-500/10",
-    },
-  ];
-
   // One consolidated action grid - was previously split across a "Quick Actions"
   // button row and a separately-styled "Client Corner" card linking to mostly the
   // same destinations. Referral Program dropped: that feature was removed elsewhere
@@ -1185,39 +1155,6 @@ export default function ClientDashboard() {
             </Tabs>
           </CardContent>
         </Card>
-
-        {/* Quick Links Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {quickLinks.map((link) => (
-            <Card 
-              key={link.title}
-              className={`bg-white border-gray-200 hover:border-amber-300 hover:shadow-md transition-all cursor-pointer ${!link.href ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={() => {
-              if (link.href) {
-                setLocation(link.href);
-              } else if (link.title === 'View My Protocol' || link.title === 'Messages') {
-                // Show helpful message when no protocol exists
-                alert('You don\'t have an active protocol yet. Your coach will create one for you soon!');
-              }
-            }}
-            >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`p-2 rounded-lg ${link.bg}`}>
-                    <link.icon className={`h-5 w-5 ${link.color}`} />
-                  </div>
-                  {link.badge && (
-                    <Badge variant="secondary" className="text-xs">
-                      {link.badge}
-                    </Badge>
-                  )}
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{link.title}</h3>
-                <p className="text-sm text-gray-500">{link.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
 
         {/* Resources Section */}
         <Card className="bg-white border-gray-200">
