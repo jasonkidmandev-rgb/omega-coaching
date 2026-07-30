@@ -278,8 +278,8 @@ export default function ClientDashboard() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-white border-gray-200">
           <CardHeader className="text-center">
-            <CardTitle className="text-white">Sign In Required</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-gray-900">Sign In Required</CardTitle>
+            <CardDescription className="text-gray-500">
               Please sign in to access your dashboard
             </CardDescription>
           </CardHeader>
@@ -303,7 +303,7 @@ export default function ClientDashboard() {
             {!protocolToken && (
               <Button 
                 variant="ghost"
-                className="w-full text-slate-400 hover:text-gray-600"
+                className="w-full text-gray-500 hover:text-gray-700"
                 onClick={() => window.history.back()}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -398,15 +398,6 @@ export default function ClientDashboard() {
       bg: "bg-pink-500/10",
     },
     {
-      title: "Chat with Coach",
-      description: "Message your coach directly",
-      icon: MessageSquare,
-      href: myProtocol?.accessToken ? `/protocol/${myProtocol.accessToken}#comments` : null,
-      noProtocolMessage: "You don't have an active protocol yet. Your coach will create one for you soon!",
-      color: "text-purple-500",
-      bg: "bg-purple-500/10",
-    },
-    {
       title: "Peptide Cheat Sheet",
       description: "Quick reference guide for protocols",
       icon: BookOpen,
@@ -467,12 +458,74 @@ export default function ClientDashboard() {
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Welcome Message */}
-        <WelcomeMessage 
-          name={user.name || "Client"} 
+        <WelcomeMessage
+          name={user.name || "Client"}
           coachName="your Omega coach"
           className="mb-6"
         />
 
+        {/* Recent Messages - kept near the top so a client sees new coach messages first */}
+        {comments.length > 0 && (
+          <Card className="mb-8 bg-white border-gray-200 shadow-sm">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-gray-900 flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-purple-500" />
+                  Messages
+                  {unreadComments > 0 && (
+                    <Badge variant="secondary" className="text-xs">{unreadComments} New</Badge>
+                  )}
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-purple-600 hover:text-purple-700"
+                  onClick={() => myProtocol?.accessToken && setLocation(`/protocol/${myProtocol.accessToken}#comments`)}
+                >
+                  View All
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {comments.slice(0, 3).map((comment: any) => (
+                  <div
+                    key={comment.id}
+                    className="p-3 rounded-lg bg-gray-50 flex items-start gap-3 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => myProtocol?.accessToken && setLocation(`/protocol/${myProtocol.accessToken}#comments`)}
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                      comment.authorType === 'coach' ? 'bg-amber-100' : 'bg-blue-100'
+                    }`}>
+                      <span className={`text-sm font-medium ${
+                        comment.authorType === 'coach' ? 'text-amber-600' : 'text-blue-600'
+                      }`}>
+                        {comment.authorName?.charAt(0) || '?'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-gray-900 text-sm">
+                          {comment.authorName}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {toLocaleDateStringMT(comment.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
+                        </span>
+                        {comment.authorType === 'coach' && !comment.isRead && (
+                          <Badge variant="secondary" className="text-xs">New</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 truncate">
+                        {comment.message}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Get Started Section - Show when user has no protocol */}
         {!myProtocol && (
@@ -1308,11 +1361,11 @@ export default function ClientDashboard() {
         {/* Resources Section */}
         <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-gray-900 flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-amber-500" />
               Resources & Tools
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-gray-500">
               Helpful resources to support your health journey
             </CardDescription>
           </CardHeader>
@@ -1321,7 +1374,7 @@ export default function ClientDashboard() {
               {resources.map((resource) => (
                 <div
                   key={resource.title}
-                  className="p-4 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
                   onClick={() => {
                     if (resource.external) {
                       window.open(resource.href, '_blank');
@@ -1332,12 +1385,12 @@ export default function ClientDashboard() {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <resource.icon className="h-5 w-5 text-amber-500" />
-                    <h4 className="font-medium text-white">{resource.title}</h4>
+                    <h4 className="font-medium text-gray-900">{resource.title}</h4>
                     {resource.external && (
-                      <ExternalLink className="h-3 w-3 text-slate-500 ml-auto" />
+                      <ExternalLink className="h-3 w-3 text-gray-400 ml-auto" />
                     )}
                   </div>
-                  <p className="text-sm text-slate-400">{resource.description}</p>
+                  <p className="text-sm text-gray-500">{resource.description}</p>
                 </div>
               ))}
             </div>
@@ -1349,21 +1402,21 @@ export default function ClientDashboard() {
           <Card className="bg-white border-gray-200">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-gray-900 flex items-center gap-2">
                   <Heart className="h-5 w-5 text-pink-500 fill-current" />
                   My Favorite Peptides
                 </CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-orange-500 hover:text-orange-400"
+                  className="text-orange-500 hover:text-orange-600"
                   onClick={() => setLocation('/peptide-cheat-sheet')}
                 >
                   View All
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-gray-500">
                 Quick access to your saved peptides
               </CardDescription>
             </CardHeader>
@@ -1372,27 +1425,27 @@ export default function ClientDashboard() {
                 {favoritePeptides.slice(0, 6).map((fav: any) => (
                   <div
                     key={fav.id}
-                    className="p-4 rounded-lg bg-gray-100 hover:bg-gray-100 transition-colors"
+                    className="p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="font-medium text-white mb-1">{fav.peptide?.name}</h4>
-                        <p className="text-sm text-slate-400 line-clamp-2">
+                        <h4 className="font-medium text-gray-900 mb-1">{fav.peptide?.name}</h4>
+                        <p className="text-sm text-gray-500 line-clamp-2">
                           {fav.peptide?.description || 'No description'}
                         </p>
                       </div>
                       <Heart className="h-4 w-4 text-pink-500 fill-current flex-shrink-0 ml-2" />
                     </div>
                     {(fav.peptide?.dosage || fav.peptide?.frequency) && (
-                      <div className="mt-3 pt-3 border-t border-gray-300/50">
+                      <div className="mt-3 pt-3 border-t border-gray-200">
                         <div className="flex flex-wrap gap-2 text-xs">
                           {fav.peptide?.dosage && (
-                            <span className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded">
+                            <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded">
                               {fav.peptide.dosage}
                             </span>
                           )}
                           {fav.peptide?.frequency && (
-                            <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded">
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
                               {fav.peptide.frequency}
                             </span>
                           )}
@@ -1405,7 +1458,7 @@ export default function ClientDashboard() {
               {favoritePeptides.length > 6 && (
                 <Button
                   variant="ghost"
-                  className="w-full mt-4 text-slate-400 hover:text-white"
+                  className="w-full mt-4 text-gray-500 hover:text-gray-900"
                   onClick={() => setLocation('/peptide-cheat-sheet')}
                 >
                   View All {favoritePeptides.length} Favorites
@@ -1416,71 +1469,14 @@ export default function ClientDashboard() {
           </Card>
         )}
 
-        {/* Recent Activity */}
-        {comments.length > 0 && (
-          <Card className="mt-8 bg-white border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-purple-500" />
-                Recent Messages
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {comments.slice(0, 3).map((comment: any) => (
-                  <div
-                    key={comment.id}
-                    className="p-3 rounded-lg bg-gray-100 flex items-start gap-3"
-                  >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      comment.authorType === 'coach' ? 'bg-amber-500/20' : 'bg-blue-500/20'
-                    }`}>
-                      <span className={`text-sm font-medium ${
-                        comment.authorType === 'coach' ? 'text-amber-500' : 'text-blue-500'
-                      }`}>
-                        {comment.authorName?.charAt(0) || '?'}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-white text-sm">
-                          {comment.authorName}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {toLocaleDateStringMT(comment.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
-                        </span>
-                        {comment.authorType === 'coach' && !comment.isRead && (
-                          <Badge variant="secondary" className="text-xs">New</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-slate-400 truncate">
-                        {comment.message}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {comments.length > 3 && (
-                <Button
-                  variant="ghost"
-                  className="w-full mt-4 text-slate-400 hover:text-white"
-                  onClick={() => myProtocol?.accessToken && setLocation(`/protocol/${myProtocol.accessToken}#comments`)}
-                >
-                  View All Messages
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       {/* Photo Upload Dialog */}
       <Dialog open={showPhotoUpload} onOpenChange={setShowPhotoUpload}>
         <DialogContent className="bg-white border-gray-200 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Upload Progress Photo</DialogTitle>
-            <DialogDescription className="text-slate-400">
+            <DialogTitle className="text-gray-900">Upload Progress Photo</DialogTitle>
+            <DialogDescription className="text-gray-500">
               Add a photo to track your transformation journey
             </DialogDescription>
           </DialogHeader>
@@ -1502,9 +1498,9 @@ export default function ClientDashboard() {
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
-                <Upload className="h-10 w-10 text-slate-500 mb-2" />
-                <span className="text-sm text-slate-400">Click to upload or drag and drop</span>
-                <span className="text-xs text-slate-500 mt-1">PNG, JPG up to 10MB</span>
+                <Upload className="h-10 w-10 text-gray-400 mb-2" />
+                <span className="text-sm text-gray-500">Click to upload or drag and drop</span>
+                <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</span>
                 <input
                   type="file"
                   className="hidden"
@@ -1535,7 +1531,7 @@ export default function ClientDashboard() {
                 value={photoCaption}
                 onChange={(e) => setPhotoCaption(e.target.value)}
                 placeholder="Add a caption..."
-                className="mt-2 bg-gray-100 border-gray-300 text-white"
+                className="mt-2 bg-gray-50 border-gray-300 text-gray-900"
               />
             </div>
           </div>
@@ -1562,8 +1558,8 @@ export default function ClientDashboard() {
       <Dialog open={showNoteForm} onOpenChange={setShowNoteForm}>
         <DialogContent className="bg-white border-gray-200 max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white">Add Journal Entry</DialogTitle>
-            <DialogDescription className="text-slate-400">
+            <DialogTitle className="text-gray-900">Add Journal Entry</DialogTitle>
+            <DialogDescription className="text-gray-500">
               Document how you're feeling on your health journey
             </DialogDescription>
           </DialogHeader>
@@ -1574,7 +1570,7 @@ export default function ClientDashboard() {
                 value={noteTitle}
                 onChange={(e) => setNoteTitle(e.target.value)}
                 placeholder="e.g., Week 2 Check-in"
-                className="mt-2 bg-gray-100 border-gray-300 text-white"
+                className="mt-2 bg-gray-50 border-gray-300 text-gray-900"
               />
             </div>
             <div>
@@ -1606,7 +1602,7 @@ export default function ClientDashboard() {
                   value={noteEnergy || ''}
                   onChange={(e) => setNoteEnergy(e.target.value ? parseInt(e.target.value) : undefined)}
                   placeholder="1-10"
-                  className="mt-2 bg-gray-100 border-gray-300 text-white"
+                  className="mt-2 bg-gray-50 border-gray-300 text-gray-900"
                 />
               </div>
               <div>
@@ -1618,7 +1614,7 @@ export default function ClientDashboard() {
                   value={noteSleep || ''}
                   onChange={(e) => setNoteSleep(e.target.value ? parseInt(e.target.value) : undefined)}
                   placeholder="1-10"
-                  className="mt-2 bg-gray-100 border-gray-300 text-white"
+                  className="mt-2 bg-gray-50 border-gray-300 text-gray-900"
                 />
               </div>
             </div>
@@ -1628,7 +1624,7 @@ export default function ClientDashboard() {
                 value={noteContent}
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="How are you feeling? Any changes you've noticed? Challenges or wins?"
-                className="mt-2 bg-gray-100 border-gray-300 text-white min-h-[120px]"
+                className="mt-2 bg-gray-50 border-gray-300 text-gray-900 min-h-[120px]"
               />
             </div>
           </div>
@@ -1655,11 +1651,11 @@ export default function ClientDashboard() {
       <Dialog open={showComparison} onOpenChange={setShowComparison}>
         <DialogContent className="bg-white border-gray-200 max-w-4xl">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-gray-900 flex items-center gap-2">
               <ArrowLeftRight className="h-5 w-5 text-purple-500" />
               Before & After Comparison
             </DialogTitle>
-            <DialogDescription className="text-slate-400">
+            <DialogDescription className="text-gray-500">
               See your transformation side by side
             </DialogDescription>
           </DialogHeader>
@@ -1669,7 +1665,7 @@ export default function ClientDashboard() {
               <div className="flex items-center justify-between">
                 <Badge className="bg-blue-500">Before</Badge>
                 {beforePhoto && (
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-gray-400">
                     {toLocaleDateStringMT(beforePhoto.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                   </span>
                 )}
@@ -1682,12 +1678,12 @@ export default function ClientDashboard() {
                     className="w-full aspect-[3/4] object-cover rounded-lg"
                   />
                   {beforePhoto.caption && (
-                    <p className="text-sm text-slate-400 mt-2">{beforePhoto.caption}</p>
+                    <p className="text-sm text-gray-500 mt-2">{beforePhoto.caption}</p>
                   )}
                 </div>
               ) : (
                 <div className="w-full aspect-[3/4] bg-gray-100 rounded-lg flex items-center justify-center">
-                  <p className="text-slate-500">No before photo selected</p>
+                  <p className="text-gray-400">No before photo selected</p>
                 </div>
               )}
               {/* Photo selector */}
@@ -1711,7 +1707,7 @@ export default function ClientDashboard() {
               <div className="flex items-center justify-between">
                 <Badge className="bg-green-500">After / Progress</Badge>
                 {afterPhoto && (
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-gray-400">
                     {toLocaleDateStringMT(afterPhoto.createdAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}
                   </span>
                 )}
@@ -1724,12 +1720,12 @@ export default function ClientDashboard() {
                     className="w-full aspect-[3/4] object-cover rounded-lg"
                   />
                   {afterPhoto.caption && (
-                    <p className="text-sm text-slate-400 mt-2">{afterPhoto.caption}</p>
+                    <p className="text-sm text-gray-500 mt-2">{afterPhoto.caption}</p>
                   )}
                 </div>
               ) : (
                 <div className="w-full aspect-[3/4] bg-gray-100 rounded-lg flex items-center justify-center">
-                  <p className="text-slate-500">No after photo selected</p>
+                  <p className="text-gray-400">No after photo selected</p>
                 </div>
               )}
               {/* Photo selector */}
@@ -1752,8 +1748,8 @@ export default function ClientDashboard() {
           {/* Time difference */}
           {beforePhoto && afterPhoto && (
             <div className="text-center py-3 bg-gray-100 rounded-lg">
-              <p className="text-slate-400 text-sm">
-                <span className="text-purple-400 font-medium">
+              <p className="text-gray-500 text-sm">
+                <span className="text-purple-600 font-medium">
                   {Math.round((new Date(afterPhoto.createdAt).getTime() - new Date(beforePhoto.createdAt).getTime()) / (1000 * 60 * 60 * 24))}
                 </span>
                 {' '}days of progress
