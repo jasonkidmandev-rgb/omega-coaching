@@ -42,7 +42,6 @@ import {
   FileText,
   Package,
   Pill,
-  Home,
   Shield,
   Bell,
   Layers,
@@ -591,18 +590,6 @@ function AdminLayoutContent({
               </div>
             )}
             <SidebarMenu className="px-2 py-1">
-              {/* Home Link */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setLocation("/launchpad")}
-                  tooltip="Home"
-                  className="h-10 transition-all font-normal text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
-                >
-                  <Home className="h-4 w-4" />
-                  <span>Home</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
               {/* Dashboard (top-level) */}
               <SidebarMenuItem>
                 <SidebarMenuButton

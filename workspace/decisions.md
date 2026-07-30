@@ -43,8 +43,12 @@ with the date and the reason.
     of what the big one already renders. Strongest candidate.
   - **Notifications → Report / Analysis / History** are three separate read-only views over
     notification activity. Plausibly one tab with a filter.
-  - **Launchpad** settings may be moot now the launchpad hub is trimmed to Jason's keep list
-    (`a74d986`, Farjad) — worth checking whether anything still reads these.
+  - ~~**Launchpad** settings may be moot now the launchpad hub is trimmed to Jason's keep
+    list (`a74d986`, Farjad) — worth checking whether anything still reads these.~~ Already
+    done: Launchpad Settings (admin page, both routers, all 3 tables) was removed entirely
+    in `40a003c`, landed just after this note was written. Confirmed 2026-07-30: nothing
+    admin-side is left to remove; the only remaining references are links to the live
+    `/launchpad` client page, which are correct to keep.
 - Site Settings: review and decide what stays (keep it simple).
 - Email preview: link it to Email Branding, or remove it.
 - Milestone placement to confirm: client-facing check-in consolidation (M3 vs v2),

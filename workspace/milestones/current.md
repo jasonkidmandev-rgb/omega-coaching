@@ -103,9 +103,13 @@ check-ins, so that account can test it. 3–6, 8 still open.
       The live `/launchpad` page itself is untouched by this and stays (linked from 5 email
       templates); its content was separately trimmed to Jason's list in `dd24c24`/`a74d986`.
       Commit `d0c2488`. `Owner: Farjad`
-- [ ] **Dashboard / launchpad dead-ends.** Remaining nav cleanup unrelated to the settings
-      removal above.
-      `Owner: ___`
+- [x] **Admin sidebar "Home" link removed.** Separate from the settings removal above: the
+      admin sidebar had two similar-looking links, "Home" (→ `/launchpad`, the public
+      marketing page) and "Dashboard" (→ `/admin`, the real admin landing). "Home" bounced
+      admins out of the admin panel to the public site for no reason "Dashboard" didn't
+      already cover, present since the original build. Removed the link and the now-unused
+      `Home` icon import from `AdminLayout.tsx`.
+      `Owner: Farjad`
 - [ ] **Home page verification.** Confirm the HumanEdge cover is fully resolved across all entry points.
       `Owner: ___`
 

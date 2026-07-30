@@ -4,6 +4,24 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-07-30 (continued)
+- Report #2 (brand alignment, Launchpad content trim, Launchpad Settings removal)
+  approved; checkpointed at commit `40a003c`.
+- Pulled Saboor's overnight work (settings-tab spacing polish, root-cause fix for the
+  flaky test suite: 5s default timeout was too short for a ~9.6k-line router import,
+  raised to 30s). Clean fast-forward, no conflicts.
+- Noticed his `decisions.md` note about Launchpad settings being "worth checking" was
+  written before my removal commit landed; updated it to point at `40a003c` instead of
+  leaving it looking unresolved.
+- Re-checked the app for any remaining admin-side Launchpad surface after that; found
+  none, the only hits left are the live `/launchpad` links (nav shortcut, email
+  templates), which are correct to keep.
+- Caught a separate, smaller issue while checking: the admin sidebar's "Home" link
+  didn't go to the admin home, it went to the public `/launchpad` marketing page — a
+  leftover from the original build, and confusing next to the actual "Dashboard" link
+  that does go to `/admin`. Removed it (and the now-unused `Home` icon import).
+- Hours: ~
+
 ## 2026-07-30
 - **Dug into "Launchpad Settings"** after Jason's doc flagged it ("get rid of this, clean
   up launchpad... but the clients have their own launchpad right? How would this work?").
