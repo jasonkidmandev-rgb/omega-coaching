@@ -40,6 +40,22 @@ and the reason.
   more), and the three Notification views (Report / Analysis / History) could likely
   become one view with a filter. Actually removing anything is M2 work, not now.
 - **Site Settings page: review what's actually needed and simplify it.**
+- **Client dashboard: which of these redundant/broken bits are OK to actually cut?**
+  Found during the dashboard redesign (Farjad, 2026-07-30), listed but not yet acted on:
+  - Two dead-end buttons: "Referral Program" links to `/referrals`, a route that no
+    longer exists (referrals were removed elsewhere in the app); "Watch Masterclasses"
+    links to `/masterclass`, which now silently redirects to a coaching-signup page
+    instead of any masterclass content. Both worth fixing regardless of the rest.
+  - Two navigation-tile grids ("Quick Actions" and "Client Corner") link to mostly the
+    same destinations (check-ins, documents, inventory, metrics) with two different
+    visual styles, at two different scroll depths.
+  - Protocol status/duration is shown three separate times (stats row, status banner,
+    and — before this pass — a milestone tracker) in three different visual styles.
+  - The milestone progress bar (Protocol Created → Approved → Active → Completed) is a
+    fixed lookup table (10/25/50/100%), not real progress — a protocol active 1 week and
+    one active 11 months both show 50%.
+  - Peptide Cheat Sheet is linked from two different sections for the same URL.
+  - Welcome is said twice: a permanent card plus a one-time toast with the same message.
 - **Which milestone do these belong in — M3 or v2?** Client-facing check-in
   consolidation, surfacing progress photos on the check-in screen, Lisa's project-task
   feature. (Client dashboard overhaul moved to M1; the progress-photo display-size bug

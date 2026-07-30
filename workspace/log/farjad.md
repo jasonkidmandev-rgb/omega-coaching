@@ -4,6 +4,31 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-07-30 (continued, 3)
+- Full audit of the client dashboard's functionality before touching anything:
+  found two actually-broken links (a "Referral Program" button pointing at a route that
+  no longer exists — referrals were removed elsewhere and this button never got cleaned
+  up; a "Watch Masterclasses" button that now silently redirects to a coaching sales
+  page), plus several redundant surfaces (two nav-tile grids linking to mostly the same
+  places, protocol status shown three different ways, a cosmetic milestone bar that
+  doesn't track real progress, Peptide Cheat Sheet linked twice, welcome said twice).
+  Recorded the full list in `decisions.md` for sign-off rather than cutting anything
+  unilaterally.
+- Asked before building the redesign rather than guessing on a production client page:
+  confirmed the chat panel should be a real inline chat (not just a bigger preview),
+  scoped to the dashboard only, with a floating-button/drawer fallback on mobile; agreed
+  to do the layout work now and hold the audit trims for a separate pass.
+- Built a real chat panel (`ClientChatPanel.tsx`) reusing the same message data and send
+  path as the Protocol page's Discussion thread, not a new parallel chat system. Sticky
+  on the right on desktop, always visible; a floating button opens it as a bottom drawer
+  on mobile. Restructured the dashboard into a two-column layout for this, and folded the
+  separate "My Progress" milestone card into the existing Photos/Notes tabs as a third
+  tab, cutting a full card's worth of scroll without removing any feature.
+- Flagged clearly what still needs a real browser check (sticky-header offset, drawer
+  height on small phones, panel width) since this session still has no client login to
+  verify visually — noted in `task-notes.md` rather than claiming it's fully verified.
+- Hours: ~
+
 ## 2026-07-30 (continued, 2)
 - Restructured `workspace/` docs: `current.md`/`all-milestones.md` were unreadable walls
   of implementation detail. Split into three roles — clean one-line task lists,

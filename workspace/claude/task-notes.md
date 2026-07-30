@@ -137,6 +137,56 @@ two things:
   outside the two spots fixed here (worth a grep across the rest of the client-facing
   pages if the same dark-theme-leftover bug exists elsewhere).
 
+### Second pass (Farjad, 2026-07-30) — real chat panel + layout
+User explicitly asked for a redesign (cleaner/modern, less vertical scroll) plus a chat
+panel "stuck to the right side," not just viewable. Decided via `AskUserQuestion` before
+touching code: full inline chat (not a bigger preview), dashboard-scoped only (not a
+global layout change), floating-button+drawer on mobile, and layout work now with the
+redundant-section trims (recorded in `decisions.md`) held for later.
+
+- **New `client/src/components/ClientChatPanel.tsx`.** Wraps the exact same data path as
+  the "Discussion" card on `client/src/pages/client/Protocol.tsx`
+  (`trpc.comments.list/create/markRead`, same `ChatRichTextEditor`, same
+  `processMessageForDisplay` sanitizer, same Loom-embed support) — it's a second surface
+  for the same conversation, not a parallel chat system. Polls every 15s
+  (`refetchInterval`), matching the pattern already used in `admin/Chat.tsx`. Renders
+  either the panel (desktop) or drawer content (mobile) depending on where it's mounted —
+  same component, no `variant` prop needed since it's just flex-column CSS.
+- **Dashboard layout**: `container` widened `max-w-6xl` → `max-w-7xl`, wrapped in
+  `lg:flex lg:items-start lg:gap-6` with the existing content in a `flex-1 min-w-0
+  max-w-6xl` column and a new `<aside className="hidden lg:block w-90 shrink-0 sticky
+  top-20 ...">` holding the panel. `top-20` is an eyeballed offset under the sticky navy
+  header (~64px) — not verified against the real rendered header height, worth a look in
+  the browser pass.
+- **Mobile**: `lg:hidden` floating button (bottom-right, unread-count badge reusing the
+  same `unreadComments` the top preview card already computed) opens
+  `components/ui/drawer` (vaul, bottom sheet by default) with the same `ClientChatPanel`
+  inside, `h-[85vh]`.
+- **Top "Messages" preview card is now `lg:hidden`.** On desktop the sticky panel is
+  always visible, so leaving the preview card there too would mean the same unread
+  message shown twice on one screen simultaneously — not a discretionary audit trim,
+  a direct consequence of the panel existing. Its "Open Chat" / row clicks now open the
+  drawer (`setShowChatDrawer(true)`) instead of navigating to the Protocol page, since
+  the drawer *is* the full chat now on mobile too.
+- **Cut one full card of vertical scroll without removing any content**: merged the
+  standalone "My Progress" card (milestone stepper + peptide/supplement item breakdown)
+  into the Progress Tracking card as a third tab ("Milestones"), alongside the existing
+  Photos/Notes tabs. Same JSX moved verbatim into a `TabsContent value="progress"`, same
+  guard condition (`myProtocol && includedItems.length > 0`). Not a candidate from the
+  audit list above — that list is explicitly held; this was reorganization, not removal.
+
+**Not done / left open:**
+- Still no browser verification possible from this session (no `.env`, no client login).
+  Specifically worth checking once someone can: the `top-20` sticky offset against the
+  real header height, the drawer's `h-[85vh]` on small phones, and whether 360px
+  (`w-90`) is a comfortable chat-panel width against the remaining `max-w-6xl` content
+  column on common laptop widths (1280–1440px).
+- The audit-list trims (broken links, duplicate nav grids, triple status display, etc.)
+  are deliberately NOT done — tracked in `decisions.md` pending sign-off, not silently
+  applied.
+- Real-time delivery is still polling (15s), not push/websocket — same limitation the
+  rest of the app's chat has, not something this pass tried to fix.
+
 ## admin-sidebar-restyle
 Sidebar was hardcoded navy (`#1e3a5f`/`#2d4a6f`), unrelated to the brand. Now reads
 `bg-sidebar` / `hover:bg-sidebar-accent` / `text-sidebar-foreground` — all `--sidebar-*`
