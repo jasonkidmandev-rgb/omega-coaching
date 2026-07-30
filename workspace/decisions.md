@@ -40,22 +40,12 @@ and the reason.
   more), and the three Notification views (Report / Analysis / History) could likely
   become one view with a filter. Actually removing anything is M2 work, not now.
 - **Site Settings page: review what's actually needed and simplify it.**
-- **Client dashboard: which of these redundant/broken bits are OK to actually cut?**
-  Found during the dashboard redesign (Farjad, 2026-07-30), listed but not yet acted on:
-  - Two dead-end buttons: "Referral Program" links to `/referrals`, a route that no
-    longer exists (referrals were removed elsewhere in the app); "Watch Masterclasses"
-    links to `/masterclass`, which now silently redirects to a coaching-signup page
-    instead of any masterclass content. Both worth fixing regardless of the rest.
-  - Two navigation-tile grids ("Quick Actions" and "Client Corner") link to mostly the
-    same destinations (check-ins, documents, inventory, metrics) with two different
-    visual styles, at two different scroll depths.
-  - Protocol status/duration is shown three separate times (stats row, status banner,
-    and — before this pass — a milestone tracker) in three different visual styles.
-  - The milestone progress bar (Protocol Created → Approved → Active → Completed) is a
-    fixed lookup table (10/25/50/100%), not real progress — a protocol active 1 week and
-    one active 11 months both show 50%.
-  - Peptide Cheat Sheet is linked from two different sections for the same URL.
-  - Welcome is said twice: a permanent card plus a one-time toast with the same message.
+- **Client dashboard milestone progress bar is cosmetic, not real.** The one remaining
+  item from the 2026-07-30 dashboard audit (rest was actioned, see Decided below): the
+  Milestones tab (Protocol Created → Approved → Active → Completed) is a fixed lookup
+  table (10/25/50/100% by status), not time- or task-based — a protocol active 1 week
+  and one active 11 months both show 50%. Keep as a simple status stepper, or make it
+  reflect something real (e.g. weeks elapsed / weeks total)?
 - **Which milestone do these belong in — M3 or v2?** Client-facing check-in
   consolidation, surfacing progress photos on the check-in screen, Lisa's project-task
   feature. (Client dashboard overhaul moved to M1; the progress-photo display-size bug
@@ -112,3 +102,13 @@ and the reason.
   client page were completely disconnected — admin edits never affected what clients
   saw, so the settings page was pure maintenance overhead with zero benefit. Full
   writeup in `claude/context.md`.
+- 2026-07-30 — Acted on the client dashboard audit rather than leaving it as a list:
+  fixed both broken buttons (dead `/referrals` route removed; "Watch Masterclasses" now
+  points at the real masterclass content), merged the two navigation-tile grids into one,
+  merged the three separate status/duration displays into one hero card, deduped the
+  Peptide Cheat Sheet link and the welcome message, and removed a "Quick Links" row
+  (View My Protocol / Messages / Launchpad) that had become fully redundant with the new
+  hero CTA, the always-visible chat panel, and the header's existing Launchpad button.
+  Why: Farjad reviewed the list with Jason and got the go-ahead to act, not just record
+  it; low risk since the whole pass is one revertible commit range. Only the cosmetic
+  milestone-progress-bar item was left open (see above).

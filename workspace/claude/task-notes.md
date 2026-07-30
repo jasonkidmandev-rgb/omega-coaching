@@ -181,11 +181,41 @@ redundant-section trims (recorded in `decisions.md`) held for later.
   real header height, the drawer's `h-[85vh]` on small phones, and whether 360px
   (`w-90`) is a comfortable chat-panel width against the remaining `max-w-6xl` content
   column on common laptop widths (1280–1440px).
-- The audit-list trims (broken links, duplicate nav grids, triple status display, etc.)
-  are deliberately NOT done — tracked in `decisions.md` pending sign-off, not silently
-  applied.
 - Real-time delivery is still polling (15s), not push/websocket — same limitation the
   rest of the app's chat has, not something this pass tried to fix.
+
+### Third pass (Farjad, 2026-07-30) — acted on the audit list, screenshot-verified
+Jason confirmed the UI direction was good and gave explicit go-ahead ("if I don't like it
+we can revert") to act on the audit list rather than leave it sitting in `decisions.md`.
+He also supplied real client credentials (`f@gmail.com`) and a screenshot of the live
+Railway deployment confirming the chat panel renders and works correctly — this session
+still has no local DB access to verify that independently, so the screenshot from him is
+the only real-browser confirmation this pass has.
+
+- Removed the "Referral Program" tile (dead route) and fixed "Watch Masterclasses" to
+  point at `/transformation/masterclass` (the real `Masterclass` component) instead of
+  `/masterclass`, which now just redirects to `/transformation`.
+- Merged "Quick Actions" + "Client Corner" into one `quickActions` array / one grid style.
+- Merged the old `QuickStats` component + the Protocol Status Banner into a single hero:
+  navy header (status + CTA) over a 4-up white stat strip (duration/items/peptides/
+  investment). **Deleted `client/src/components/QuickStats.tsx`** — fully superseded,
+  had no other callers.
+- Removed the one-time welcome toast (`dashboard_welcome_${user.id}` in localStorage),
+  kept the permanent `WelcomeMessage` card only.
+- Removed the duplicate "Educational Resources" resource tile (same URL as the Peptide
+  Cheat Sheet quick action).
+- **Follow-up, caught by Farjad after reviewing the live result**: the "Quick Links" row
+  (View My Protocol / Messages / Launchpad, `quickLinks` array) had quietly become 100%
+  redundant as a side effect of the earlier passes — View My Protocol duplicates the new
+  hero's CTA and every row in "My Protocols"; Messages duplicates the always-visible chat
+  panel; Launchpad duplicates the button already in the sticky header. Removed the whole
+  block and the `quickLinks` array. Worth grep'ing for this pattern (a card whose only
+  job was linking somewhere another new element now also links) if more consolidation
+  passes happen later.
+
+**Still open**: the milestone progress bar in the Milestones tab is cosmetic (fixed
+10/25/50/100% lookup by status, not real elapsed time) — tracked as its own item in
+`decisions.md`, deliberately not changed since it's a product judgment call, not a bug.
 
 ## admin-sidebar-restyle
 Sidebar was hardcoded navy (`#1e3a5f`/`#2d4a6f`), unrelated to the brand. Now reads

@@ -4,6 +4,22 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-07-30 (continued, 4)
+- Got sign-off to act on the dashboard audit list instead of leaving it as a proposal,
+  plus real client credentials and a live screenshot to confirm the chat panel actually
+  works in the browser (first real-browser confirmation this session has had, no local
+  DB access otherwise). Fixed both broken buttons (dead referral route, misleading
+  masterclass redirect), merged the two navigation grids into one, merged the three
+  separate status/duration displays into one hero card, deduped the Peptide Cheat Sheet
+  link and the welcome message, deleted the now-fully-superseded `QuickStats` component.
+- Caught one more redundancy myself after reviewing the live result: a "Quick Links" row
+  (View My Protocol / Messages / Launchpad) had quietly become 100% duplicate of the new
+  hero button, the always-visible chat panel, and the header's existing Launchpad button.
+  Removed it.
+- Recorded what's still deliberately untouched (the cosmetic milestone-progress bar) as
+  its own item in `decisions.md` rather than silently leaving it in code with no record.
+- Hours: ~
+
 ## 2026-07-30 (continued, 3)
 - Full audit of the client dashboard's functionality before touching anything:
   found two actually-broken links (a "Referral Program" button pointing at a route that
