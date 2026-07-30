@@ -4,6 +4,26 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-07-30 (continued, 2)
+- Restructured `workspace/` docs: `current.md`/`all-milestones.md` were unreadable walls
+  of implementation detail. Split into three roles — clean one-line task lists,
+  `decisions.md` reworded in plain language for judgment calls, and a new
+  `claude/task-notes.md` for the implementation detail/QA checklists that used to bloat
+  `current.md`. Also cross-checked Jason's punch list against the milestones: found one
+  real gap (Team page can promote a client to admin, a security risk, not tracked
+  anywhere before) and pulled several UI-only items (chat position, sender name, Web
+  Traffic placement, the client dashboard overhaul Jason flagged) out of M2/v2-held into
+  the active M1 list.
+- Hands-on: audited the client dashboard (`client/src/pages/client/Dashboard.tsx`).
+  Found a real bug, not a style opinion — several cards and all three dialogs (photo
+  upload, journal entry, before/after comparison) were leftover dark-theme text classes
+  on a light background; worst case, the note/photo-caption dialog inputs had white text
+  on a light-gray field, so typed text was invisible while typing. Fixed throughout.
+  Moved the Messages/comments preview from the bottom of the page to the top, under the
+  welcome message, and dropped a redundant "Chat with Coach" tile that pointed at the
+  same place. Flagged as a first pass, not the full overhaul Jason asked for; no client
+  login available to this session to verify visually, needs a browser pass.
+
 ## 2026-07-30 (continued)
 - Report #2 (brand alignment, Launchpad content trim, Launchpad Settings removal)
   approved; checkpointed at commit `40a003c`.

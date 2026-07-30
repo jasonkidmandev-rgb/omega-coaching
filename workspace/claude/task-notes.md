@@ -102,6 +102,41 @@ export works). #7 needs a **client-role** login — `jason@sossupport.net` owns 
 
 ---
 
+## client-dashboard
+`client/src/pages/client/Dashboard.tsx` (1769 lines). First pass (Farjad, 2026-07-30),
+two things:
+
+1. **Fixed a real, objective bug, not a style opinion.** Several cards (Sign In Required,
+   Resources & Tools, My Favorite Peptides, the old Recent Messages) and all three dialogs
+   (photo upload, journal entry, before/after comparison) were leftover dark-theme
+   classes on a light background — `text-white` / `text-slate-400` / `text-slate-500`
+   used where the container is `bg-white` / `bg-gray-100`. Worst case: the photo-caption,
+   note-title, energy/sleep, and note-content inputs all had `text-white` on
+   `bg-gray-100`, so **typed text was invisible while typing.** Replaced with
+   `text-gray-900` (headings/values) / `text-gray-500` or `text-gray-400` (secondary) to
+   match the rest of the page. Also fixed two dead-hover spots
+   (`bg-gray-100 hover:bg-gray-100` — hover had zero visual effect).
+2. **Moved the Messages/comments preview to the top of the page**, right under
+   `WelcomeMessage`, matching the milestone task. It's a preview card (last 3 comments +
+   unread badge + "View All" to `/protocol/:token#comments`), not a full inline chat —
+   there's no embedded chat component on this page, comments live on the Protocol page.
+   Dropped the redundant "Chat with Coach" tile from Client Corner since it pointed at the
+   exact same destination as this card and the "Messages" quick-link tile.
+
+**Not done / left open:**
+- No local `.env` and no client-role login available to this session, so none of this
+  could be visually verified in a browser — only reviewed as a diff. Needs a real
+  browser pass before calling it done (see the QA line added in `current.md`).
+- This is a targeted fix, not the "overhaul" Jason asked for. A real overhaul (layout,
+  information architecture, what's actually useful vs noise on this page) needs either
+  design direction or a scoping conversation — flagged back to `current.md` as `[~]` in
+  progress, not `[x]`.
+- Didn't touch: the still-present quickLinks "Messages" tile (kept, it's a legitimate
+  quick action, not a duplicate of the new top card), the overall page density (still
+  ~9 stacked Card sections), or any of the `bg-gray-100` "hover:bg-gray-100" pattern
+  outside the two spots fixed here (worth a grep across the rest of the client-facing
+  pages if the same dark-theme-leftover bug exists elsewhere).
+
 ## admin-sidebar-restyle
 Sidebar was hardcoded navy (`#1e3a5f`/`#2d4a6f`), unrelated to the brand. Now reads
 `bg-sidebar` / `hover:bg-sidebar-accent` / `text-sidebar-foreground` — all `--sidebar-*`
