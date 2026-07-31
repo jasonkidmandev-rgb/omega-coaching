@@ -236,3 +236,38 @@ The gate is the existing choke point, renamed `isStaging()` → `sideEffectsDisa
   - **Lesson for future "is X still used" questions:** an admin CRUD page existing and
     working is not evidence anything downstream reads it — grep the actual consumer
     (`trpc.<router>.*` in `client/src`) before trusting an admin settings page's premise.
+
+## Dead/broken link audit — findings worth keeping (Saboor, 2026-08-01)
+Full sweep of every navigation target in `client/src` against the routes defined in
+`App.tsx`. 11 static targets matched no route; 6 were reachable by a real user.
+
+- **How to re-run it.** Two throwaway scripts (not committed): extract
+  `path={"..."}` from `App.tsx`, turn wouter patterns into regexes (`:x` -> one segment),
+  then scan every `.tsx` for `href` / `to` / `setLocation(` / `navigate(` /
+  `window.location` / `path:` targets and report the ones that match nothing. Worth
+  rebuilding rather than eyeballing — the six real breaks were all in *secondary*
+  navigation (row-click handlers, quick-action menus, back buttons). **All 41 sidebar
+  entries were correct**, which is exactly why these survived so long.
+- ⚠️ **Blind spot in that method:** it only flags targets matching *no* route. A link
+  pointing at a route that is a **redirect shim** passes the check and still strands the
+  user. Found only because Saboor asked where the store was: `Promotions.tsx` (routed at
+  `/promotions` and `/offers`) has 3 CTAs — "Order Now", "Start Your Journey",
+  "View Bundle" — pointing at `/store`, which `App.tsx` redirects to `/` (home). Left
+  alone: the sidebar carries a "Store hidden for compliance" comment, so whether those
+  should point at `/order` is Jason's call, not a bug fix.
+- **The peptide store lives at `/order`** (`pages/Order.tsx`), not `/store`.
+- **`/admin` pages have zero usage telemetry.** `page_views` has 9,541 rows and **not one**
+  with an `/admin` path — only public/client pages are tracked. So "0 views" for an admin
+  screen means *not tracked*, never *not used*. Do not use the Web Traffic page to justify
+  removing an admin page.
+- **Two different order concepts, easily confused.** `/admin/store-orders` reads
+  `store_orders` (24 rows, live — the peptide store). The removed `/admin/order-history`
+  read `protocol_orders` (**0 rows in prod**, never used). Not duplicates.
+- **`transformation_access_codes` has 10 rows but no server code** — no router, no query.
+  Real data behind a feature that no longer exists in the app. Jason is checking whether
+  those codes were ever in use; **do not drop the table**.
+- **Proving "page A supersedes page B"** (used to retire `IntakeFormEditor` in favour of
+  `FormsEditor`): compare the `trpc.*` procedure sets — B's 3 were a strict subset of A's
+  6, and both call `getIntakeFormContent`/`updateIntakeFormContent`, i.e. they edit the
+  **same rows**. Then check reachability (`git log -S"<path>" -- AdminLayout.tsx`). That
+  combination is what makes removal safe; page size or "looks newer" is not evidence.

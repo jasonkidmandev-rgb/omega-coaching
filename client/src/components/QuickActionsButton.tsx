@@ -39,13 +39,15 @@ export function QuickActionsButton() {
     {
       label: "New Protocol Item",
       icon: Package,
-      path: "/admin/items/new",
+      // Items and Programs are created through a dialog on their list page — neither
+      // has a /new route, so these point at the list and the user clicks Add there.
+      path: "/admin/items",
       description: "Add a new protocol item",
     },
     {
       label: "New Program",
       icon: Layers,
-      path: "/admin/programs/new",
+      path: "/admin/programs",
       description: "Create a new coaching program",
     },
   ];

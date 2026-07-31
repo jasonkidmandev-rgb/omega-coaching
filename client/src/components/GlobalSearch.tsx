@@ -61,7 +61,8 @@ const searchItems: SearchItem[] = [
   // Quick actions
   { id: "new-client", title: "Create New Client", description: "Start a new protocol", path: "/admin/clients/new", icon: <Users className="h-4 w-4" />, category: "action", keywords: ["add", "create", "new", "protocol"] },
   { id: "new-template", title: "Create Template", description: "Create a new template", path: "/admin/templates/new", icon: <FileText className="h-4 w-4" />, category: "action", keywords: ["add", "create", "new", "preset"] },
-  { id: "new-item", title: "Add Protocol Item", description: "Add a new item", path: "/admin/items/new", icon: <Package className="h-4 w-4" />, category: "action", keywords: ["add", "create", "new", "product"] },
+  // Items are created through a dialog on the list page — there is no /new route.
+  { id: "new-item", title: "Add Protocol Item", description: "Add a new item", path: "/admin/items", icon: <Package className="h-4 w-4" />, category: "action", keywords: ["add", "create", "new", "product"] },
 ];
 
 interface GlobalSearchProps {

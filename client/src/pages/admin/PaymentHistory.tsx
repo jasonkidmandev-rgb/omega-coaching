@@ -202,9 +202,9 @@ export default function PaymentHistory() {
     if (payment.paymentType === "protocol") {
       navigate(`/admin/clients/${payment.sourceId}`);
     } else if (payment.paymentType === "coaching_fee") {
-      navigate(`/admin/transformation`);
+      navigate(`/admin/transformation-payments`);
     } else if (payment.paymentType === "store_order") {
-      navigate(`/admin/store/orders`);
+      navigate(`/admin/store-orders`);
     }
   };
 

@@ -18,6 +18,14 @@ and the reason.
   chat outage. The longer we wait, the longer that risk sits there.
 
 ## Open — needs Jason's call
+- **Promotions page CTAs point at a redirect.** `Promotions.tsx` (routed at `/promotions`
+  and `/offers`) has 3 buttons — "Order Now", "Start Your Journey", "View Bundle" —
+  pointing at `/store`, which redirects to the homepage. The store is at `/order`, and the
+  sidebar says the store is "hidden for compliance". Point them at `/order`, or remove?
+  Not changed either way pending his answer. (Saboor, 2026-08-01)
+- **Is `protocol_orders` a dead concept?** 0 rows in production; its only admin view
+  (`/admin/order-history`) has now been removed. Recoverable from git if it was planned
+  rather than abandoned. (Saboor, 2026-08-01)
 
 - **Returning clients now reopen their intake form from their email link instead of
   resuming it in-browser** (changed 2026-07-29). We can't yet prove a returning client's
@@ -62,6 +70,18 @@ and the reason.
   Affects the ~1-week data-migration track in M4.
 
 ## Decided (append-only: date, decision, why)
+- 2026-08-01 — **Dead/broken link cleanup under `/admin/*`** (Saboor). Payment History's
+  two mistargeted row links **fixed**; the Promo Codes "Access Codes" back button
+  **removed** (page gone, only an orphaned table remains); the two `/new` quick actions
+  **repointed** at their list pages (Items and Programs create via a dialog, so no `/new`
+  route ever existed); the Launchpad's always-404 "My Protocol" mobile item **removed**
+  rather than rebuilt — `LaunchpadHub` makes no tRPC calls, so linking it properly would
+  add a data dependency to an otherwise static page, and clients already reach their
+  protocol from the Dashboard one item above. `/admin/order-history` and
+  `/admin/intake-form-editor` **removed** (evidence in `context.md`: 0 rows in
+  `protocol_orders`; strict-subset proof for the intake editor). `/admin/dashboard` kept
+  as a **redirect** to `/admin` rather than deleted, so staff bookmarks don't 404 — same
+  pattern as the `shannon-kanban` shim.
 
 - 2026-08-01 — **Direct UI-based payments are being removed from humanedge.health**
   (Saboor). First consequence applied: deleted `server/planQuiz.test.ts`. The quiz's

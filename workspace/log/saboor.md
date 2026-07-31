@@ -3,6 +3,54 @@
 Only Saboor edits this. Newest entry at top. A short running list of what you worked on
 each day, so Farjad and both Claude sessions can see progress.
 
+## 2026-08-01
+- **Removed the plan-quiz test** (`9752f66`). Direct UI-based payments are coming out of
+  humanedge.health and the quiz routes into that funnel. Flagged clearly that this one was
+  a *real* test (45 combinations against the actual `getRecommendation`) — it went because
+  the feature is going, not because it was weak. `PlanQuiz.tsx` is still live and now
+  uncovered; removing the component isn't scoped.
+- **Backfilled this log for 27-31 July.** The workspace didn't exist until 07-29, and after
+  that I was ticking `current.md` and updating `context.md`/`decisions.md` but skipping the
+  log. Noted here so the gap isn't mistaken for idle days.
+- **Dead/broken link audit under `/admin/*` — done, and fixed.** Scanned every navigation
+  target in `client/src` against the routes in `App.tsx`. 11 matched no route; 6 were
+  reachable by a real user. **All 41 sidebar entries were correct** — every real break was
+  in secondary navigation, which is why they lasted this long.
+  - **Payment History was the worst:** the row eye-button sent `coaching_fee` to
+    `/admin/transformation` and `store_order` to `/admin/store/orders`, neither of which
+    exists. Two of the three payment types dead-ended; the page looked fine until you
+    clicked the wrong row. Retargeted to `/admin/transformation-payments` and
+    `/admin/store-orders`.
+  - **Widest reach:** `QuickActionsButton` and `GlobalSearch` both render in `AdminLayout`,
+    so their broken "New Protocol Item" / "New Program" entries were on *every* admin page
+    (and in Ctrl+K). Neither page has a `/new` route — both create through a dialog on the
+    list page — so they now point at the list.
+  - Removed the "Access Codes" back button on Promo Codes (page long gone) and, per Jason's
+    A-option call, the always-404 "My Protocol" item in the Launchpad mobile menu.
+  - Deleted 2,991 lines of unreachable code: `DashboardLayout` (no referrers),
+    `ComponentShowcase` (unrouted), `CoachingPrograms` (imported, never routed),
+    `admin/OrderHistory` and `admin/IntakeFormEditor`.
+- ⚠️ **My audit method had a blind spot, found only because Saboor asked where the store
+  was.** It flags targets matching *no* route — so a link pointing at a **redirect shim**
+  passes and still strands the user. `Promotions.tsx` has 3 CTAs aimed at `/store`, which
+  redirects to the homepage. Left for Jason (the sidebar says the store is hidden for
+  compliance). The store itself is at **`/order`**.
+- Evidence gathered before removing anything: `protocol_orders` is **0 rows** in prod (so
+  `/admin/order-history` was always empty, and is *not* a duplicate of Store Orders, which
+  reads the live 24-row `store_orders`); `IntakeFormEditor`'s 3 tRPC procedures are a
+  strict subset of `FormsEditor`'s 6 and both edit the same rows.
+- ⚠️ **`transformation_access_codes` has 10 rows and no server code at all.** Real data,
+  no feature. Jason is checking it in Railway — **table not touched.**
+- Also learned: `page_views` tracks **no** `/admin` paths (9,541 rows, zero admin), so
+  there is no usage telemetry to justify admin-page removals. Don't reach for Web Traffic
+  to answer "is this screen used".
+- ⚠️ Corrected myself twice: I referred to a "Sales & Marketing" sidebar section that does
+  not exist (Coaching Promos is under **Team & Content**) — I inferred a plausible group
+  name instead of reading the file. And `/admin/dashboard` I'd said to delete; made it a
+  redirect to `/admin` instead so staff bookmarks don't 404.
+- Verified: ratchet **712**, clean build, **59 files / 769 tests** green; both audit scripts
+  re-run clean afterwards.
+
 ## 2026-07-31
 - **Pulled and reviewed Farjad's 8 commits** (`be8bd2a` -> `872acc4`, 23 files, +532/-770).
   He worked directly on top of the settings hub, so I checked rather than assumed: 13 tabs

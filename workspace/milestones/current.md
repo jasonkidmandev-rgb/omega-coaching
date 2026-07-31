@@ -24,7 +24,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 ## A. Navigation & stability
 - [x] Fix whole-app re-render on every admin navigation. `Owner: Saboor`
 - [x] Add back buttons app-wide. `Owner: Saboor`
-- [~] Audit remaining dead/broken links under `/admin/*`. `Owner: ___`
+- [x] Audit remaining dead/broken links under `/admin/*`. `Owner: Saboor` (notes: `context.md`)
 - [x] Convert internal hard-reload links to client-side navigation. `Owner: Saboor` (notes: `task-notes.md#hard-reloads`)
 - [x] Remove Launchpad Settings — admin page, routers, DB tables (client page kept). `Owner: Farjad` (notes: `context.md`)
 - [x] Remove redundant admin sidebar "Home" link. `Owner: Farjad`

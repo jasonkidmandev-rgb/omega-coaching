@@ -8,7 +8,6 @@ import {
   Pill,
   ArrowRight,
   ExternalLink,
-  ClipboardList,
   Users,
   GraduationCap,
   Calendar,
@@ -191,13 +190,10 @@ export default function LaunchpadHub() {
                     </button>
                   )}
                   <div className="border-t border-gray-100 my-3" />
-                  <button
-                    onClick={() => { setLocation('/protocol'); setMobileMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
-                  >
-                    <ClipboardList className="h-5 w-5" />
-                    My Protocol
-                  </button>
+                  {/* A "My Protocol" item used to sit here linking to /protocol, but the
+                      route is /protocol/:token and this page makes no tRPC calls, so it
+                      had no token to pass and always 404'd. Clients reach their protocol
+                      from the Dashboard (one item above), which resolves the token. */}
                   <button
                     onClick={() => { setLocation('/documents'); setMobileMenuOpen(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"

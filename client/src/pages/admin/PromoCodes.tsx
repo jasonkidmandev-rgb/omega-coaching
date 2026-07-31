@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Ticket, History, Trash2, Edit, Copy, Check, Percent, DollarSign, Info, ArrowLeft, Users, BarChart3, TrendingUp, DollarSign as DollarIcon } from "lucide-react";
+import { Plus, Ticket, History, Trash2, Edit, Copy, Check, Percent, DollarSign, Info, Users, BarChart3, TrendingUp, DollarSign as DollarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "wouter";
 
@@ -159,14 +159,9 @@ export default function PromoCodes() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <Link href="/admin/access-codes">
-              <Button variant="ghost" size="sm" className="gap-1 text-slate-600 hover:text-slate-900">
-                <ArrowLeft className="h-4 w-4" />
-                Access Codes
-              </Button>
-            </Link>
-          </div>
+          {/* A back button to /admin/access-codes used to sit here. That page no longer
+              exists — the access-codes feature was removed and only the orphaned
+              transformation_access_codes table remains, with no router behind it. */}
           <h1 className="text-2xl font-bold text-slate-900">Promo Codes</h1>
           <p className="text-slate-600">Manage discount codes for the transformation program</p>
         </div>

@@ -40,7 +40,6 @@ const AdminPrograms = lazyWithRetry(() => import("./pages/admin/Programs"));
 const AdminInventory = lazyWithRetry(() => import("./pages/admin/Inventory"));
 const AdminSettingsHub = lazyWithRetry(() => import("./pages/admin/SettingsHub"));
 const AdminAffiliatePartners = lazyWithRetry(() => import("./pages/admin/AffiliatePartners"));
-const AdminOrderHistory = lazyWithRetry(() => import("./pages/admin/OrderHistory"));
 const AdminPackingSlips = lazyWithRetry(() => import("./pages/admin/PackingSlips"));
 const AdminPackingSlipDetail = lazyWithRetry(() => import("./pages/admin/PackingSlipDetail"));
 const AdminProjectList = lazyWithRetry(() => import("./pages/admin/projects/ProjectList"));
@@ -64,7 +63,6 @@ const AdminStorePromos = lazyWithRetry(() => import("./pages/admin/StorePromos")
 const AdminMasterclassVideos = lazyWithRetry(() => import("./pages/admin/MasterclassVideos"));
 const AdminEnrollments = lazyWithRetry(() => import("./pages/admin/Enrollments"));
 const AdminTransformationPayments = lazyWithRetry(() => import("./pages/admin/TransformationPayments"));
-const AdminIntakeFormEditor = lazyWithRetry(() => import("./pages/admin/IntakeFormEditor"));
 const AdminFormsEditor = lazyWithRetry(() => import("./pages/admin/FormsEditor"));
 const AdminProspects = lazyWithRetry(() => import("./pages/admin/Prospects"));
 const AdminWebTrafficAnalytics = lazyWithRetry(() => import("./pages/admin/WebTrafficAnalytics"));
@@ -103,7 +101,6 @@ const Account = lazyWithRetry(() => import("./pages/Account"));
 const Order = lazyWithRetry(() => import("./pages/Order"));
 const OrderHistory = lazyWithRetry(() => import("./pages/OrderHistory"));
 const Partners = lazyWithRetry(() => import("./pages/Partners"));
-const CoachingPrograms = lazyWithRetry(() => import("./pages/CoachingPrograms"));
 const PeptideCheatSheet = lazyWithRetry(() => import("./pages/PeptideCheatSheet"));
 const Promotions = lazyWithRetry(() => import("./pages/Promotions"));
 const WaiverRenewal = lazyWithRetry(() => import("./pages/WaiverRenewal"));
@@ -183,7 +180,9 @@ function AdminRoutes() {
         <Suspense fallback={<PageSkeleton />}>
           <Switch>
           <Route path={"/admin"} component={AdminDashboard} />
-          <Route path={"/admin/dashboard"} component={AdminDashboard} />
+          {/* /admin/dashboard rendered the same component as /admin. Kept as a redirect
+              rather than deleted so any existing staff bookmark still lands somewhere. */}
+          <Route path={"/admin/dashboard"}><Redirect to={"/admin"} /></Route>
           <Route path={"/admin/clients/new"} component={AdminClientEdit} />
           <Route path={"/admin/clients/:id"} component={AdminClientEdit} />
           <Route path={"/admin/clients"} component={AdminClients} />
@@ -208,7 +207,6 @@ function AdminRoutes() {
           <Route path={"/admin/affiliate-partners"} component={AdminAffiliatePartners} />
           <Route path={"/admin/email-branding"}><Redirect to={"/admin/settings/email-branding"} /></Route>
           <Route path={"/admin/email-preview"}><Redirect to={"/admin/settings/email-preview"} /></Route>
-          <Route path={"/admin/order-history"} component={AdminOrderHistory} />
           <Route path={"/admin/store-waivers"} component={AdminStoreWaivers} />
           <Route path={"/admin/packing-slips/:id"} component={AdminPackingSlipDetail} />
           <Route path={"/admin/packing-slips"} component={AdminPackingSlips} />
@@ -237,7 +235,6 @@ function AdminRoutes() {
           <Route path={"/admin/masterclass-videos"} component={AdminMasterclassVideos} />
           <Route path={"/admin/enrollments"} component={AdminEnrollments} />
           <Route path={"/admin/transformation-payments"} component={AdminTransformationPayments} />
-          <Route path={"/admin/intake-form-editor"} component={AdminIntakeFormEditor} />
           <Route path={"/admin/forms-editor"} component={AdminFormsEditor} />
           <Route path={"/admin/notification-analysis"}><Redirect to={"/admin/settings/notification-analysis"} /></Route>
           <Route path={"/admin/notification-history"}><Redirect to={"/admin/settings/notification-history"} /></Route>
