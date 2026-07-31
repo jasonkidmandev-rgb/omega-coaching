@@ -4,6 +4,26 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-01
+- Directed a fresh audit pass beyond the admin nav/settings work, choosing the
+  chat/messaging system as the target rather than re-treading already-tracked ground.
+- Found a real, previously undocumented security gap: the entire chat backend
+  (`commentsRouter` — list/create/mark-read/unread-count) has no authentication at all,
+  the same bug class as the "6 unauthenticated endpoints" fixed 2026-07-29, except this
+  one was missed by that sweep. Concretely, anyone can read any client's full message
+  history off a guessable id, or inject a fake coach/client message that triggers a real
+  notification email. Logged as its own blocker in `current.md` (section D) rather than
+  folding it into the older, already-closed item, so it doesn't get missed again.
+- Also mapped the chat system's actual shape for the first time: confirmed "universal
+  chat" isn't a separate feature, it's one shared table/router behind five different UI
+  surfaces (client Protocol page, the new dashboard chat panel, admin Inbox, admin Chat,
+  and the email-reply bridge) — useful context for any future chat work, since it means a
+  fix in the shared backend covers all five surfaces at once. Found and logged three
+  smaller gaps in the same pass: the client Protocol page's chat never auto-refreshes, the
+  dashboard chat panel double-polls when the mobile drawer opens, and there's no way to
+  delete a sent message anywhere.
+- Hours: ~
+
 ## 2026-07-31 (continued)
 - Ran Jason's full go/keep/decide list over every admin nav item through me, expecting a
   bigger cleanup than what actually landed today. Investigated each unfamiliar name

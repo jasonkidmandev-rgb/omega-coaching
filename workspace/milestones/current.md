@@ -44,7 +44,10 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [~] Client dashboard overhaul (Jason: "needs an overhaul"). `Owner: Farjad` (notes: `task-notes.md#client-dashboard`)
 - [ ] Show sender name in the universal chat. `Owner: ___`
 - [x] Move chat to the top of the client dashboard. `Owner: Farjad`
-- [ ] Move Web Traffic under Team & Settings. `Owner: ___`
+- [ ] The client Protocol page's own chat card never auto-refreshes (no polling); the newer dashboard chat panel does. `Owner: ___` (notes: `context.md`)
+- [ ] Dashboard chat panel keeps polling while hidden on mobile, and polls twice at once if the drawer is then opened. `Owner: ___` (notes: `context.md`)
+- [ ] No way to delete a sent chat message, coach or client side (separate from the no-editing gap above). `Owner: ___`
+- [ ] Move Web Traffic under Team & Content. `Owner: ___`
 - [ ] Fix the oversized progress-photo display on the check-in screen. `Owner: ___`
 - [ ] Needs a browser pass with a real client login (not yet possible to verify locally, see `task-notes.md#client-dashboard`). `Owner: ___`
 
@@ -55,6 +58,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 
 ## D. Correctness / blockers found during app review
 - [ ] **Security:** the Team page can mark a client account as admin. `Owner: ___`
+- [ ] **Security:** the chat/messaging backend (`commentsRouter`) is fully unauthenticated — a 7th endpoint missed by the earlier "6 unauthenticated endpoints" sweep. Any caller can read any client's full message history, or send fake coach/client messages that trigger real notification emails. `Owner: ___` (notes: `context.md`)
 - [x] Fix admin chat/inbox showing nothing. `Owner: Saboor`
 - [x] Centralize old-domain (peptidecoach.pro) links. `Owner: Saboor`
 - [x] Fix Stripe receipts showing a bare "Payment." `Owner: Saboor`

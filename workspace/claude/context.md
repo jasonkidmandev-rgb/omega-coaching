@@ -52,6 +52,59 @@ The gate is the existing choke point, renamed `isStaging()` → `sideEffectsDisa
   `server/_core/appEnv.ts` — not a bare `NODE_ENV` check — so it inherits the same seal.
 
 ## Findings / gotchas (append as you discover)
+- **⚠️ SECURITY: `commentsRouter` (the chat/messaging backend) is fully unauthenticated.**
+  Found 2026-08-01 during a chat-system audit. All four procedures — `list`, `create`,
+  `markRead`, `unreadCount` (`server/routers.ts:3272-3414`) — are `publicProcedure`
+  (`server/_core/trpc.ts:12`, no session check at all), unlike the sibling `inboxRouter`
+  which correctly uses `adminProcedure`/`protectedProcedure`. This is the same bug class
+  as the "6 unauthenticated endpoints" fixed 2026-07-29 (`current.md` D) — this one is a
+  7th that the earlier sweep missed.
+  - `clientProtocolId` is a small sequential integer, visible in plain admin URLs
+    (`/admin/chat/123`), and the messages it resolves to aren't even scoped to one
+    protocol — `getProtocolComments` (`server/db.ts:2239-2249`) resolves through the
+    shared `personId`/`contactId` thread, so one exposed id leaks a client's **entire**
+    cross-protocol message history, not just one protocol's worth.
+  - `comments.create` accepts an arbitrary `authorType`/`authorName` with no auth — an
+    unauthenticated caller can inject a fake "coach" message into any client's real thread
+    (which fires the real client notification email, `server/routers.ts:3309-3356`), or a
+    fake "client" message to staff (fires the real internal alert email, line 3378).
+  - Root cause pattern to check for elsewhere: client-facing pages (`Protocol.tsx`,
+    `ClientChatPanel.tsx`) load `protocol.id` from a token-gated query
+    (`clientProtocol.getByToken`) but then call the *separate* `comments.*` endpoints
+    without re-passing/re-validating that token server-side — the token gate on one
+    endpoint doesn't protect a different endpoint that trusts the id it returns.
+  - Fix shape: swap `publicProcedure` → `protectedProcedure` (staff) is not enough alone,
+    since clients (not just staff) legitimately call these — needs a token/ownership check
+    on the client-facing call path specifically, mirroring how `clientProtocol.getByToken`
+    already validates. Not yet fixed; flagged in `current.md` D, owner unassigned.
+- **One shared chat system, five UI surfaces, not five separate chats.** "Universal chat"
+  in the milestone docs isn't a distinct feature — it's the informal name for the one
+  `protocolComments` table + `commentsRouter`, threaded by `personId`/`contactId` so a
+  client's conversation survives across every protocol version. All five surfaces read/
+  write the same table: `client/src/pages/client/Protocol.tsx` (Discussion card),
+  `client/src/components/ClientChatPanel.tsx` (mounted twice in `Dashboard.tsx` — desktop
+  aside + mobile drawer), `client/src/pages/admin/Inbox.tsx`, `client/src/pages/admin/
+  Chat.tsx`, and `server/emailReplyBridge.ts` (client email replies become comment rows
+  too). No duplicate/parallel messaging system exists. (`sms_messages` is a genuinely
+  different channel, SMS, not in scope here.)
+  - Copy-then-diverged code confirmed: `ClientChatPanel.tsx` and `admin/Chat.tsx` both
+    gate `markRead` on "is there actually something unread from the other party";
+    `Protocol.tsx`'s older Discussion card instead fires `markRead` on every change to
+    `comments.length`, including the user's own outgoing messages — harmless but wasteful,
+    and a sign the three surfaces aren't sharing logic, just a copy-pasted pattern.
+  - `Protocol.tsx`'s Discussion card has no `refetchInterval` at all (the other two chat
+    surfaces poll every 15s) — a client reading their protocol page won't see a new coach
+    message without a manual reload.
+  - Tailwind `hidden` (`display:none`) does not unmount React — the desktop
+    `ClientChatPanel` in `Dashboard.tsx:1273` (`hidden lg:block`) keeps polling every 15s
+    in the background below the `lg` breakpoint, and a second instance mounts (and also
+    polls) if the mobile drawer is then opened — two redundant simultaneous polls for a
+    panel the user can only see one of.
+  - No delete mutation exists anywhere in `commentsRouter` — separate from the already-
+    tracked "no editing" gap, there is no way to remove a sent message at all, either side.
+  - `client/src/components/AIChatBox.tsx` is unrelated (a generic LLM-assistant chat UI),
+    only referenced from `ComponentShowcase.tsx` (a dev/demo page) — effectively dead code
+    if a dead-code sweep happens later, not part of the real messaging system.
 - **⚠️ Raw SQL does NOT get Drizzle's column aliases — this broke admin chat.** The schema
   says `personId: int("contactId")`, but that alias applies **only to query-builder calls**.
   Inside a `` sql`` `` template MySQL sees the literal text, so `personId` is an unknown
