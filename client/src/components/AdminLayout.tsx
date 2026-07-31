@@ -217,10 +217,11 @@ const menuCategories: MenuCategory[] = [
       { icon: TrendingUp, label: "Conversion Tracking", path: "/admin/conversion-tracking", roles: ['admin'] },
     ],
   },
-  // 7. Team & Settings (consolidated config/admin/setup)
+  // 7. Team & Content (team management + protocol/coaching content setup;
+  // true settings live behind the gear icon in the sidebar footer, not here)
   {
     icon: Wrench,
-    label: "Team & Settings",
+    label: "Team & Content",
     roles: ['admin', 'manager'],
     items: [
       // Team & Access

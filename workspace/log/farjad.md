@@ -4,6 +4,35 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-07-31 (continued)
+- Ran Jason's full go/keep/decide list over every admin nav item through me, expecting a
+  bigger cleanup than what actually landed today. Investigated each unfamiliar name
+  (Audit Logs, Contact Admin, Data Integrity, Email Engagement, Onboarding Wizard) before
+  answering rather than guessing — found all five admin pages were already removed in an
+  earlier milestone, with only a few loose backend ends left (an orphaned tRPC procedure,
+  a still-running email-engagement tracking pipeline with no UI, audit *logging* itself
+  which is compliance-critical and must stay regardless of the removed browsing page).
+  Caught a naming collision before it caused a wrong deletion: the currently-alive
+  "Onboarding Wizard" on the client's My Account page is a different, unrelated feature
+  from the removed admin "Onboarding Manager" — flagged for Jason to confirm rather than
+  assuming they meant the same thing.
+- Cross-checked the rest of the list (Programs, Masterclass Videos, Peptide Cheat Sheet,
+  Team roles, email-branding simplification, the full keep-list) against the existing
+  milestone plan before doing any work — all of it was already tracked in M2, unchanged.
+  Made the call on three items that weren't yet tracked: Notification Analysis (remove,
+  it's developer documentation masquerading as an admin page), Notification History and
+  Team Email Preferences (keep, both have real day-to-day use).
+- Directed scope down to just the nav label for today: asked whether to bury daily-driver
+  pages (Protocol Items, Categories, Templates, Team, Coaching Promos, Forms Editor) under
+  the small footer gear icon as literally requested, or keep them visible and reserve the
+  gear icon for true settings — chose visible, since none of these turned out to be simple
+  config toggles once actually mapped. Held the security fix, feature removals, and dead
+  code cleanup for a separate pass rather than doing everything at once.
+- Renamed the sidebar's "Team & Settings" category to "Team & Content" (Settings already
+  lives in the gear icon; nothing else moved, since everything left in that list turned
+  out to be a real management page, not a settings toggle).
+- Hours: ~
+
 ## 2026-07-31
 - Scoped the Settings redesign before touching code: found the "dropdown → single tabbed
   page" conversion was already done (Saboor's earlier work), so directed the actual gap —

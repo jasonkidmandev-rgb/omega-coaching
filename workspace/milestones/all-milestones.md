@@ -15,6 +15,10 @@ app review.
 ## M2 — Declutter + chat (Week 2)
 - [x] Remove unused admin pages (AuditLogs, ContactAdmin, DataIntegrityAudit,
       EmailEngagement, OnboardingManager).
+- [ ] Delete the now-orphaned `dataIntegrityAudit` tRPC procedure (dead code, zero
+      frontend callers, left behind by the page removal above).
+- [ ] Remove Notification Analysis (Jason, 2026-07-31: it's developer reference
+      documentation, not an admin tool — see `decisions.md`).
 - [x] Drop 14 dead database tables; archive 33 dead scripts.
 - [x] Trim the Launchpad hub page to Jason's keep list; send Trusted Partners and
       Coaching Plans out to omegalongevity.com.
@@ -68,7 +72,7 @@ with per-role landing pages.
 
 ## Keep as-is (no action planned)
 Calendly, Categories, Coaching promos, Forms editor, Integrations, Protocol Items,
-Templates.
+Templates, Notification History, Team Email Preferences.
 
 ## Open decisions
 Tracked in `decisions.md`, not duplicated here.

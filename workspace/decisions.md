@@ -33,12 +33,20 @@ and the reason.
 - **The "discountable" flag on products doesn't do anything right now** — every item
   gets discounted regardless of the flag. Fixing it will raise some clients' totals, so
   it needs your sign-off before we touch it.
-- **Which of these admin pages can we drop:** Notification Analysis, Notification
-  History, Job Health, Team Email Preferences, KPI Dashboard? Two more candidates
-  surfaced while building the new tabbed Settings page (Saboor, 2026-07-30): Email →
-  Preview is likely redundant (Email → Templates already shows everything it does, plus
-  more), and the three Notification views (Report / Analysis / History) could likely
-  become one view with a filter. Actually removing anything is M2 work, not now.
+- **Which of these admin pages can we drop: Job Health, KPI Dashboard?** (Notification
+  Analysis / History / Team Email Preferences resolved below, 2026-07-31.) Also still
+  open: Email → Preview is likely redundant (Email → Templates already shows everything
+  it does, plus more) — decide its fate alongside the email-branding simplification pass.
+  Actually removing anything is M2 work, not now.
+- **Kill the email-engagement tracking pipeline, or leave it running?** The admin UI for
+  it was already removed (M2), but the backend (open/click tracking, `engagementRouter`,
+  two test suites) is still live with nothing surfacing the data anywhere. Found
+  2026-07-31 while auditing the admin nav for dead pages.
+- **Does "Onboarding Wizard" on the go/keep list mean the client-facing one too?** The
+  admin-side "Onboarding Manager" config page is already gone (M2). The thing still alive
+  today under a similar name is `DashboardOnboardingWizard.tsx` — a goal-picker modal on
+  the client's My Account page, unrelated to what was removed. Confirm whether that's also
+  meant to go, since it's a different, currently-used feature. Found 2026-07-31.
 - **Site Settings page: review what's actually needed and simplify it.**
 - **Client dashboard milestone progress bar is cosmetic, not real.** The one remaining
   item from the 2026-07-30 dashboard audit (rest was actioned, see Decided below): the
@@ -54,6 +62,25 @@ and the reason.
   Affects the ~1-week data-migration track in M4.
 
 ## Decided (append-only: date, decision, why)
+
+- 2026-07-31 — Jason ran a full go/keep/decide pass over every admin nav item (via
+  Farjad). Result matched the existing M2 plan almost exactly (Programs, Masterclass
+  Videos, Peptide Cheat Sheet, Team roles, email-branding simplification, and the
+  "keep as-is" list were already tracked there unchanged) — logged as confirmation, no
+  plan changes needed for those. Three items not yet tracked got a call: **Notification
+  Analysis → remove** (it's a hardcoded developer reference page documenting crons/emails
+  in code, not an admin tool — belongs in a repo doc, not a live page); **Notification
+  History → keep** (real operational log of what actually sent, used for support
+  questions); **Team Email Preferences → keep** (lets each staff member control their own
+  notification noise). Actually removing Notification Analysis is still M2 work, not done
+  yet.
+- 2026-07-31 — Renamed the "Team & Settings" sidebar category to "Team & Content"; no
+  items moved. Why: Settings itself already moved to the gear icon earlier the same day,
+  so the old label was misleading; the remaining items (Team, Templates, Protocol Items,
+  Categories, Programs, Coaching Promos, Masterclass Videos, Forms Editor, Peptide Cheat
+  Sheet, Team Email Preferences, Workflow Templates) turned out to be real management
+  pages staff use often, not simple config toggles, so none of them belonged behind the
+  small gear icon — Jason confirmed daily-driver pages should stay visible in the sidebar.
 
 - 2026-07-29 — Client-facing endpoints now check **staff role, OR the signed-in owner, OR
   a valid access token**, and give the same error whether a record doesn't exist or just

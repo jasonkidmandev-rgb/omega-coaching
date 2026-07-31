@@ -34,6 +34,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Consolidate 13 settings pages into one tabbed Settings page. `Owner: Saboor` (notes: `task-notes.md#settings-tabs`)
 - [x] Tidy spacing and tab-rail scrolling on the new Settings tabs. `Owner: Saboor`
 - [x] Move Settings entry point to the sidebar footer (gear icon by the profile), remove it from the sidebar nav list. `Owner: Farjad` (notes: `task-notes.md#settings-tabs`)
+- [x] Rename "Team & Settings" sidebar category to "Team & Content" (Settings itself already moved to the gear icon; nothing else moved — see `decisions.md` 2026-07-31). `Owner: Farjad`
 - [x] UI/UX pass on the 12 settings tab pages: removed duplicate per-tab titles, 6 dead "back" buttons, fixed the one dark-theme outlier tab. `Owner: Farjad` (notes: `task-notes.md#settings-tabs`)
 - [ ] Flatten the 7 settings tabs that still nest their own Tabs inside the hub tab (scoped out of the pass above, bigger restructuring). `Owner: ___` (notes: `task-notes.md#settings-tabs`)
 - [ ] Browser-test the new Settings tabs page end to end. `Owner: ___` (checklist: `task-notes.md#settings-tabs-qa`)
