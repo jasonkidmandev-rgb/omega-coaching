@@ -2,7 +2,6 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
-  Calendar,
   Check,
   ExternalLink,
   Loader2,
@@ -123,7 +122,6 @@ export default function CalendlySettings() {
     return (
       <>
         <div className="space-y-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Calendly Integration</h1>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
             <div className="flex items-center gap-3 mb-2">
               <AlertCircle className="h-5 w-5 text-yellow-600" />
@@ -146,15 +144,9 @@ export default function CalendlySettings() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Calendar className="h-6 w-6 text-orange-500" />
-              Calendly Integration
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Manage your Calendly sync settings, webhooks, and event type filters.
-            </p>
-          </div>
+          <p className="text-sm text-gray-500">
+            Manage your Calendly sync settings, webhooks, and event type filters.
+          </p>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
               <span className="w-2 h-2 bg-green-500 rounded-full" />

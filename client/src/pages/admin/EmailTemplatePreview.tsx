@@ -9,9 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Mail, Eye, Code, RefreshCw, Send, Copy, Check, Edit, Save, RotateCcw, AlertCircle, History, BarChart3, MousePointer, TrendingUp, Clock, Trash2 } from "lucide-react";
-import { useLocation } from "wouter";
-import { goBackTo } from "@/hooks/useGoBack";
+import { Eye, Code, RefreshCw, Send, Copy, Check, Edit, Save, RotateCcw, AlertCircle, History, BarChart3, MousePointer, TrendingUp, Clock, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -190,7 +188,6 @@ const EMAIL_TEMPLATES = [
 ];
 
 export default function EmailTemplatePreview() {
-  const [, setLocation] = useLocation();
   const [selectedTemplate, setSelectedTemplate] = useState(EMAIL_TEMPLATES[0]);
   const [viewMode, setViewMode] = useState<"preview" | "html" | "edit">("preview");
   const [copied, setCopied] = useState(false);
@@ -382,20 +379,9 @@ export default function EmailTemplatePreview() {
     <>
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => goBackTo("/admin/settings")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Mail className="h-6 w-6 text-orange-500" />
-              Email Template Editor
-            </h1>
-            <p className="text-muted-foreground">Preview, edit, and test automated email templates</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <p className="text-sm text-muted-foreground">Preview, edit, and test automated email templates</p>
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh

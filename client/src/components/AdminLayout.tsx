@@ -225,10 +225,8 @@ const menuCategories: MenuCategory[] = [
     items: [
       // Team & Access
       { icon: Shield, label: "Team", path: "/admin/team", roles: ['admin', 'manager'] },
-      // One entry for what used to be 8 separate sidebar links (site, Calendly,
-      // integrations, launchpad, email branding/preview, notification analysis/history).
-      // They're tabs of /admin/settings now; the old paths still redirect there.
-      { icon: Settings, label: "Settings", path: "/admin/settings", roles: ['admin'] },
+      // Settings moved to a gear icon in the sidebar footer next to the profile
+      // (see SidebarFooter below) instead of living in this nav list.
       // Protocol Setup
       { icon: FileText, label: "Templates", path: "/admin/templates", roles: ['admin', 'manager', 'viewer'] },
       { icon: Package, label: "Protocol Items", path: "/admin/items", roles: ['admin', 'manager', 'viewer'] },
@@ -723,34 +721,48 @@ function AdminLayoutContent({
           </SidebarContent>
 
           <SidebarFooter className="p-3 bg-sidebar">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-sidebar-accent transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
-                  <Avatar className="h-9 w-9 border border-sidebar-border shrink-0">
-                    <AvatarFallback className="text-xs font-medium bg-sidebar-primary text-sidebar-primary-foreground">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                    <p className="text-sm font-medium truncate leading-none text-sidebar-accent-foreground">
-                      {user?.name || "-"}
-                    </p>
-                    <p className="text-xs text-sidebar-foreground/70 truncate mt-1.5">
-                      {user?.email || "-"}
-                    </p>
-                  </div>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={logout}
-                  className="cursor-pointer text-destructive focus:text-destructive"
+            <div className="flex items-center gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex flex-1 min-w-0 items-center gap-3 rounded-lg px-1 py-1 hover:bg-sidebar-accent transition-colors text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
+                    <Avatar className="h-9 w-9 border border-sidebar-border shrink-0">
+                      <AvatarFallback className="text-xs font-medium bg-sidebar-primary text-sidebar-primary-foreground">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+                      <p className="text-sm font-medium truncate leading-none text-sidebar-accent-foreground">
+                        {user?.name || "-"}
+                      </p>
+                      <p className="text-xs text-sidebar-foreground/70 truncate mt-1.5">
+                        {user?.email || "-"}
+                      </p>
+                    </div>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {user?.role === 'admin' && (
+                <button
+                  onClick={() => setLocation('/admin/settings')}
+                  title="Settings"
+                  aria-label="Settings"
+                  className={`shrink-0 h-9 w-9 flex items-center justify-center rounded-lg text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring ${
+                    location.startsWith('/admin/settings') ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                  } group-data-[collapsible=icon]:hidden`}
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <Settings className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </SidebarFooter>
         </Sidebar>
         <div

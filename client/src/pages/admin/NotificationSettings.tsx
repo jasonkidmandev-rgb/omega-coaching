@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-import { goBackTo } from "@/hooks/useGoBack";
 import { trpc } from "../../lib/trpc";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -8,7 +6,7 @@ import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Switch } from "../../components/ui/switch";
 import { toast } from "sonner";
-import { Bell, Mail, Clock, Settings2, Save, RefreshCw, CheckCircle2, XCircle, Shield, CreditCard, FileText, Calendar, Package, Users, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Bell, Mail, Clock, Save, RefreshCw, CheckCircle2, XCircle, Shield, CreditCard, FileText, Calendar, Package, Users, AlertTriangle } from "lucide-react";
 import { Separator } from "../../components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Badge } from "../../components/ui/badge";
@@ -123,7 +121,6 @@ const EMAIL_NOTIFICATION_CATEGORIES = {
 };
 
 export default function NotificationSettings() {
-  const [, setLocation] = useLocation();
   // Local state for payment reminder form
   const [paymentRemindersEnabled, setPaymentRemindersEnabled] = useState(true);
   const [reminderDays, setReminderDays] = useState("3,7,14");
@@ -444,22 +441,9 @@ export default function NotificationSettings() {
   return (
     <>
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => goBackTo("/admin/settings")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <Settings2 className="h-8 w-8 text-primary" />
-              Notification Settings
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Configure all notification channels and preferences
-            </p>
-          </div>
-        </div>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Configure all notification channels and preferences
+      </p>
 
       <Tabs defaultValue="inapp" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 max-w-3xl">

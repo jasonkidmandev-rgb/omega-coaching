@@ -4,6 +4,29 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-07-31
+- Scoped the Settings redesign before touching code: found the "dropdown → single tabbed
+  page" conversion was already done (Saboor's earlier work), so directed the actual gap —
+  moving the entry point out of the ordinary sidebar nav list into a dedicated button near
+  the profile, and a real UI/UX pass on the 12 tab pages themselves rather than assuming
+  the description matched what the code already had. Chose a standalone gear icon over
+  folding it into the existing profile dropdown, and scoped the cleanup to surface fixes
+  (not the deeper nested-tabs restructuring) after weighing both against risk/traffic.
+- Moved the Settings entry point: removed it from the "Team & Settings" nav list, added an
+  admin-only gear icon in the sidebar footer next to the profile block, active-highlighted,
+  hidden when the sidebar collapses to icon-only.
+- UI/UX pass across all 12 settings tab pages: every panel still carried its own duplicate
+  page title directly under the hub's "Settings" heading, a leftover from when they were
+  separate routes; stripped all 12, kept each panel's descriptive subtitle so context isn't
+  lost. Found and removed 6 dead "back to Settings" buttons in the same pass (5 sharing one
+  pattern, a 6th on a different one that a plain grep for the first pattern would've
+  missed). Rewrote the one panel still styled dark-theme (`NotificationTemplates`) to match
+  the light theme every other panel uses.
+- Left the deeper nested-tabs-within-tabs restructuring (7 panels render their own Tabs
+  inside the hub tab) out of this pass on purpose — bigger surgery, flagged in `current.md`
+  for a separate pass rather than silently expanding scope.
+- Hours: ~
+
 ## 2026-07-30 (continued, 5)
 - Shrunk the welcome card on the client dashboard (was a full padded Card with an icon
   circle and a sentence of copy just to say hello, now a slim inline row) and applied

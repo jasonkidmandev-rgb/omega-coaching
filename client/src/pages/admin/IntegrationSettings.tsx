@@ -13,21 +13,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   Plus,
   Pencil,
   Trash2,
   RefreshCw,
   RotateCcw,
-  Webhook,
   CheckCircle2,
   XCircle,
   Clock,
   MinusCircle,
   Link2,
 } from "lucide-react";
-import { useLocation } from "wouter";
-import { goBackTo } from "@/hooks/useGoBack";
 
 const NO_TEMPLATE = "none";
 
@@ -50,7 +46,6 @@ const emptyForm: MappingForm = {
 };
 
 export default function IntegrationSettings() {
-  const [, setLocation] = useLocation();
   const [showMappingDialog, setShowMappingDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<MappingForm>(emptyForm);
@@ -182,20 +177,9 @@ export default function IntegrationSettings() {
     <>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => goBackTo("/admin/settings")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Webhook className="h-7 w-7 text-primary" />
-              External Integrations
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              omegalongevity.com purchases + GoHighLevel coaching webhooks — product mappings and inbound event log
-            </p>
-          </div>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          omegalongevity.com purchases + GoHighLevel coaching webhooks — product mappings and inbound event log
+        </p>
 
         {/* Endpoint info */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">

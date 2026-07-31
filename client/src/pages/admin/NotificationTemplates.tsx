@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Mail, Bell, AlertTriangle, Calendar, Package, FileText, Save, RotateCcw, Eye, Info } from "lucide-react";
+import { Mail, AlertTriangle, Calendar, Package, FileText, Save, RotateCcw, Eye, Info } from "lucide-react";
 
 // Template categories
 const TEMPLATE_CATEGORIES = [
@@ -56,14 +56,14 @@ export default function NotificationTemplates() {
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewContent, setPreviewContent] = useState({ subject: '', body: '' });
-  
+
   // Form state
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
-  
+
   // Fetch templates
   const { data: templates, isLoading, refetch } = trpc.checkin.getNotificationTemplates.useQuery();
-  
+
   // Update mutation
   const updateTemplate = trpc.checkin.updateNotificationTemplate.useMutation({
     onSuccess: () => {
@@ -75,7 +75,7 @@ export default function NotificationTemplates() {
       toast.error(error.message || "Failed to update template");
     },
   });
-  
+
   // Reset mutation
   const resetTemplate = trpc.checkin.resetNotificationTemplate.useMutation({
     onSuccess: () => {
@@ -86,13 +86,13 @@ export default function NotificationTemplates() {
       toast.error(error.message || "Failed to reset template");
     },
   });
-  
+
   const handleEdit = (template: any) => {
     setEditingTemplate(template);
     setEditSubject(template.subject);
     setEditBody(template.body);
   };
-  
+
   const handleSave = () => {
     if (!editingTemplate) return;
     updateTemplate.mutate({
@@ -101,18 +101,18 @@ export default function NotificationTemplates() {
       body: editBody,
     });
   };
-  
+
   const handleReset = (templateId: number) => {
     if (confirm("Are you sure you want to reset this template to its default content?")) {
       resetTemplate.mutate({ id: templateId });
     }
   };
-  
+
   const handlePreview = (template: any) => {
     // Replace variables with sample data
     let subject = template.subject;
     let body = template.body;
-    
+
     const sampleData: Record<string, string> = {
       '{{clientName}}': 'John Smith',
       '{{coachName}}': 'Coach Sarah',
@@ -132,57 +132,54 @@ export default function NotificationTemplates() {
       '{{status}}': 'Running Low',
       '{{storeLink}}': 'https://example.com/store',
     };
-    
+
     Object.entries(sampleData).forEach(([key, value]) => {
       subject = subject.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), value);
       body = body.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), value);
     });
-    
+
     setPreviewContent({ subject, body });
     setPreviewOpen(true);
   };
-  
+
   const filteredTemplates = templates?.filter((t: any) => t.category === activeCategory) || [];
-  
+
   return (
     <>
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Notification Templates</h1>
-        <p className="text-gray-400">Customize the email content for check-in reminders, alerts, and digests</p>
-      </div>
-      
+      <p className="text-sm text-muted-foreground">Customize the email content for check-in reminders, alerts, and digests</p>
+
       <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-        <TabsList className="bg-gray-800/50 border border-gray-700">
+        <TabsList className="bg-gray-100 border border-gray-200">
           {TEMPLATE_CATEGORIES.map((cat) => (
-            <TabsTrigger 
-              key={cat.id} 
+            <TabsTrigger
+              key={cat.id}
               value={cat.id}
-              className="data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400"
+              className="data-[state=active]:bg-orange-500 data-[state=active]:text-white"
             >
               <cat.icon className="w-4 h-4 mr-2" />
               {cat.label}
             </TabsTrigger>
           ))}
         </TabsList>
-        
+
         {TEMPLATE_CATEGORIES.map((cat) => (
           <TabsContent key={cat.id} value={cat.id} className="space-y-4">
             {/* Category description */}
-            <Card className="bg-gray-800/30 border-gray-700">
+            <Card className="bg-gray-50 border-gray-200">
               <CardContent className="pt-4">
                 <div className="flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-400 mt-0.5" />
+                  <Info className="w-5 h-5 text-blue-600 mt-0.5" />
                   <div>
-                    <p className="text-gray-300">{cat.description}</p>
+                    <p className="text-gray-700">{cat.description}</p>
                     <div className="mt-2">
-                      <span className="text-sm text-gray-400">Available variables: </span>
+                      <span className="text-sm text-gray-500">Available variables: </span>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {TEMPLATE_VARIABLES[cat.id as keyof typeof TEMPLATE_VARIABLES]?.map((v) => (
-                          <Badge 
-                            key={v.var} 
-                            variant="outline" 
-                            className="text-xs bg-gray-700/50 border-gray-600 text-gray-300 cursor-help"
+                          <Badge
+                            key={v.var}
+                            variant="outline"
+                            className="text-xs bg-white border-gray-300 text-gray-700 cursor-help"
                             title={v.desc}
                           >
                             {v.var}
@@ -194,23 +191,23 @@ export default function NotificationTemplates() {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Templates list */}
             {isLoading ? (
-              <div className="text-center py-8 text-gray-400">Loading templates...</div>
+              <div className="text-center py-8 text-gray-500">Loading templates...</div>
             ) : filteredTemplates.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">No templates found for this category</div>
+              <div className="text-center py-8 text-gray-500">No templates found for this category</div>
             ) : (
               <div className="space-y-4">
                 {filteredTemplates.map((template: any) => (
-                  <Card key={template.id} className="bg-gray-800/50 border-gray-700">
+                  <Card key={template.id}>
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Mail className="w-5 h-5 text-orange-400" />
-                          <CardTitle className="text-lg text-white">{template.name}</CardTitle>
+                          <Mail className="w-5 h-5 text-orange-500" />
+                          <CardTitle className="text-lg text-gray-900">{template.name}</CardTitle>
                           {template.isCustomized && (
-                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                            <Badge className="bg-blue-100 text-blue-700 border-blue-200">
                               Customized
                             </Badge>
                           )}
@@ -220,7 +217,6 @@ export default function NotificationTemplates() {
                             variant="outline"
                             size="sm"
                             onClick={() => handlePreview(template)}
-                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             Preview
@@ -229,7 +225,7 @@ export default function NotificationTemplates() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleEdit(template)}
-                            className="border-orange-500/50 text-orange-400 hover:bg-orange-500/20"
+                            className="border-orange-300 text-orange-600 hover:bg-orange-50"
                           >
                             Edit
                           </Button>
@@ -238,26 +234,25 @@ export default function NotificationTemplates() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleReset(template.id)}
-                              className="border-gray-600 text-gray-400 hover:bg-gray-700"
                             >
                               <RotateCcw className="w-4 h-4" />
                             </Button>
                           )}
                         </div>
                       </div>
-                      <CardDescription className="text-gray-400">{template.description}</CardDescription>
+                      <CardDescription>{template.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
                         <div>
                           <Label className="text-xs text-gray-500">Subject</Label>
-                          <div className="text-sm text-gray-300 bg-gray-900/50 p-2 rounded border border-gray-700">
+                          <div className="text-sm text-gray-700 bg-gray-50 p-2 rounded border border-gray-200">
                             {template.subject}
                           </div>
                         </div>
                         <div>
                           <Label className="text-xs text-gray-500">Body Preview</Label>
-                          <div className="text-sm text-gray-300 bg-gray-900/50 p-2 rounded border border-gray-700 max-h-24 overflow-hidden">
+                          <div className="text-sm text-gray-700 bg-gray-50 p-2 rounded border border-gray-200 max-h-24 overflow-hidden">
                             {template.body.substring(0, 200)}...
                           </div>
                         </div>
@@ -270,27 +265,27 @@ export default function NotificationTemplates() {
           </TabsContent>
         ))}
       </Tabs>
-      
+
       {/* Edit Dialog */}
       <Dialog open={!!editingTemplate} onOpenChange={(open) => !open && setEditingTemplate(null)}>
-        <DialogContent className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit Template: {editingTemplate?.name}</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogTitle>Edit Template: {editingTemplate?.name}</DialogTitle>
+            <DialogDescription>
               Customize the email content. Use the variables shown below to personalize the message.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             {/* Available variables */}
-            <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
-              <Label className="text-xs text-gray-400">Available Variables (click to copy)</Label>
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <Label className="text-xs text-gray-500">Available Variables (click to copy)</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {TEMPLATE_VARIABLES[activeCategory as keyof typeof TEMPLATE_VARIABLES]?.map((v) => (
-                  <Badge 
+                  <Badge
                     key={v.var}
                     variant="outline"
-                    className="text-xs bg-gray-700/50 border-gray-600 text-gray-300 cursor-pointer hover:bg-gray-600"
+                    className="text-xs bg-white border-gray-300 text-gray-700 cursor-pointer hover:bg-gray-100"
                     onClick={() => {
                       navigator.clipboard.writeText(v.var);
                       toast.success(`Copied ${v.var}`);
@@ -302,33 +297,32 @@ export default function NotificationTemplates() {
                 ))}
               </div>
             </div>
-            
+
             <div>
-              <Label className="text-gray-300">Subject Line</Label>
+              <Label>Subject Line</Label>
               <Input
                 value={editSubject}
                 onChange={(e) => setEditSubject(e.target.value)}
-                className="bg-gray-800 border-gray-700 text-white mt-1"
+                className="mt-1"
                 placeholder="Email subject..."
               />
             </div>
-            
+
             <div>
-              <Label className="text-gray-300">Email Body (HTML supported)</Label>
+              <Label>Email Body (HTML supported)</Label>
               <Textarea
                 value={editBody}
                 onChange={(e) => setEditBody(e.target.value)}
-                className="bg-gray-800 border-gray-700 text-white mt-1 min-h-[300px] font-mono text-sm"
+                className="mt-1 min-h-75 font-mono text-sm"
                 placeholder="Email body content..."
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setEditingTemplate(null)}
-              className="border-gray-600 text-gray-300"
             >
               Cancel
             </Button>
@@ -343,39 +337,38 @@ export default function NotificationTemplates() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">Email Preview</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogTitle>Email Preview</DialogTitle>
+            <DialogDescription>
               Preview with sample data
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label className="text-xs text-gray-500">Subject</Label>
-              <div className="text-white bg-gray-800 p-3 rounded border border-gray-700">
+              <div className="text-gray-900 bg-gray-50 p-3 rounded border border-gray-200">
                 {previewContent.subject}
               </div>
             </div>
-            
+
             <div>
               <Label className="text-xs text-gray-500">Body</Label>
-              <div 
-                className="bg-white text-gray-900 p-4 rounded border border-gray-700 prose prose-sm max-w-none"
+              <div
+                className="bg-white text-gray-900 p-4 rounded border border-gray-200 prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: previewContent.body }}
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setPreviewOpen(false)}
-              className="border-gray-600 text-gray-300"
             >
               Close
             </Button>

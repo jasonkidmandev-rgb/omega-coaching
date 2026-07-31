@@ -60,9 +60,37 @@ one tabbed page at `/admin/settings`, grouped General / Notifications / Email.
 visibly shifted the content and double-padded inside the hub. All 13 now use `space-y-6`
 (class-string-only edits, brace/paren balance checked against JSX damage). Tab rail
 scrolls horizontally rather than wrapping — 13 tabs + 3 group labels stacked into 4-5 rows
-on a phone and pushed the panel off-screen. Panel `<h1>`s deliberately kept (reads as a
-normal section heading under "Settings"; stripping all 13 would be real JSX surgery for
-no functional gain).
+on a phone and pushed the panel off-screen.
+
+**Entry-point move + panel `<h1>` cleanup (Farjad, 2026-07-31):** reverses the "kept" call
+above — with the hub now the only way in, every panel's own `<h1>` was a second, larger
+duplicate of the hub's "Settings" title sitting a few pixels below it, not a normal section
+heading. Removed the `<h1>`/icon-circle header block from all 12 live panels (13th,
+`LaunchpadSettings`, was already removed), keeping each panel's descriptive subtitle as a
+plain paragraph so the "what is this tab for" context isn't lost, just the duplicate title.
+Class-only + JSX-block-only edits, one panel at a time, unused icon/hook imports (`ArrowLeft`,
+`Settings2`, `Bell`, `History`, `Calendar`, `Webhook`, `useLocation`) removed per file where
+they had no other use.
+- Also removed 5 dead "back to /admin/settings" arrow buttons (`goBackTo()`) left over from
+  when each panel was its own route — `IntegrationSettings`, `NotificationSettings`,
+  `NotificationReport`, `EmailTemplatePreview`, `EmailReportSettings` — plus a 6th found
+  during the sweep that used a different pattern (`NotificationAnalysis`'s `<Link
+  href="/admin">Back</Link>`, not `goBackTo`).
+- `NotificationTemplates.tsx` was the one dark-theme panel (`bg-gray-800`/`text-white`)
+  against 12 light-theme panels; rewrote it to the same light `Card`/`text-gray-900`/
+  `border-gray-200` pattern as the rest, orange accent kept but on light backgrounds
+  (`bg-orange-500` active tab, `text-orange-600`/`bg-orange-50` outline buttons) instead of
+  the dark-mode `/20`-`/50` opacity variants.
+- **Settings entry point moved**: sidebar no longer has a "Settings" nav link under Team &
+  Settings; a gear icon now sits in the sidebar footer next to the profile
+  (`AdminLayout.tsx`, `SidebarFooter`), admin-only, `setLocation('/admin/settings')`,
+  active-state highlight via `location.startsWith('/admin/settings')`. Hidden when the
+  sidebar is collapsed to icon-only, same as the profile name/email already were.
+- **Deliberately NOT done this pass** (scoped out, see chat): flattening the 7 panels that
+  nest their own `Tabs` inside the hub tab (`Settings.tsx`, `NotificationSettings.tsx`,
+  `NotificationTemplates.tsx`, `EmailBranding.tsx`, `EmailTemplatePreview.tsx`,
+  `NotificationHistory.tsx`, `NotificationAnalysis.tsx`) — bigger restructuring, held for a
+  separate pass if wanted.
 
 ---
 
@@ -75,7 +103,9 @@ Browser checklist for the settings consolidation (needs a live admin session):
 | 2 | Click through all 13 tabs | Each panel loads its own content; URL tracks the tab |
 | 3 | `/admin/notification-settings` (old path) | Redirects to `/admin/settings/notifications` without a full page reload |
 | 4 | `/admin/settings/bogus` | Falls back to the Site tab, not a blank page |
-| 5 | Sidebar → Team & Settings | One "Settings" entry, not nine |
+| 5 | Sidebar footer gear icon (admin login) | Opens `/admin/settings`; not shown to non-admins; hidden when sidebar is collapsed to icon-only |
+| 6 | Each of the 12 tabs | No duplicate title under the hub's "Settings" heading, no leftover "back" arrow button |
+| 7 | Notifications → Templates tab | Light theme, matches the other 11 tabs (was the dark-theme outlier) |
 
 ---
 

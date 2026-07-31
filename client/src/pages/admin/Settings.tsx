@@ -420,15 +420,7 @@ export default function Settings() {
     <>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-orange-500/20 rounded-xl">
-            <SettingsIcon className="h-6 w-6 text-orange-500" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Site Settings</h1>
-            <p className="text-gray-600">Configure platform-wide settings and preferences</p>
-          </div>
-        </div>
+        <p className="text-sm text-gray-600">Configure platform-wide settings and preferences</p>
 
         <Tabs defaultValue="general" className="space-y-6">
           <TabsList className="bg-gray-100 border border-gray-200">

@@ -5,9 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Bell, Mail, Clock, Users, CheckCircle, AlertTriangle, 
-  ArrowLeft, FileText, Zap, Settings, ExternalLink
+import {
+  Bell, Mail, Clock, Users, CheckCircle, AlertTriangle,
+  FileText, Zap, Settings, ExternalLink
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -412,23 +412,7 @@ export default function NotificationAnalysis() {
     <>
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <Link href="/admin">
-            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Bell className="h-6 w-6 text-amber-500" />
-              Notification System Analysis
-            </h1>
-            <p className="text-gray-600">Comprehensive overview of all notification types and triggers</p>
-          </div>
-        </div>
-      </div>
+      <p className="text-sm text-gray-600 mb-8">Comprehensive overview of all notification types and triggers</p>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">

@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bell, Mail, CheckCircle, AlertTriangle, ClipboardList, Package, Users, Calendar, ArrowUp, MessageSquare, BarChart3, Loader2 } from "lucide-react";
+import { Mail, CheckCircle, AlertTriangle, ClipboardList, Package, Users, Calendar, ArrowUp, MessageSquare, BarChart3, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface PreferenceItem {
@@ -163,17 +163,9 @@ export default function NotificationPreferences() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Bell className="h-6 w-6" />
-            Email Notification Preferences
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Configure which notifications each team member receives via email. In-app notifications are always enabled.
-          </p>
-        </div>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Configure which notifications each team member receives via email. In-app notifications are always enabled.
+      </p>
 
       {/* Team Member Selector */}
       <Card>

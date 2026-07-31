@@ -7,9 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Mail, Clock, Calendar, Users, Plus, Trash2, Send, Settings, AlertCircle } from "lucide-react";
-import { useLocation } from "wouter";
-import { goBackTo } from "@/hooks/useGoBack";
+import { Mail, Clock, Calendar, Users, Plus, Trash2, Send, Settings, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -47,7 +45,6 @@ const HOURS = Array.from({ length: 24 }, (_, i) => ({
 }));
 
 export default function EmailReportSettings() {
-  const [, setLocation] = useLocation();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<typeof REPORT_TYPES[0] | null>(null);
   
@@ -175,20 +172,7 @@ export default function EmailReportSettings() {
     <>
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => goBackTo("/admin/settings")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Clock className="h-6 w-6 text-orange-500" />
-              Scheduled Email Reports
-            </h1>
-            <p className="text-muted-foreground">Configure automated email delivery reports sent to admins</p>
-          </div>
-        </div>
-      </div>
+      <p className="text-sm text-muted-foreground">Configure automated email delivery reports sent to admins</p>
 
       {/* Report Types */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

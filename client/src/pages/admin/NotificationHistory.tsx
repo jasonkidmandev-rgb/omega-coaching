@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  History, Mail, Bell, AlertCircle, CheckCircle2, Clock, 
+import {
+  Mail, Bell, AlertCircle, CheckCircle2, Clock,
   Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Eye,
   Calendar, User, XCircle, MousePointerClick, MailOpen, Send
 } from "lucide-react";
@@ -194,15 +194,9 @@ export default function NotificationHistory() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-            <History className="h-8 w-8 text-orange-500" />
-            Notification History
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Track email delivery, opens, clicks, and in-app notification engagement
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          Track email delivery, opens, clicks, and in-app notification engagement
+        </p>
         <Button onClick={handleRefresh} variant="outline" className="gap-2">
           <RefreshCw className="h-4 w-4" />
           Refresh

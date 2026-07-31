@@ -26,17 +26,9 @@ export default function EmailPreview() {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Eye className="h-6 w-6" />
-              Email Template Preview
-            </h1>
-            <p className="text-muted-foreground">
-              Preview how your email templates will look to recipients
-            </p>
-          </div>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          Preview how your email templates will look to recipients
+        </p>
 
         <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
           {/* Template Selector */}

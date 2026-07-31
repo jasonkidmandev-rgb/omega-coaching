@@ -104,15 +104,9 @@ export default function EmailBranding() {
     <>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Mail className="h-6 w-6" />
-              Email Branding
-            </h1>
-            <p className="text-muted-foreground">
-              Customize the appearance of emails sent to clients
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Customize the appearance of emails sent to clients
+          </p>
           <Button onClick={handleSave} disabled={updateMutation.isPending}>
             <Save className="h-4 w-4 mr-2" />
             Save Changes
