@@ -63,6 +63,18 @@ and the reason.
 
 ## Decided (append-only: date, decision, why)
 
+- 2026-08-01 — **Direct UI-based payments are being removed from humanedge.health**
+  (Saboor). First consequence applied: deleted `server/planQuiz.test.ts`. The quiz's
+  recommendation flow ends at `setLocation('/transformation/checkout?plan=…')`
+  (`PlanQuiz.tsx:225`), so it is an entry point to exactly that funnel and goes with it.
+  This also closes the stale 2026-07-28 flag asking Jason to confirm the quiz price list
+  ($3,000 / $8,500 / $15,000 / $1,000) — no longer worth his time.
+  ⚠️ Note the test was a **real** one (it imported `getRecommendation` and covered plan
+  selection across all 45 goal/experience/support combinations); it was removed because
+  the feature is going, not because the test was weak. `PlanQuiz.tsx` and
+  `TransformationEntry.tsx:1777` are **still live and now uncovered** — the component
+  removal itself is not yet scoped or tracked.
+
 - 2026-07-31 — Jason ran a full go/keep/decide pass over every admin nav item (via
   Farjad). Result matched the existing M2 plan almost exactly (Programs, Masterclass
   Videos, Peptide Cheat Sheet, Team roles, email-branding simplification, and the
