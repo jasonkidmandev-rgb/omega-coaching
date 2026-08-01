@@ -4,6 +4,27 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-02 (continued)
+- Scoped the Omega Longevity theme rollout before writing any code, and narrowed it
+  deliberately: the ~178 files still hardcoding colors are mostly *internal admin tool*
+  pages, where the existing orange accent is consistent and staff don't judge the brand by
+  it. Decided client-facing surfaces only — much smaller, lower risk, and it's what
+  actually affects how the product reads to clients and prospects.
+- Ran an inventory of every client-facing page first rather than fixing them one at a time
+  as I found them. That reframed the job: it isn't random color drift, it's two *fake*
+  brand colors used consistently in place of the real ones — amber/orange gradients
+  standing in for the gold, and three different hardcoded navies (none matching the real
+  one) standing in for the brand navy. So most of it is two find-and-replace patterns per
+  page, not per-element design work. Recorded the conventions in `task-notes.md` so
+  batches 2-3 stay consistent with batch 1.
+- Shipped batch 1, the ten client-facing pages seen most often. Two things worth noting:
+  the Protocol page is the second-most-visited client page and still had a plain white
+  header while the dashboard had the navy one, so those two now match; and one page on my
+  own list (Inventory) turned out to need no change at all — its orange/blue are real
+  stock-status indicators, not branding. Left all semantic status colors and per-category
+  accent coding alone throughout, same call as the dashboard pass.
+- Hours: ~
+
 ## 2026-08-02
 - Triaged the open M1 task list: verified the HumanEdge cover page and the Settings tabs
   QA pass, closing both out. Dropped three items that never had real substance behind

@@ -121,7 +121,7 @@ export default function ClientPaymentPortal() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 p-6">
+      <div className="min-h-screen bg-brand-dark p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <Skeleton className="h-8 w-64 bg-gray-800" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -137,7 +137,7 @@ export default function ClientPaymentPortal() {
 
   if (!paymentsData?.success || !paymentsData.data) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-brand-dark flex items-center justify-center p-6">
         <Card className="bg-gray-800/50 border-gray-700 max-w-md w-full">
           <CardHeader className="text-center">
             <XCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
@@ -154,7 +154,7 @@ export default function ClientPaymentPortal() {
   const { clientName, clientEmail, payments, summary } = paymentsData.data;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 p-6">
+    <div className="min-h-screen bg-brand-dark p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

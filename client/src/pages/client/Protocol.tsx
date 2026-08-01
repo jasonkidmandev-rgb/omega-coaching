@@ -566,7 +566,7 @@ export default function ClientProtocol() {
 
   if (!protocol) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Card className="max-w-md w-full mx-4">
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -702,7 +702,7 @@ export default function ClientProtocol() {
   const status = statusConfig[protocol.status] || statusConfig.draft;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Client Onboarding Modal */}
       <ClientOnboardingModal
         isOpen={showOnboarding}
@@ -734,19 +734,24 @@ export default function ClientProtocol() {
       )}
 
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40">
+      <header className="bg-brand-dark border-b border-brand-border sticky top-0 z-40">
         <div className="container max-w-5xl py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => goBackTo('/dashboard')}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => goBackTo('/dashboard')}
+                className="text-brand-dark-foreground hover:text-white hover:bg-white/10"
+              >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <Pill className="h-5 w-5 text-primary" />
+              <div className="w-10 h-10 bg-brand-gold/15 rounded-full flex items-center justify-center">
+                <Pill className="h-5 w-5 text-brand-gold" />
               </div>
               <div>
-                <h1 className="font-semibold">Health Protocol</h1>
-                <p className="text-sm text-muted-foreground">{protocol.clientName}</p>
+                <h1 className="font-semibold text-white">Health Protocol</h1>
+                <p className="text-sm text-brand-dark-foreground">{protocol.clientName}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -755,6 +760,7 @@ export default function ClientProtocol() {
                 size="sm"
                 onClick={handleDownloadPdf}
                 disabled={isGeneratingPdf}
+                className="border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-gold-foreground"
               >
                 {isGeneratingPdf ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

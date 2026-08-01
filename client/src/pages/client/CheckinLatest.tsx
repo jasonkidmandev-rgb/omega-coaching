@@ -25,7 +25,7 @@ export default function CheckinLatest() {
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
           </div>
         </div>
       </div>
@@ -57,17 +57,17 @@ export default function CheckinLatest() {
         {hasPendingCheckins ? (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-500" />
+              <Clock className="h-5 w-5 text-brand-gold" />
               Pending Check-Ins
             </h2>
             {pendingCheckins.map((checkin: any) => (
-              <Card key={checkin.id} className="bg-white border-gray-200 hover:border-amber-500 transition-colors cursor-pointer"
+              <Card key={checkin.id} className="bg-white border-gray-200 hover:border-brand-gold transition-colors cursor-pointer"
                 onClick={() => setLocation(`/checkin/${checkin.id}`)}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-orange-500/20 rounded-full">
-                        <FileText className="h-6 w-6 text-orange-500" />
+                      <div className="p-3 bg-brand-gold/20 rounded-full">
+                        <FileText className="h-6 w-6 text-brand-gold" />
                       </div>
                       <div>
                         <h3 className="text-lg font-medium text-white">Weekly Check-In</h3>
@@ -76,7 +76,7 @@ export default function CheckinLatest() {
                         </p>
                       </div>
                     </div>
-                    <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                    <Badge className="bg-brand-gold/20 text-brand-gold border-brand-gold/30">
                       Pending
                     </Badge>
                   </div>
@@ -102,7 +102,7 @@ export default function CheckinLatest() {
                 </div>
                 <Button 
                   onClick={() => setLocation('/dashboard')}
-                  className="mt-4 bg-orange-500 hover:bg-orange-600"
+                  className="mt-4 bg-brand-gold text-brand-gold-foreground hover:opacity-90"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard

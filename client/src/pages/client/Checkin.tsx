@@ -209,7 +209,7 @@ export default function ClientCheckin() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <ClipboardCheck className="h-6 w-6 text-orange-500" />
+                <ClipboardCheck className="h-6 w-6 text-brand-gold" />
                 Weekly Check-in
               </CardTitle>
               <CardDescription>
@@ -329,8 +329,8 @@ export default function ClientCheckin() {
                     htmlFor={currentQuestion.id} 
                     className="text-base cursor-pointer flex items-center gap-2"
                   >
-                    {currentQuestion.text.includes('photo') && <Camera className="h-5 w-5 text-orange-500" />}
-                    {currentQuestion.text.includes('metric') && <Scale className="h-5 w-5 text-orange-500" />}
+                    {currentQuestion.text.includes('photo') && <Camera className="h-5 w-5 text-brand-gold" />}
+                    {currentQuestion.text.includes('metric') && <Scale className="h-5 w-5 text-brand-gold" />}
                     Yes, I did this week
                   </Label>
                 </div>
@@ -340,8 +340,8 @@ export default function ClientCheckin() {
           
           {/* Weekly Reminder */}
           {currentStep === questions.length - 1 && (
-            <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
-              <p className="text-sm text-orange-400">
+            <div className="p-4 rounded-lg bg-brand-gold/10 border border-brand-gold/20">
+              <p className="text-sm text-brand-gold">
                 <strong>Weekly Recommendation:</strong> If you're including "Lean Muscle / Weight Loss" in your protocol, 
                 we highly recommend taking progress photos and doing regular body scans for body fat % to track your physical transformation.
               </p>
@@ -405,7 +405,7 @@ export default function ClientCheckin() {
                   onClick={() => canJumpTo && setCurrentStep(idx)}
                   className={`w-2.5 h-2.5 rounded-full transition-all ${
                     idx === currentStep 
-                      ? 'bg-orange-500 w-6' 
+                      ? 'bg-brand-gold w-6' 
                       : idx < currentStep 
                         ? 'bg-green-500' 
                         : canJumpTo ? 'bg-slate-600' : 'bg-slate-600/30'

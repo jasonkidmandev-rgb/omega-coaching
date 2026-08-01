@@ -35,7 +35,7 @@ export default function CompareProtocols() {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 p-4 md:p-8">
+      <div className="min-h-screen bg-brand-dark p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <Skeleton className="h-12 w-64 mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -49,7 +49,7 @@ export default function CompareProtocols() {
   
   if (optionProtocols.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 p-4 md:p-8">
+      <div className="min-h-screen bg-brand-dark p-4 md:p-8">
         <div className="max-w-4xl mx-auto text-center py-12">
           <Scale className="h-16 w-16 mx-auto text-slate-500 mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2">No Options to Compare</h1>
@@ -66,7 +66,7 @@ export default function CompareProtocols() {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 p-4 md:p-8">
+    <div className="min-h-screen bg-brand-dark p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -88,7 +88,7 @@ export default function CompareProtocols() {
         {/* Comparison Grid */}
         <div className={`grid gap-6 ${optionProtocols.length === 2 ? 'md:grid-cols-2' : optionProtocols.length >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-1'}`}>
           {optionProtocols.map((protocol: any) => (
-            <Card key={protocol.id} className="bg-slate-900/50 border-slate-700 hover:border-orange-500/50 transition-colors">
+            <Card key={protocol.id} className="bg-white/5 border-brand-border hover:border-brand-gold/50 transition-colors">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>

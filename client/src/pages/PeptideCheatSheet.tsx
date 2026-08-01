@@ -82,9 +82,9 @@ export default function PeptideCheatSheet() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-brand-dark">
       {/* Header */}
-      <div className="bg-slate-800/50 border-b border-slate-700">
+      <div className="bg-white/5 border-b border-brand-border">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -98,7 +98,7 @@ export default function PeptideCheatSheet() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <FileText className="h-6 w-6 text-orange-500" />
+                  <FileText className="h-6 w-6 text-brand-gold" />
                   Peptide Cheat Sheet
                 </h1>
                 <p className="text-slate-400 text-sm">Quick reference guide for common peptides</p>
@@ -125,7 +125,7 @@ export default function PeptideCheatSheet() {
               )}
               <Button
                 variant="outline"
-                className="border-orange-500 text-orange-500 hover:bg-orange-500/10"
+                className="border-brand-gold text-brand-gold hover:bg-brand-gold/10"
                 onClick={() => window.print()}
               >
                 <Download className="h-4 w-4 mr-2" />
@@ -139,9 +139,9 @@ export default function PeptideCheatSheet() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Disclaimer */}
-        <Card className="bg-amber-500/10 border-amber-500/30 mb-8">
+        <Card className="bg-brand-gold/10 border-brand-gold/30 mb-8">
           <CardContent className="py-4">
-            <p className="text-amber-200 text-sm">
+            <p className="text-brand-gold text-sm">
               <strong>Disclaimer:</strong> This information is for educational purposes only and should not be considered medical advice. 
               Always consult with a qualified healthcare provider before starting any peptide protocol. 
               Dosing may vary based on individual factors and should be personalized by your practitioner.
@@ -151,14 +151,14 @@ export default function PeptideCheatSheet() {
         
         {/* Favorites hint for non-logged-in users */}
         {!isLoggedIn && !isLoading && (
-          <Card className="bg-slate-800/50 border-slate-700 mb-6">
+          <Card className="bg-white/5 border-brand-border mb-6">
             <CardContent className="py-4">
               <div className="flex items-center gap-3">
                 <Heart className="h-5 w-5 text-pink-500" />
                 <p className="text-slate-300 text-sm">
                   <Button 
                     variant="link" 
-                    className="text-orange-500 p-0 h-auto"
+                    className="text-brand-gold p-0 h-auto"
                     onClick={() => window.location.href = getLoginUrl('/peptide-cheat-sheet')}
                   >
                     Log in
@@ -173,7 +173,7 @@ export default function PeptideCheatSheet() {
         {/* Loading State */}
         {isLoading && (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-brand-gold" />
             <span className="ml-3 text-slate-300">Loading peptide data...</span>
           </div>
         )}
@@ -182,7 +182,7 @@ export default function PeptideCheatSheet() {
         {!isLoading && (
           <div className="grid gap-6">
             {filteredCategories.map((category) => (
-              <Card key={category.id} className="bg-slate-800/50 border-slate-700">
+              <Card key={category.id} className="bg-white/5 border-brand-border">
                 <CardHeader>
                   <CardTitle className="text-xl text-white">{category.name}</CardTitle>
                   <CardDescription className="text-slate-400">{category.description}</CardDescription>
@@ -191,23 +191,23 @@ export default function PeptideCheatSheet() {
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-slate-700">
+                        <tr className="border-b border-brand-border">
                           {isLoggedIn && (
-                            <th className="text-center py-3 px-2 text-orange-500 font-semibold w-12">
+                            <th className="text-center py-3 px-2 text-brand-gold font-semibold w-12">
                               <Heart className="h-4 w-4 mx-auto" />
                             </th>
                           )}
-                          <th className="text-left py-3 px-4 text-orange-500 font-semibold">Peptide</th>
-                          <th className="text-left py-3 px-4 text-orange-500 font-semibold">Purpose</th>
-                          <th className="text-left py-3 px-4 text-orange-500 font-semibold">Typical Dosing</th>
-                          <th className="text-left py-3 px-4 text-orange-500 font-semibold">Frequency</th>
+                          <th className="text-left py-3 px-4 text-brand-gold font-semibold">Peptide</th>
+                          <th className="text-left py-3 px-4 text-brand-gold font-semibold">Purpose</th>
+                          <th className="text-left py-3 px-4 text-brand-gold font-semibold">Typical Dosing</th>
+                          <th className="text-left py-3 px-4 text-brand-gold font-semibold">Frequency</th>
                         </tr>
                       </thead>
                       <tbody>
                         {category.peptides.map((peptide) => {
                           const isFavorited = favoriteSet.has(peptide.id);
                           return (
-                            <tr key={peptide.id} className="border-b border-slate-700/50 hover:bg-slate-700/30">
+                            <tr key={peptide.id} className="border-b border-brand-border hover:bg-white/5">
                               {isLoggedIn && (
                                 <td className="py-3 px-2 text-center">
                                   <Button
@@ -239,14 +239,14 @@ export default function PeptideCheatSheet() {
 
         {/* Empty State - No favorites */}
         {!isLoading && showFavoritesOnly && filteredCategories.length === 0 && (
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white/5 border-brand-border">
             <CardContent className="py-12 text-center">
               <Heart className="h-12 w-12 text-slate-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">No Favorites Yet</h3>
               <p className="text-slate-400 mb-4">Click the heart icon next to any peptide to add it to your favorites.</p>
               <Button
                 variant="outline"
-                className="border-orange-500 text-orange-500 hover:bg-orange-500/10"
+                className="border-brand-gold text-brand-gold hover:bg-brand-gold/10"
                 onClick={() => setShowFavoritesOnly(false)}
               >
                 View All Peptides
@@ -257,7 +257,7 @@ export default function PeptideCheatSheet() {
 
         {/* Empty State - No peptides at all */}
         {!isLoading && !showFavoritesOnly && filteredCategories.length === 0 && (
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white/5 border-brand-border">
             <CardContent className="py-12 text-center">
               <FileText className="h-12 w-12 text-slate-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">No Peptides Available</h3>
@@ -267,7 +267,7 @@ export default function PeptideCheatSheet() {
         )}
 
         {/* Footer CTA */}
-        <Card className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 border-orange-500/30 mt-8">
+        <Card className="bg-brand-gold/15 border-brand-gold/30 mt-8">
           <CardContent className="py-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
@@ -275,7 +275,7 @@ export default function PeptideCheatSheet() {
                 <p className="text-slate-300">Work with our team to create a personalized peptide protocol.</p>
               </div>
               <Button
-                className="bg-orange-500 hover:bg-orange-600 text-white"
+                className="bg-brand-gold text-brand-gold-foreground hover:opacity-90"
                 onClick={() => setLocation("/coaching-programs")}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />

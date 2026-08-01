@@ -51,19 +51,19 @@ export default function LaunchpadHub() {
               </a>
               {/* About Jason - Hover Bio */}
               <div className="relative group hidden md:block">
-                <button className="flex items-center gap-1.5 text-gray-600 hover:text-amber-600 transition-colors text-sm font-medium">
+                <button className="flex items-center gap-1.5 text-gray-600 hover:text-brand-gold transition-colors text-sm font-medium">
                   <User className="h-4 w-4" />
                   About Jason
                 </button>
                 {/* Hover Card */}
                 <div className="absolute left-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white font-bold text-lg">JK</span>
+                    <div className="w-14 h-14 bg-brand-gold rounded-full flex items-center justify-center shrink-0">
+                      <span className="text-brand-gold-foreground font-bold text-lg">JK</span>
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900">Jason Kidman</h4>
-                      <p className="text-sm text-amber-600">Founder, Omega Longevity</p>
+                      <p className="text-sm text-brand-gold">Founder, Omega Longevity</p>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-3">
@@ -73,7 +73,7 @@ export default function LaunchpadHub() {
                     href="https://omegalongevity.com/about-jason/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium"
+                    className="inline-flex items-center gap-1 text-sm text-brand-gold hover:opacity-80 font-medium"
                   >
                     Learn more about Jason
                     <ArrowRight className="h-3 w-3" />
@@ -105,11 +105,11 @@ export default function LaunchpadHub() {
                       <LayoutDashboard className="h-4 w-4" />
                     </Button>
                   )}
-                  <Button variant="outline" size="sm" className="border-amber-500 text-amber-600 hover:bg-amber-50 hidden sm:flex" onClick={() => setLocation("/dashboard")}>
+                  <Button variant="outline" size="sm" className="border-brand-gold text-brand-gold hover:bg-brand-gold/10 hidden sm:flex" onClick={() => setLocation("/dashboard")}>
                     <Target className="h-4 w-4 mr-2" />
                     My Dashboard
                   </Button>
-                  <Button variant="outline" size="sm" className="border-amber-500 text-amber-600 hover:bg-amber-50 sm:hidden p-2" onClick={() => setLocation("/dashboard")}>
+                  <Button variant="outline" size="sm" className="border-brand-gold text-brand-gold hover:bg-brand-gold/10 sm:hidden p-2" onClick={() => setLocation("/dashboard")}>
                     <Target className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 hidden sm:flex" onClick={() => setLocation("/account")}>
@@ -157,7 +157,7 @@ export default function LaunchpadHub() {
                 href="https://omegalongevity.com/about-jason/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <User className="h-5 w-5" />
@@ -168,14 +168,14 @@ export default function LaunchpadHub() {
                 <>
                   <button
                     onClick={() => { setLocation('/dashboard'); setMobileMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                   >
                     <Target className="h-5 w-5" />
                     My Dashboard
                   </button>
                   <button
                     onClick={() => { setLocation('/account'); setMobileMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                   >
                     <User className="h-5 w-5" />
                     Account
@@ -183,7 +183,7 @@ export default function LaunchpadHub() {
                   {user?.role === 'admin' && (
                     <button
                       onClick={() => { setLocation('/admin'); setMobileMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                     >
                       <LayoutDashboard className="h-5 w-5" />
                       Admin Dashboard
@@ -196,21 +196,21 @@ export default function LaunchpadHub() {
                       from the Dashboard (one item above), which resolves the token. */}
                   <button
                     onClick={() => { setLocation('/documents'); setMobileMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                   >
                     <FileText className="h-5 w-5" />
                     Documents
                   </button>
                   <button
                     onClick={() => { setLocation('/inventory'); setMobileMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                   >
                     <ShoppingCart className="h-5 w-5" />
                     Inventory
                   </button>
                   <button
                     onClick={() => { setLocation('/metrics'); setMobileMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                   >
                     <TrendingUp className="h-5 w-5" />
                     Metrics
@@ -220,7 +220,7 @@ export default function LaunchpadHub() {
                 <>
                   <button
                     onClick={() => { window.location.href = getLoginUrl(); setMobileMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-brand-gold text-brand-gold-foreground hover:opacity-90 transition-colors"
                   >
                     <User className="h-5 w-5" />
                     Sign In
@@ -230,7 +230,7 @@ export default function LaunchpadHub() {
                   <a
                     href="#omega-elite"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                   >
                     <Users className="h-5 w-5" />
                     Elite Community
@@ -239,7 +239,7 @@ export default function LaunchpadHub() {
                   <a
                     href="#omega-store"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                   >
                     <ShoppingCart className="h-5 w-5" />
                     Omega Store
@@ -248,7 +248,7 @@ export default function LaunchpadHub() {
                   <a
                     href="#cheat-sheet"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                   >
                     <BookOpen className="h-5 w-5" />
                     Peptide Cheat Sheet
@@ -263,18 +263,18 @@ export default function LaunchpadHub() {
       {/* Hero Section - Option 2: Orange/Cream Gradient with Soft Blobs */}
       <section className="py-16 md:py-24 px-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #fff7ed 30%, #ffedd5 60%, #fed7aa 100%)' }}>
         {/* Decorative blobs */}
-        <div className="absolute top-0 right-0 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-br from-amber-200/50 to-orange-200/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-56 md:w-80 h-56 md:h-80 bg-gradient-to-tr from-amber-100/60 to-orange-100/40 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 w-40 md:w-64 h-40 md:h-64 bg-gradient-to-r from-amber-100/30 to-orange-100/20 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 md:w-96 h-64 md:h-96 bg-brand-gold/25 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-56 md:w-80 h-56 md:h-80 bg-brand-gold/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 w-40 md:w-64 h-40 md:h-64 bg-brand-gold/10 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
         
         <div className="container max-w-6xl relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-amber-200 shadow-sm">
+            <div className="inline-flex items-center gap-2 bg-brand-gold/15 text-brand-gold px-4 py-2 rounded-full text-sm font-medium mb-6 border border-brand-gold/30 shadow-sm">
               <Sparkles className="h-4 w-4" />
               Elite Health Optimization
             </div>
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
-              <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Your Central Hub</span>
+              <span className="text-brand-gold">Your Central Hub</span>
               <br />
               <span className="text-gray-900">for All Things Peptides</span>
             </h1>
@@ -287,7 +287,7 @@ export default function LaunchpadHub() {
       </section>
 
       {/* What's Inside Section - NAVY BACKGROUND */}
-      <section className="py-16 md:py-20 px-4 bg-[#1e3a5f]">
+      <section className="py-16 md:py-20 px-4 bg-brand-dark">
         <div className="container max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">What's Inside</h2>
@@ -299,18 +299,18 @@ export default function LaunchpadHub() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Omega Store - hidden for compliance
             <div 
-              className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center hover:bg-white/20 hover:shadow-lg hover:shadow-amber-500/20 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
+              className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center hover:bg-white/20 hover:shadow-lg hover:shadow-brand-gold/20 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
               onClick={() => document.getElementById('omega-store')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              <div className="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-amber-500/40 transition-all duration-300">
+              <div className="w-16 h-16 bg-brand-gold rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-brand-gold/40 transition-all duration-300">
                 <ShoppingCart className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-white font-semibold text-lg mb-2">Omega Store</h3>
               <p className="text-white/60 text-sm mb-3">
                 Order peptides and supplies with exclusive discounts
               </p>
-              <Badge className="bg-amber-500 text-white border-0 mb-3">10% Off</Badge>
-              <div className="flex items-center justify-center gap-1 text-white/50 text-xs group-hover:text-amber-400 transition-colors">
+              <Badge className="bg-brand-gold text-brand-gold-foreground border-0 mb-3">10% Off</Badge>
+              <div className="flex items-center justify-center gap-1 text-white/50 text-xs group-hover:text-brand-gold transition-colors">
                 <ChevronDown className="h-4 w-4 animate-bounce" />
                 <span>Learn more</span>
               </div>
@@ -319,10 +319,10 @@ export default function LaunchpadHub() {
 
             {/* Protocol Tracker */}
             <div 
-              className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center hover:bg-white/20 hover:shadow-lg hover:shadow-amber-500/20 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
+              className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center hover:bg-white/20 hover:shadow-lg hover:shadow-brand-gold/20 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
               onClick={() => document.getElementById('peptidepro')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              <div className="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-amber-500/40 transition-all duration-300">
+              <div className="w-16 h-16 bg-brand-gold rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-brand-gold/40 transition-all duration-300">
                 <Pill className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-white font-semibold text-lg mb-2">Protocol Tracker</h3>
@@ -330,7 +330,7 @@ export default function LaunchpadHub() {
                 Daily tracking with reminders and progress insights
               </p>
               <Badge className="bg-white/20 text-white border-0 mb-3">PeptidePro.App</Badge>
-              <div className="flex items-center justify-center gap-1 text-white/50 text-xs group-hover:text-amber-400 transition-colors">
+              <div className="flex items-center justify-center gap-1 text-white/50 text-xs group-hover:text-brand-gold transition-colors">
                 <ChevronDown className="h-4 w-4 animate-bounce" />
                 <span>Learn more</span>
               </div>
@@ -338,7 +338,7 @@ export default function LaunchpadHub() {
 
             {/* Peptide Cheat Sheet - For Registered Users */}
             <div 
-              className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center hover:bg-white/20 hover:shadow-lg hover:shadow-amber-500/20 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
+              className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center hover:bg-white/20 hover:shadow-lg hover:shadow-brand-gold/20 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
               onClick={() => isAuthenticated ? setLocation('/peptide-cheat-sheet') : document.getElementById('transformation-coaching')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-blue-500/40 transition-all duration-300">
@@ -483,42 +483,42 @@ export default function LaunchpadHub() {
       </section>
 
       {/* How It Works Section - ORANGE/AMBER BACKGROUND */}
-      <section className="py-16 md:py-20 px-4 bg-gradient-to-br from-amber-500 to-orange-500">
+      <section className="py-16 md:py-20 px-4 bg-brand-gold">
         <div className="container max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1e3a5f] mb-4">How It Works</h2>
-            <p className="text-[#1e3a5f]/70 max-w-2xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-brand-dark mb-4">How It Works</h2>
+            <p className="text-brand-dark/70 max-w-2xl mx-auto">
               Get started in three simple steps
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#1e3a5f] rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
+              <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
                 1
               </div>
-              <h3 className="font-semibold text-[#1e3a5f] text-xl mb-2">Create Your Account</h3>
-              <p className="text-[#1e3a5f]/70">
+              <h3 className="font-semibold text-brand-dark text-xl mb-2">Create Your Account</h3>
+              <p className="text-brand-dark/70">
                 Sign up in 10 seconds—no credit card required
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#1e3a5f] rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
+              <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
                 2
               </div>
-              <h3 className="font-semibold text-[#1e3a5f] text-xl mb-2">Get Your Protocol</h3>
-              <p className="text-[#1e3a5f]/70">
+              <h3 className="font-semibold text-brand-dark text-xl mb-2">Get Your Protocol</h3>
+              <p className="text-brand-dark/70">
                 Receive personalized recommendations from our experts
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#1e3a5f] rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
+              <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
                 3
               </div>
-              <h3 className="font-semibold text-[#1e3a5f] text-xl mb-2">Start Your Journey</h3>
-              <p className="text-[#1e3a5f]/70">
+              <h3 className="font-semibold text-brand-dark text-xl mb-2">Start Your Journey</h3>
+              <p className="text-brand-dark/70">
                 Track daily, see results, and optimize your health
               </p>
             </div>
@@ -527,10 +527,10 @@ export default function LaunchpadHub() {
       </section>
 
       {/* Transformation CTA Banner - NAVY BACKGROUND */}
-      <section id="transformation-coaching" className="py-16 md:py-20 px-4 bg-[#1e3a5f]">
+      <section id="transformation-coaching" className="py-16 md:py-20 px-4 bg-brand-dark">
         <div className="container max-w-4xl">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-brand-gold/20 text-brand-gold px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Sparkles className="h-4 w-4" />
               Transformation Programs
             </div>
@@ -552,15 +552,15 @@ export default function LaunchpadHub() {
             </div>
             <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-8 text-white/70">
               <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-amber-400" />
+                <Users className="h-5 w-5 text-brand-gold" />
                 <span className="text-sm">332+ Clients Transformed</span>
               </div>
               <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-amber-400" />
+                <Star className="h-5 w-5 text-brand-gold" />
                 <span className="text-sm">4.9/5 Client Satisfaction</span>
               </div>
               <div className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-amber-400" />
+                <Award className="h-5 w-5 text-brand-gold" />
                 <span className="text-sm">Industry-Leading Protocols</span>
               </div>
             </div>
@@ -580,14 +580,14 @@ export default function LaunchpadHub() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Omega Elite Community */}
-            <Card id="omega-elite" className="bg-white border border-gray-200 hover:border-amber-300 hover:shadow-lg transition-all group relative overflow-hidden">
+            <Card id="omega-elite" className="bg-white border border-gray-200 hover:border-brand-gold hover:shadow-lg transition-all group relative overflow-hidden">
               <div className="absolute top-4 right-4">
-                <Badge className="bg-amber-500 text-white">7 Days Free</Badge>
+                <Badge className="bg-brand-gold text-brand-gold-foreground">7 Days Free</Badge>
               </div>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-14 h-14 bg-brand-gold rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Users className="h-7 w-7 text-white" />
                     </div>
                     <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
@@ -598,11 +598,11 @@ export default function LaunchpadHub() {
                 </div>
                 <CardTitle className="text-gray-900 text-xl mt-4">Omega Elite Community</CardTitle>
                 <CardDescription className="text-gray-600">
-                  Our online coaching platform with cutting edge weight loss, energy, recovery and longevity protocols for <span className="text-amber-600 font-semibold">$69/mo</span> with 7 days free to see if it's the right fit for you with exclusive VIP discounts on peptides
+                  Our online coaching platform with cutting edge weight loss, energy, recovery and longevity protocols for <span className="text-brand-gold font-semibold">$69/mo</span> with 7 days free to see if it's the right fit for you with exclusive VIP discounts on peptides
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button className="w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white hover:from-amber-500 hover:to-orange-600" onClick={() => window.open('https://link.fastpaydirect.com/payment-link/6871a1cbd6ab80936ce6849c', '_blank')}>
+                <Button className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90" onClick={() => window.open('https://link.fastpaydirect.com/payment-link/6871a1cbd6ab80936ce6849c', '_blank')}>
                   Join Community
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -610,10 +610,10 @@ export default function LaunchpadHub() {
             </Card>
 
             {/* Omega Store - hidden for compliance
-            <Card id="omega-store" className="bg-white border border-gray-200 hover:border-amber-300 hover:shadow-lg transition-all group">
+            <Card id="omega-store" className="bg-white border border-gray-200 hover:border-brand-gold hover:shadow-lg transition-all group">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <div className="w-14 h-14 bg-brand-gold rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <ShoppingCart className="h-7 w-7 text-white" />
                   </div>
                   <Badge className="bg-green-100 text-green-700 border-green-200">10% Off</Badge>
@@ -624,7 +624,7 @@ export default function LaunchpadHub() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button className="w-full bg-gradient-to-r from-orange-400 to-amber-500 text-white hover:from-orange-500 hover:to-amber-600" onClick={() => setLocation('/order')}>
+                <Button className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90" onClick={() => setLocation('/order')}>
                   Shop Now
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -633,13 +633,13 @@ export default function LaunchpadHub() {
             */}
 
             {/* PeptidePro.App */}
-            <Card id="peptidepro" className="bg-white border border-gray-200 hover:border-amber-300 hover:shadow-lg transition-all group">
+            <Card id="peptidepro" className="bg-white border border-gray-200 hover:border-brand-gold hover:shadow-lg transition-all group">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="w-14 h-14 bg-gradient-to-br from-violet-400 to-purple-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Pill className="h-7 w-7 text-white" />
                   </div>
-                  <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-amber-500 transition-colors" />
+                  <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-brand-gold transition-colors" />
                 </div>
                 <CardTitle className="text-gray-900 text-xl">PeptidePro.App</CardTitle>
                 <CardDescription className="text-gray-600">
@@ -647,7 +647,7 @@ export default function LaunchpadHub() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-amber-300" onClick={() => window.open('https://www.peptidepro.app/login', '_blank')}>
+                <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-brand-gold" onClick={() => window.open('https://www.peptidepro.app/login', '_blank')}>
                   Open PeptidePro
                   <ExternalLink className="h-4 w-4 ml-2" />
                 </Button>
@@ -655,13 +655,13 @@ export default function LaunchpadHub() {
             </Card>
 
             {/* Trusted Partners */}
-            <Card id="partners" className="bg-white border border-gray-200 hover:border-amber-300 hover:shadow-lg transition-all group">
+            <Card id="partners" className="bg-white border border-gray-200 hover:border-brand-gold hover:shadow-lg transition-all group">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="w-14 h-14 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Handshake className="h-7 w-7 text-white" />
                   </div>
-                  <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-amber-500 transition-colors" />
+                  <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-brand-gold transition-colors" />
                 </div>
                 <CardTitle className="text-gray-900 text-xl">Trusted Partners</CardTitle>
                 <CardDescription className="text-gray-600">
@@ -669,7 +669,7 @@ export default function LaunchpadHub() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-amber-300" onClick={() => window.open('https://omegalongevity.com/resources', '_blank')}>
+                <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-brand-gold" onClick={() => window.open('https://omegalongevity.com/resources', '_blank')}>
                   View Partners & Discounts
                   <ExternalLink className="h-4 w-4 ml-2" />
                 </Button>
@@ -741,7 +741,7 @@ export default function LaunchpadHub() {
       </section>
 
       {/* Testimonials Section - NAVY BACKGROUND */}
-      <div className="bg-[#1e3a5f]">
+      <div className="bg-brand-dark">
         <TestimonialCarousel variant="navy" />
       </div>
 
@@ -752,17 +752,17 @@ export default function LaunchpadHub() {
       {/* ============================================ */}
       <section className="py-20 md:py-28 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
         {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-0 w-64 h-64 bg-brand-gold/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-gold/10 rounded-full blur-3xl" />
         
         <div className="relative container max-w-4xl px-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-500/30 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 bg-brand-gold/20 text-brand-gold border border-brand-gold/30 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
             <Sparkles className="h-4 w-4" />
             YOUR TRANSFORMATION STARTS HERE
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
             Ready for{" "}
-            <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
+            <span className="text-brand-gold">
               Real Results?
             </span>
           </h2>
@@ -801,7 +801,7 @@ export default function LaunchpadHub() {
       {/* Footer */}
       <footer className="py-8 border-t border-gray-800 bg-[#0f172a] px-4">
         <div className="container max-w-6xl text-center text-sm text-white/50">
-          <p className="mb-2">Questions? Email us at <a href="mailto:omega@omegalongevity.com" className="text-amber-400 hover:text-amber-300 hover:underline">omega@omegalongevity.com</a></p>
+          <p className="mb-2">Questions? Email us at <a href="mailto:omega@omegalongevity.com" className="text-brand-gold hover:opacity-80 hover:underline">omega@omegalongevity.com</a></p>
           <p>© {new Date().getFullYear()} Omega Longevity. All rights reserved.</p>
         </div>
       </footer>

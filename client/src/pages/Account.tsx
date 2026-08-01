@@ -147,7 +147,7 @@ export default function Account() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-brand-dark flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
       </div>
     );
@@ -155,7 +155,7 @@ export default function Account() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-brand-dark flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle>Sign In Required</CardTitle>
@@ -172,7 +172,7 @@ export default function Account() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-brand-dark">
       {/* Header */}
       <header className="border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -213,7 +213,7 @@ export default function Account() {
         <div className="space-y-6">
           {/* Personalized Action Plan Section - Based on Onboarding Selections */}
           {onboardingStatus.data?.hasCompletedOnboarding && onboardingStatus.data?.selectedOptions && onboardingStatus.data.selectedOptions.length > 0 && (
-            <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30">
+            <Card className="bg-brand-gold/10 border-brand-gold/30">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -256,7 +256,7 @@ export default function Account() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
+                        className="border-brand-gold/30 text-brand-gold hover:bg-brand-gold/10"
                         onClick={() => {
                           if (option.linkType === "external") {
                             window.open(option.linkUrl, "_blank");
@@ -783,7 +783,7 @@ function SavedAddressesSection() {
               key={address.id}
               className={`p-4 rounded-lg border ${
                 address.isDefault 
-                  ? "bg-amber-500/10 border-amber-500/30" 
+                  ? "bg-brand-gold/10 border-brand-gold/30"
                   : "bg-slate-700/30 border-slate-600"
               }`}
             >

@@ -48,7 +48,10 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 ## C. Theme
 - [x] Enable Tailwind Typography plugin (fixes `prose` app-wide). `Owner: Saboor`
 - [x] Match sidebar/login/cover pages to the real Omega Longevity palette. `Owner: Farjad`
-- [ ] Extend the brand palette to the rest of the admin app (178+ files still hardcode colors). `Owner: ___`
+- [x] Scope the brand rollout: client-facing surfaces only, internal admin tools keep their working palette. `Owner: Farjad` (notes: `task-notes.md#brand-rollout`)
+- [x] Brand pass batch 1 — the client-facing pages seen most (Launchpad, Protocol, check-ins, Documents, Sessions, Account, Peptide Cheat Sheet, Compare Protocols, Payment Portal). `Owner: Farjad` (notes: `task-notes.md#brand-rollout`)
+- [ ] Brand pass batch 2 — the enrollment/intake/protocol-build funnel. `Owner: ___` (notes: `task-notes.md#brand-rollout`)
+- [ ] Brand pass batch 3 — rarely-seen pages (age gate, legal, password/invite, partners, promos, 404). `Owner: ___` (notes: `task-notes.md#brand-rollout`)
 
 ## D. Correctness / blockers found during app review
 - [x] Fix the client dashboard's "Omega Elite" links pointing at the wrong site (`omegaelite.com` instead of the real FastPayDirect signup link). `Owner: Farjad` (flagged by Vee)

@@ -174,8 +174,8 @@ export default function ClientDocuments() {
               >
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                      <Icon className="h-6 w-6 text-orange-500" />
+                    <div className="h-12 w-12 rounded-lg bg-brand-gold/10 flex items-center justify-center">
+                      <Icon className="h-6 w-6 text-brand-gold" />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold">{folder.name}</h3>
@@ -216,7 +216,7 @@ export default function ClientDocuments() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <FolderIcon className="h-5 w-5 text-orange-500" />
+                    <FolderIcon className="h-5 w-5 text-brand-gold" />
                     {currentFolder?.name}
                   </CardTitle>
                 </div>
@@ -314,7 +314,7 @@ export default function ClientDocuments() {
             >
               {selectedFile ? (
                 <div className="space-y-2">
-                  <FileText className="h-12 w-12 mx-auto text-orange-500" />
+                  <FileText className="h-12 w-12 mx-auto text-brand-gold" />
                   <p className="font-medium">{selectedFile.name}</p>
                   <p className="text-sm text-muted-foreground">
                     {formatFileSize(selectedFile.size)}

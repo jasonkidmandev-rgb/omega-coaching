@@ -55,7 +55,7 @@ export default function ClientSessions() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand-gold" />
       </div>
     );
   }
@@ -70,7 +70,7 @@ export default function ClientSessions() {
           </CardHeader>
           <CardContent>
             <Button 
-              className="w-full bg-amber-500 hover:bg-amber-600"
+              className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90"
               onClick={() => window.location.href = getLoginUrl('/sessions')}
             >
               Sign In
@@ -159,13 +159,13 @@ export default function ClientSessions() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Session Summary Card */}
-        <Card className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-0">
+        <Card className="bg-brand-dark text-white border-0">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-indigo-100 text-sm">Session Balance</p>
+                <p className="text-brand-dark-foreground text-sm">Session Balance</p>
                 <p className="text-4xl font-bold">{remainingSessions}</p>
-                <p className="text-indigo-200 text-sm">sessions remaining</p>
+                <p className="text-brand-dark-foreground text-sm">sessions remaining</p>
               </div>
               <div className="text-right">
                 <div className="bg-white/20 rounded-full p-4">
@@ -176,7 +176,7 @@ export default function ClientSessions() {
             
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-indigo-100">Progress</span>
+                <span className="text-brand-dark-foreground">Progress</span>
                 <span className="text-white font-medium">{usedSessions} of {totalSessions} used</span>
               </div>
               <Progress value={progressPercent} className="h-2 bg-white/20" />
@@ -184,7 +184,7 @@ export default function ClientSessions() {
 
             {remainingSessions <= 2 && remainingSessions > 0 && (
               <div className="mt-4 p-3 bg-white/10 rounded-lg flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-amber-300" />
+                <AlertCircle className="h-4 w-4 text-brand-gold" />
                 <span className="text-sm">Running low on sessions - consider purchasing more</span>
               </div>
             )}
@@ -196,7 +196,7 @@ export default function ClientSessions() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-amber-500" />
+                <Package className="h-5 w-5 text-brand-gold" />
                 My Session Packages
               </CardTitle>
               <CardDescription>Your active coaching packages</CardDescription>
@@ -238,7 +238,7 @@ export default function ClientSessions() {
                     <Progress value={pkgProgress} className="h-2" />
                     
                     {pkg.package?.bonusSessions > 0 && (
-                      <div className="mt-2 flex items-center gap-1 text-xs text-amber-600">
+                      <div className="mt-2 flex items-center gap-1 text-xs text-brand-gold">
                         <Sparkles className="h-3 w-3" />
                         Includes {pkg.package.bonusSessions} bonus session{pkg.package.bonusSessions > 1 ? 's' : ''}
                       </div>
@@ -258,15 +258,15 @@ export default function ClientSessions() {
 
         {/* No Packages Message */}
         {(!sessionPackages || sessionPackages.length === 0) && (
-          <Card className="bg-amber-50 border-amber-200">
+          <Card className="bg-brand-gold/10 border-brand-gold/30">
             <CardContent className="pt-6 text-center">
-              <Package className="h-12 w-12 text-amber-500 mx-auto mb-3" />
+              <Package className="h-12 w-12 text-brand-gold mx-auto mb-3" />
               <h3 className="font-medium text-gray-900 mb-1">No Active Session Packages</h3>
               <p className="text-sm text-gray-600 mb-4">
                 You don't have any active coaching session packages yet.
               </p>
               <Button 
-                className="bg-amber-500 hover:bg-amber-600"
+                className="bg-brand-gold text-brand-gold-foreground hover:opacity-90"
                 onClick={() => window.open('https://outlook.office365.com/book/OmegaLongevity@omegalongevity.com/', '_blank')}
               >
                 <CalendarPlus className="h-4 w-4 mr-2" />
@@ -341,7 +341,7 @@ export default function ClientSessions() {
                 <p className="text-gray-500">No upcoming sessions scheduled</p>
                 <Button 
                   variant="link" 
-                  className="text-amber-600"
+                  className="text-brand-gold"
                   onClick={() => window.open('https://outlook.office365.com/book/OmegaLongevity@omegalongevity.com/', '_blank')}
                 >
                   Book your next session

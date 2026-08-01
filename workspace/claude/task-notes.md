@@ -9,6 +9,56 @@ add a new one if a task needs it.
 
 ---
 
+## brand-rollout
+Rolling the real Omega Longevity palette (`--brand-*` tokens: navy `#141b2e`, gold
+`#c9a869`) across the app, after the sidebar/login/cover pages established them.
+
+**Scope decision (Farjad + Jason, 2026-08-02): client-facing surfaces only.** The ~178
+files still hardcoding colors are mostly *internal admin tool* pages, which use orange/
+amber consistently as their working accent. Staff don't judge the brand by the tools they
+use all day, and re-theming all of them is a much bigger, riskier job than finishing the
+surfaces clients and prospects actually see. Internal admin pages keep their orange accent.
+
+**What was actually wrong** (from the inventory pass, worth knowing before batches 2-3):
+it isn't random color drift, it's two consistent *fake* brand colors used in place of the
+real tokens, so most of the work is two find-and-replace patterns per file, not
+per-element design decisions:
+1. **amber-500/orange-500** (usually as a gradient) standing in for gold, on buttons,
+   CTAs, badges, icon tiles.
+2. **Three different hardcoded navies** standing in for `--brand-dark` — `#1e3a5f`
+   (LaunchpadHub, CommunityChoice), `#0a1628`/`#0f1f3d` (IntakeLanding, PaymentSuccess),
+   and generic `slate-900/800` gradients (most other dark pages). None match `#141b2e`.
+
+**Conventions used, follow these in batches 2-3:**
+- Dark page shell: `bg-brand-dark` (drop the multi-stop gradients, the real brand is flat).
+- Cards on a dark shell: `bg-white/5 border-brand-border` (matches the sidebar pattern).
+- Primary button: `bg-brand-gold text-brand-gold-foreground hover:opacity-90` (from
+  `Login.tsx`). Never `text-white` on gold — gold is light, foreground token is navy.
+- Outline/secondary: `border-brand-gold text-brand-gold hover:bg-brand-gold/10`.
+- Gold tints: `/10` fills, `/30` borders, `/15`-`/25` for decorative blur blobs.
+- Gradient text (`from-x to-y bg-clip-text text-transparent`) → flat `text-brand-gold`.
+- **Left alone on purpose:** semantic status colors (red error, green success, amber
+  warning, blue info) and per-category/per-tier accent colors that carry meaning. Same
+  call as the client-dashboard pass — brand the chrome, keep the color-coding.
+
+**Batch 1 done (2026-08-02, this pass):** `LaunchpadHub` (heaviest — both fake palettes),
+`PeptideCheatSheet`, `Protocol` (also gave it the navy header the Dashboard already had,
+they're the two most-visited client pages and didn't match), `Checkin`, `CheckinLatest`,
+`Documents`, `Sessions` (indigo/purple hero card → navy), `Account`, `CompareProtocols`,
+`ClientPaymentPortal`. `Inventory` was on the list but needed **no** change — its orange/
+blue are genuine stock-status indicators, not chrome.
+
+**Still to do:** batch 2 (enrollment/intake/protocol-build funnel — note
+`TransformationEntry` and `PaymentSuccess` also carry genuine per-tier rainbow gradients,
+so brand the chrome and leave the tier differentiation), batch 3 (rarely-seen pages).
+`Metrics` chart line colors are still the Recharts demo palette — cosmetic, lowest
+priority, not really page chrome.
+
+Not browser-verified (no local DB); these are class-string swaps, so the risk is a
+contrast miss rather than a break. Worth a look on the deployed site.
+
+---
+
 ## hard-reloads
 Sweep of internal `window.location.href` / `<a href="/…">` navigations that should be
 client-side (`Link` / `setLocation`) instead of a full page reload.
