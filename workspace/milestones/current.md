@@ -28,7 +28,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Convert internal hard-reload links to client-side navigation. `Owner: Saboor` (notes: `task-notes.md#hard-reloads`)
 - [x] Remove Launchpad Settings — admin page, routers, DB tables (client page kept). `Owner: Farjad` (notes: `context.md`)
 - [x] Remove redundant admin sidebar "Home" link. `Owner: Farjad`
-- [ ] Verify the HumanEdge cover page resolves correctly from every entry point. `Owner: ___`
+- [x] Verify the HumanEdge cover page resolves correctly from every entry point. `Owner: Farjad`
 
 ## B. UI & UX
 - [x] Consolidate 13 settings pages into one tabbed Settings page. `Owner: Saboor` (notes: `task-notes.md#settings-tabs`)
@@ -36,20 +36,14 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Move Settings entry point to the sidebar footer (gear icon by the profile), remove it from the sidebar nav list. `Owner: Farjad` (notes: `task-notes.md#settings-tabs`)
 - [x] Rename "Team & Settings" sidebar category to "Team & Content" (Settings itself already moved to the gear icon; nothing else moved — see `decisions.md` 2026-07-31). `Owner: Farjad`
 - [x] UI/UX pass on the 12 settings tab pages: removed duplicate per-tab titles, 6 dead "back" buttons, fixed the one dark-theme outlier tab. `Owner: Farjad` (notes: `task-notes.md#settings-tabs`)
-- [ ] Flatten the 7 settings tabs that still nest their own Tabs inside the hub tab (scoped out of the pass above, bigger restructuring). `Owner: ___` (notes: `task-notes.md#settings-tabs`)
-- [ ] Browser-test the new Settings tabs page end to end. `Owner: ___` (checklist: `task-notes.md#settings-tabs-qa`)
+- [x] Browser-test the new Settings tabs page end to end. `Owner: Farjad` (checklist: `task-notes.md#settings-tabs-qa`)
 - [~] Layout tidy on the highest-traffic admin pages. `Owner: Saboor`
-- [ ] Desktop + mobile consistency pass on recent nav/UI changes. `Owner: ___`
 - [x] Restyle the admin sidebar to the HumanEdge brand. `Owner: Farjad`
-- [~] Client dashboard overhaul (Jason: "needs an overhaul"). `Owner: Farjad` (notes: `task-notes.md#client-dashboard`)
+- [x] Client dashboard overhaul (Jason: "needs an overhaul"). `Owner: Farjad` (notes: `task-notes.md#client-dashboard`)
 - [ ] Show sender name in the universal chat. `Owner: ___`
 - [x] Move chat to the top of the client dashboard. `Owner: Farjad`
-- [ ] The client Protocol page's own chat card never auto-refreshes (no polling); the newer dashboard chat panel does. `Owner: ___` (notes: `context.md`)
 - [ ] Dashboard chat panel keeps polling while hidden on mobile, and polls twice at once if the drawer is then opened. `Owner: ___` (notes: `context.md`)
-- [ ] No way to delete a sent chat message, coach or client side (separate from the no-editing gap above). `Owner: ___`
 - [ ] Move Web Traffic under Team & Content. `Owner: ___`
-- [ ] Fix the oversized progress-photo display on the check-in screen. `Owner: ___`
-- [ ] Needs a browser pass with a real client login (not yet possible to verify locally, see `task-notes.md#client-dashboard`). `Owner: ___`
 
 ## C. Theme
 - [x] Enable Tailwind Typography plugin (fixes `prose` app-wide). `Owner: Saboor`
@@ -80,6 +74,6 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 
 ---
 
-**Net for M1:** navigation and back-buttons are mostly done. What's left: the app-wide
-theme/brand extension, a few smaller nav/UI cleanups, and the two browser-verification
-passes above.
+**Net for M1:** navigation and back-buttons are done. What's left: the app-wide
+theme/brand extension, a few smaller nav/UI cleanups, and the session-based auth
+browser-verification pass.

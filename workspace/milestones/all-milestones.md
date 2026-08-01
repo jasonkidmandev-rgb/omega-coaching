@@ -33,6 +33,8 @@ app review.
 - [~] Finish the Team → People rename and per-person roles.
 - [x] Fix chat formatting (spacing and lists).
 - [ ] Support editing messages in chat.
+- [ ] Support deleting a sent chat message, coach or client side (moved from M1,
+      2026-08-01 — not urgent enough for the active milestone).
 - [ ] Fix chat photo uploads.
 - [ ] Basic to-do / action-item capability.
 

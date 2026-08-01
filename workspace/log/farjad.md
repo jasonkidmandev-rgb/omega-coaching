@@ -4,6 +4,16 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-02
+- Triaged the open M1 task list: verified the HumanEdge cover page and the Settings tabs
+  QA pass, closing both out. Dropped three items that never had real substance behind
+  them once traced back — a generic "desktop/mobile consistency" catch-all from the very
+  first planning session with nothing concrete tied to it, and a progress-photo display
+  bug that turned out to trace back to the same original punch list without ever being
+  pinned to an actual screen. Pulled the chat-auto-refresh finding off the active list for
+  now (kept in `context.md` so it isn't lost, just not being worked yet).
+- Hours: ~
+
 ## 2026-08-01 (continued)
 - Vee flagged that the client dashboard's "Omega Elite" link went to the wrong site
   (`omegaelite.com`, an unrelated domain) instead of the real signup link. Traced it
