@@ -23,7 +23,7 @@ report to Jason/Vilma, and the timesheet. Written as one natural list of the day
   own list (Inventory) turned out to need no change at all — its orange/blue are real
   stock-status indicators, not branding. Left all semantic status colors and per-category
   accent coding alone throughout, same call as the dashboard pass.
-- Hours: ~
+- Hours: ~3
 
 ## 2026-08-02
 - Triaged the open M1 task list: verified the HumanEdge cover page and the Settings tabs
@@ -33,7 +33,7 @@ report to Jason/Vilma, and the timesheet. Written as one natural list of the day
   bug that turned out to trace back to the same original punch list without ever being
   pinned to an actual screen. Pulled the chat-auto-refresh finding off the active list for
   now (kept in `context.md` so it isn't lost, just not being worked yet).
-- Hours: ~
+- Hours: ~1.5
 
 ## 2026-08-01 (continued)
 - Vee flagged that the client dashboard's "Omega Elite" link went to the wrong site
@@ -46,7 +46,7 @@ report to Jason/Vilma, and the timesheet. Written as one natural list of the day
   protocol-build journey page, used for existing members accessing the community, not
   signing up) since it wasn't part of what was reported and may be intentionally
   different.
-- Hours: ~
+- Hours: ~0.5
 
 ## 2026-08-01
 - Directed a fresh audit pass beyond the admin nav/settings work, choosing the
@@ -66,7 +66,7 @@ report to Jason/Vilma, and the timesheet. Written as one natural list of the day
   smaller gaps in the same pass: the client Protocol page's chat never auto-refreshes, the
   dashboard chat panel double-polls when the mobile drawer opens, and there's no way to
   delete a sent message anywhere.
-- Hours: ~
+- Hours: ~2
 
 ## 2026-07-31 (continued)
 - Ran Jason's full go/keep/decide list over every admin nav item through me, expecting a
@@ -95,7 +95,7 @@ report to Jason/Vilma, and the timesheet. Written as one natural list of the day
 - Renamed the sidebar's "Team & Settings" category to "Team & Content" (Settings already
   lives in the gear icon; nothing else moved, since everything left in that list turned
   out to be a real management page, not a settings toggle).
-- Hours: ~
+- Hours: ~2
 
 ## 2026-07-31
 - Scoped the Settings redesign before touching code: found the "dropdown → single tabbed
@@ -118,7 +118,7 @@ report to Jason/Vilma, and the timesheet. Written as one natural list of the day
 - Left the deeper nested-tabs-within-tabs restructuring (7 panels render their own Tabs
   inside the hub tab) out of this pass on purpose — bigger surgery, flagged in `current.md`
   for a separate pass rather than silently expanding scope.
-- Hours: ~
+- Hours: ~3
 
 ## 2026-07-30 (continued, 5)
 - Shrunk the welcome card on the client dashboard (was a full padded Card with an icon
