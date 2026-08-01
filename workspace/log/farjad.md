@@ -4,6 +4,19 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-01 (continued)
+- Vee flagged that the client dashboard's "Omega Elite" link went to the wrong site
+  (`omegaelite.com`, an unrelated domain) instead of the real signup link. Traced it
+  rather than just patching the one report: every other surface in the app (Launchpad,
+  the public Home page, Community Choice, the onboarding emails) already used the correct
+  FastPayDirect payment link — only the client dashboard had the stale wrong domain, in
+  two places (the resources list and the "Join Omega Elite" CTA button). Fixed both to
+  match. Left a similar-looking but different link alone (`app.omegaelite.com` on the
+  protocol-build journey page, used for existing members accessing the community, not
+  signing up) since it wasn't part of what was reported and may be intentionally
+  different.
+- Hours: ~
+
 ## 2026-08-01
 - Directed a fresh audit pass beyond the admin nav/settings work, choosing the
   chat/messaging system as the target rather than re-treading already-tracked ground.

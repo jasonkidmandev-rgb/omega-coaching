@@ -378,7 +378,7 @@ export default function ClientDashboard() {
       title: "Omega Elite Community",
       description: "Join the community for support and tips",
       icon: Users,
-      href: "https://omegaelite.com",
+      href: "https://link.fastpaydirect.com/payment-link/6871a1cbd6ab80936ce6849c",
       external: true,
     },
     {
@@ -567,7 +567,7 @@ export default function ClientDashboard() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 px-4 bg-white border-purple-300 hover:bg-purple-50 hover:border-purple-400 justify-start group transition-all"
-                  onClick={() => window.open('https://omegaelite.com', '_blank')}
+                  onClick={() => window.open('https://link.fastpaydirect.com/payment-link/6871a1cbd6ab80936ce6849c', '_blank')}
                 >
                   <div className="flex items-center gap-3 w-full">
                     <div className="p-2 bg-gradient-to-br from-purple-100 to-violet-100 rounded-lg group-hover:from-purple-200 group-hover:to-violet-200 transition-all">
