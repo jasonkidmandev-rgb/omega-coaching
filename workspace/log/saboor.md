@@ -66,6 +66,37 @@ each day, so Farjad and both Claude sessions can see progress.
   with no argument; they only lose that same flash. Flagged because it touches the sidebar.
 - Checked rather than assumed: `ui/drawer.tsx` uses a Radix portal with no `forceMount`, so
   drawer content really does unmount when closed.
+- **Closed both remaining security blockers in section D.**
+  - **Chat backend (the 7th unauthenticated endpoint).** All four `commentsRouter`
+    procedures took a bare sequential protocol id with no check — anyone counting integers
+    could read a client's whole message history or post a message that sent a real
+    notification email. Gated on staff session | protocol token | signed-in owner, matching
+    the three real callers. Non-existent and not-yours give an identical error so ids can't
+    be probed.
+  - ⚠️ Also blocked coach **impersonation**: a protocol token proves you're the client, not
+    their coach, so `create` now refuses `authorType: 'coach'` unless the caller is staff.
+  - **Team page client-to-admin.** `updateRole` was already manager-gated, so this was never
+    an auth hole — the defect was the "Add Admin" box, which searched *every* user (clients
+    included) and promoted whoever matched the typed email, no confirmation. Promoting a
+    client account stays possible (new staff sign in first, so they start as role 'user')
+    but now needs an explicit confirmation, enforced server-side and prompted in the UI.
+- **Why my earlier "6 endpoints" sweep missed chat:** I audited routers reachable from the
+  pages under review; chat sits in `routers.ts` behind five UI surfaces. Enumerate by
+  `publicProcedure`, not by walking the UI. Recorded in `context.md`.
+- ⚠️ **A test I've been dismissive of caught a real ordering bug.** I put the promotion
+  guard before the manager restrictions, so a manager promoting to admin got the wrong
+  refusal. `role-permissions.test.ts` failed on exactly that. Both paths refused, so it
+  wasn't a hole, but the specific rule has to win — guard moved after.
+- ⚠️ I added 5 type errors (712 -> 717) with a `deny()` helper TypeScript can't narrow
+  through; caught by diffing the ratchet per-file and fixed with `return deny()`. Back to 712.
+- Two of my own naming tests failed *correctly* after the gate went in — they posted with no
+  session, which is now refused. One asserted behaviour that is deliberately impossible now
+  (session-less coach post), so it was rewritten rather than patched.
+- **Still open, logged not fixed:** `users.list` is `viewerProcedure` and ships all 79 user
+  rows to the browser; the Team page filters to staff in React. Any viewer-role account can
+  read every client's email and phone from the network tab.
+- Verified: ratchet 712, clean build, 59 unit files + 20 integration tests green, including
+  10 new authorization tests driving the real router against real MySQL.
 - Verified: ratchet 712, clean build, 769 tests green. The visible behaviour is browser-only
   and still needs the deferred pass — what I can assert from code is that one panel mounts.
 

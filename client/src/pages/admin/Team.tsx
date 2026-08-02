@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { useRef, useEffect, useState } from "react";
 
+const STAFF_ROLES = ["admin", "manager", "viewer", "finance"];
+
 export default function AdminTeam() {
   const [, setLocation] = useLocation();
   const { user: currentUser } = useAuth();
@@ -134,12 +136,12 @@ export default function AdminTeam() {
     return teamMembersList?.filter((tm: any) => !tm.userId || tm.userId === currentUserId) || [];
   };
 
-  const handleRoleChange = (userId: number, newRole: string) => {
+  const handleRoleChange = (userId: number, newRole: string, confirmClientPromotion = false) => {
     if (userId === currentUser?.id) {
       toast.error("You cannot change your own role");
       return;
     }
-    updateRoleMutation.mutate({ userId, role: newRole as any });
+    updateRoleMutation.mutate({ userId, role: newRole as any, confirmClientPromotion });
   };
 
   const handleNotificationToggle = (userId: number, receiveNotifications: boolean) => {
@@ -208,9 +210,27 @@ export default function AdminTeam() {
       toast.error("User not found. Please share the app URL with them first.");
       return;
     }
-    
+
+    // This box searches EVERY user, clients included — a mistyped or recognised client
+    // email would otherwise hand that client full admin access silently. Promoting a
+    // non-staff account stays possible (new staff sign in first, so they start as a
+    // client account) but has to be deliberate. The server enforces this too.
+    const isClientAccount = !STAFF_ROLES.includes(existingUser.role);
+    if (isClientAccount) {
+      const ok = window.confirm(
+        `${existingUser.email} is a client account, not a staff member.
+
+` +
+        `Making them an admin gives full access to EVERY client's data, health intake and payments.
+
+` +
+        `Continue?`
+      );
+      if (!ok) return;
+    }
+
     // Promote to admin
-    handleRoleChange(existingUser.id, "admin");
+    handleRoleChange(existingUser.id, "admin", isClientAccount);
     setIsAddAdminOpen(false);
     setNewAdminEmail("");
     setNewAdminName("");
@@ -251,7 +271,6 @@ export default function AdminTeam() {
   // login, and the large majority are clients (role 'user'). Listing them here
   // put ~71 clients one dropdown away from being granted admin, which Jason
   // flagged as a security risk. Staff-ness is a role, not a login.
-  const STAFF_ROLES = ["admin", "manager", "viewer", "finance"];
   const staffUsers = (users || []).filter(u => STAFF_ROLES.includes(u.role));
 
   const sortedUsers = [...staffUsers].sort((a, b) => {

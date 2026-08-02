@@ -136,8 +136,10 @@ export default function ClientProtocol() {
     { enabled: !!protocol?.id }
   );
 
+  // This page is reached by magic link with no session, so the protocol's own token is
+  // what proves the caller may see the thread.
   const { data: comments = [], refetch: refetchComments } = trpc.comments.list.useQuery(
-    { clientProtocolId: protocol?.id || 0 },
+    { clientProtocolId: protocol?.id || 0, accessToken: params.token || undefined },
     { enabled: !!protocol?.id }
   );
 
@@ -246,7 +248,7 @@ export default function ClientProtocol() {
   // Mark coach comments as read when viewing
   useEffect(() => {
     if (protocol?.id && comments.length > 0) {
-      markReadMutation.mutate({ clientProtocolId: protocol.id, authorType: "client" });
+      markReadMutation.mutate({ clientProtocolId: protocol.id, authorType: "client", accessToken: params.token || undefined });
     }
   }, [protocol?.id, comments.length]);
 
@@ -488,6 +490,7 @@ export default function ClientProtocol() {
       authorName: isAdminPreview ? (user?.name || "Coach") : protocol.clientName,
       message: messageContent,
       loomUrl: loomUrl.trim() || undefined,
+      accessToken: params.token || undefined,
     });
     clientEditorRef.current?.clear();
     setNewComment('');

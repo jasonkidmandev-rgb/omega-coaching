@@ -89,7 +89,7 @@ export default function ClientDashboard() {
 
   // Fetch comments for the protocol
   const { data: comments = [] } = trpc.comments.list.useQuery(
-    { clientProtocolId: myProtocol?.id || 0 },
+    { clientProtocolId: myProtocol?.id || 0, accessToken: myProtocol?.accessToken },
     { enabled: !!myProtocol?.id }
   );
 

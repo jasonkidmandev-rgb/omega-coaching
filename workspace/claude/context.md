@@ -326,3 +326,41 @@ drawer opened.
   so its content unmounts when closed.
 - **Rule of thumb:** `hidden`/`lg:hidden` is for styling. If the hidden thing polls,
   subscribes, or holds a timer, gate the MOUNT.
+
+## The 7th unauthenticated endpoint + client-to-admin promotion (Saboor, 2026-08-02)
+
+**Chat (`commentsRouter`) — closed.** All four procedures (`list`, `create`, `markRead`,
+`unreadCount`) took a bare sequential `clientProtocolId` with no check. New
+`authorizeChatAccess` accepts three paths, matching the three real callers:
+staff session (admin Inbox/Chat/ClientEdit) · the protocol's own `accessToken`
+(`/protocol/:token`, which has no session) · signed-in client who owns the protocol
+(dashboard). Non-existent and not-yours return an **identical** error so ids can't be
+probed. Client callers now send `accessToken`; admin surfaces rely on the session.
+
+- ⚠️ **A protocol token proves you are the CLIENT, not their coach.** `create` refuses
+  `authorType: 'coach'` unless the caller is staff — otherwise anyone with a protocol link
+  could post a message that renders as the coach *and* triggers a real "new message from
+  your coach" email.
+- This is why the earlier sweep's "6 endpoints" number was wrong: that pass audited
+  routers reachable from the pages under review, and chat lives in `routers.ts` behind
+  five different UI surfaces. **When auditing authorization, enumerate procedures by
+  `publicProcedure`, not by walking the UI.**
+
+**Team page — client accounts could be handed admin.** `updateRole` was already
+`managerProcedure`, so this was never an auth hole; the defect was the *"Add Admin"* box.
+It searched **every** user (`users.list` returns all 79 rows, clients included — the
+staff-only display filter is client-side) and promoted whoever matched the typed email
+straight to admin, with no confirmation. Promoting a client account stays possible because
+that is the real onboarding path — new staff must sign in first, which creates them as
+role `'user'` — but it now needs an explicit `confirmClientPromotion`, enforced server-side
+and prompted in the UI.
+
+- ⚠️ **Ordering matters and a test caught it:** the confirmation guard must sit *after* the
+  manager restrictions, or a manager promoting to admin gets "not a staff account" instead
+  of "Managers cannot promote users to admin". Both refuse, but the specific rule must win.
+  `role-permissions.test.ts` failed on exactly this — a genuine catch from a suite I have
+  otherwise been critical of.
+- **Still open (not a hole, but worth closing):** `users.list` is `viewerProcedure` and
+  ships all 79 user rows, every column, to the browser; the Team page filters to staff in
+  React. Any viewer-role account can read every client's email and phone from the network
+  tab. Filtering server-side needs an email-lookup path for the Add Admin flow first.

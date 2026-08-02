@@ -37,6 +37,13 @@ import { storePromoRouter } from "./storePromo/storePromoRouter";
 import { prospectRouter } from "./prospect/prospectRouter";
 import { contactsRouter } from "./contacts/router";
 import { webTrafficRouter } from "./analytics/webTrafficRouter";
+
+/**
+ * Roles that count as staff — everything in the `users.role` enum except 'user',
+ * which is a client. Used to decide who may read a client's chat thread and to spot a
+ * client account being promoted into staff.
+ */
+const STAFF_ROLES = ['admin', 'manager', 'viewer', 'finance'];
 import { 
   createPasswordResetToken, 
   verifyPasswordResetToken, 
@@ -2954,12 +2961,18 @@ const userRouter = router({
       z.object({
         userId: z.number(),
         role: z.enum(["user", "admin", "manager", "viewer", "finance"]),
+        // Promoting a client account to staff has to stay possible — a new staff member
+        // must sign in first, which creates them as role 'user'. But it is also how a
+        // CLIENT could quietly be handed admin: the Team page's "Add Admin" box takes an
+        // email, searched every user (all 71 clients included) and promoted whoever
+        // matched, with no confirmation. The caller now has to say it meant to.
+        confirmClientPromotion: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const user = await db.getUserById(input.userId);
       const oldRole = user?.role || "user";
-      
+
       // Manager restrictions: cannot modify admin accounts or promote to admin
       if (ctx.user.role === "manager") {
         if (oldRole === "admin") {
@@ -2971,6 +2984,18 @@ const userRouter = router({
         if (oldRole === "manager" && input.userId !== ctx.user.id) {
           throw new Error("Managers cannot modify other manager accounts");
         }
+      }
+
+      if (
+        oldRole === "user" &&
+        STAFF_ROLES.includes(input.role) &&
+        !input.confirmClientPromotion
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            `${user?.email || "This account"} is not a staff account. Promoting it grants access to every client's data — confirm the promotion to continue.`,
+        });
       }
       
       await db.updateUserRole(input.userId, input.role);
@@ -3269,10 +3294,69 @@ const affiliateRouter = router({
 });
 
 // ============ PROTOCOL COMMENTS ROUTER ============
+
+/**
+ * Who may read or post in a protocol's chat thread.
+ *
+ * Every procedure here took a bare sequential `clientProtocolId` and returned or wrote
+ * real client data with no check at all — the 7th unauthenticated endpoint, missed by
+ * the sweep that closed the other six. Anyone counting integers could read a client's
+ * entire message history, or post a message that triggered a real notification email.
+ *
+ * Three legitimate callers, so three accepted paths:
+ *   1. staff session      — the admin Inbox, Chat and ClientEdit surfaces
+ *   2. the protocol's own accessToken — `/protocol/:token`, which has no session
+ *   3. signed-in client whose email owns the protocol — the client dashboard
+ *
+ * Returns whether the caller is staff, because `create` needs it to decide if a message
+ * may be posted as a coach.
+ */
+async function authorizeChatAccess(
+  clientProtocolId: number,
+  accessToken: string | undefined,
+  user: { id?: number; email?: string | null; role?: string | null } | null | undefined,
+): Promise<{ isStaff: boolean }> {
+  if (user?.role && STAFF_ROLES.includes(user.role)) return { isStaff: true };
+
+  // Identical error for "no such protocol" and "not yours", so this can't be used to
+  // probe which protocol ids exist.
+  const deny = (): never => {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "This conversation is not available. Please use the most recent link from your email, or sign in.",
+    });
+  };
+
+  const protocol = await db.getClientProtocolById(clientProtocolId);
+  // `return deny()` rather than a bare `deny()`: TypeScript does not narrow through a
+  // call to a const arrow function, so without the return every use of `protocol` below
+  // is "possibly null".
+  if (!protocol) return deny();
+
+  if (
+    typeof accessToken === "string" && accessToken.length > 0 &&
+    typeof protocol.accessToken === "string" && protocol.accessToken.length > 0 &&
+    protocol.accessToken === accessToken
+  ) {
+    return { isStaff: false };
+  }
+
+  if (
+    typeof user?.email === "string" && user.email.length > 0 &&
+    typeof protocol.clientEmail === "string" &&
+    protocol.clientEmail.toLowerCase() === user.email.toLowerCase()
+  ) {
+    return { isStaff: false };
+  }
+
+  return deny();
+}
+
 const commentsRouter = router({
   list: publicProcedure
-    .input(z.object({ clientProtocolId: z.number() }))
-    .query(async ({ input }) => {
+    .input(z.object({ clientProtocolId: z.number(), accessToken: z.string().optional() }))
+    .query(async ({ input, ctx }) => {
+      await authorizeChatAccess(input.clientProtocolId, input.accessToken, ctx.user);
       return db.getProtocolComments(input.clientProtocolId);
     }),
   create: publicProcedure
@@ -3283,6 +3367,7 @@ const commentsRouter = router({
         authorName: z.string().optional(),
         message: z.string().min(1),
         loomUrl: z.string().optional(),
+        accessToken: z.string().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -3293,11 +3378,21 @@ const commentsRouter = router({
       // including any added later, and means the name can't be set by the caller.
       // Client messages keep the supplied name — a client may be posting from a
       // token-authenticated page with no session.
-      const staffRoles = ['admin', 'manager', 'viewer', 'finance'];
-      const signedInStaffName =
-        ctx.user && staffRoles.includes(ctx.user.role)
-          ? (ctx.user.name?.trim() || ctx.user.email || null)
-          : null;
+      const { isStaff } = await authorizeChatAccess(input.clientProtocolId, input.accessToken, ctx.user);
+
+      // Holding a client's protocol token proves you are that client, NOT their coach.
+      // Without this, anyone with a protocol link could post a message that renders as
+      // the coach and sends the client a real "new message from your coach" email.
+      if (input.authorType === 'coach' && !isStaff) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only a signed-in coach can post a coach message.",
+        });
+      }
+
+      const signedInStaffName = isStaff
+        ? (ctx.user?.name?.trim() || ctx.user?.email || null)
+        : null;
       const authorName =
         input.authorType === 'coach' && signedInStaffName
           ? signedInStaffName
@@ -3411,9 +3506,11 @@ const commentsRouter = router({
       z.object({
         clientProtocolId: z.number(),
         authorType: z.enum(["coach", "client"]),
+        accessToken: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await authorizeChatAccess(input.clientProtocolId, input.accessToken, ctx.user);
       await db.markCommentsAsRead(input.clientProtocolId, input.authorType);
       return { success: true };
     }),
@@ -3422,9 +3519,11 @@ const commentsRouter = router({
       z.object({
         clientProtocolId: z.number(),
         forAuthorType: z.enum(["coach", "client"]),
+        accessToken: z.string().optional(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      await authorizeChatAccess(input.clientProtocolId, input.accessToken, ctx.user);
       return db.getUnreadCommentCount(input.clientProtocolId, input.forAuthorType);
     }),
 });

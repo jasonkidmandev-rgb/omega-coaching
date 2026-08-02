@@ -31,7 +31,7 @@ export function ClientChatPanel({ clientProtocolId, clientName, accessToken, cla
   const [showLoomInput, setShowLoomInput] = useState(false);
 
   const { data: comments = [], refetch } = trpc.comments.list.useQuery(
-    { clientProtocolId: clientProtocolId || 0 },
+    { clientProtocolId: clientProtocolId || 0, accessToken },
     { enabled: !!clientProtocolId, refetchInterval: 15000 }
   );
 
@@ -44,7 +44,7 @@ export function ClientChatPanel({ clientProtocolId, clientName, accessToken, cla
 
   useEffect(() => {
     if (clientProtocolId && comments.some((c: any) => c.authorType === 'coach' && !c.isRead)) {
-      markReadMutation.mutate({ clientProtocolId, authorType: "client" });
+      markReadMutation.mutate({ clientProtocolId, authorType: "client", accessToken });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientProtocolId, comments.length]);
@@ -71,6 +71,7 @@ export function ClientChatPanel({ clientProtocolId, clientName, accessToken, cla
       authorName: clientName || "You",
       message: html,
       loomUrl: loomUrl.trim() || undefined,
+      accessToken,
     });
     editorRef.current?.clear();
     setLoomUrl("");

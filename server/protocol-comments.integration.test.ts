@@ -180,9 +180,18 @@ describe("coach messages carry the sender's name (commentsRouter.create)", () =>
 
   const staff = (over: any = {}) => ({ id: 1, name: "Lisa Bennett", email: "lisa@x.com", role: "admin", ...over });
 
+  // The protocol is seeded with a token and every call passes it, so these exercise the
+  // NAMING rule rather than re-testing authorization (that has its own block below).
+  // Without it, a session-less caller is now correctly rejected before it gets that far.
   async function post(user: any, input: any) {
-    const protocolId = await seedProtocol(null, 1);
-    await caller(user).comments.create({ clientProtocolId: protocolId, message: "hello", ...input });
+    const token = "name-test-" + Math.random().toString(36).slice(2);
+    const [r] = await rawPool().query(
+      `INSERT INTO client_protocols (clientName, accessToken, status, version, isActiveVersion)
+       VALUES (?,?,?,?,?)`,
+      ["Client", token, "active", 1, 1]
+    );
+    const protocolId = (r as any).insertId;
+    await caller(user).comments.create({ clientProtocolId: protocolId, message: "hello", accessToken: token, ...input });
     const [rows] = await rawPool().query(
       "SELECT authorType, authorName FROM protocol_comments WHERE clientProtocolId = ?",
       [protocolId]
@@ -207,8 +216,11 @@ describe("coach messages carry the sender's name (commentsRouter.create)", () =>
     }
   });
 
-  it("keeps the supplied name when there is no session (token-authenticated client page)", async () => {
-    const row = await post(null, { authorType: "coach", authorName: "Jason Kidman" });
+  // A session-less caller posting as a COACH is now refused outright (see the
+  // authorization block — a protocol token proves you are the client, not their coach),
+  // so the surviving session-less case is a client posting under their own name.
+  it("keeps the supplied name for a session-less CLIENT post (token-authenticated page)", async () => {
+    const row = await post(null, { authorType: "client", authorName: "Jason Kidman" });
     expect(row.authorName).toBe("Jason Kidman");
   });
 
@@ -224,5 +236,119 @@ describe("coach messages carry the sender's name (commentsRouter.create)", () =>
   it("does not rewrite a CLIENT message even when staff are signed in", async () => {
     const row = await post(staff(), { authorType: "client", authorName: "Richard Feyh" });
     expect(row.authorName).toBe("Richard Feyh");
+  });
+});
+
+/**
+ * SPEC — the chat thread is not readable or writable by anyone who asks.
+ *
+ * Every commentsRouter procedure took a bare sequential clientProtocolId and returned or
+ * wrote real client data with no check — the 7th unauthenticated endpoint, missed by the
+ * sweep that closed the other six. Three legitimate callers, so three accepted paths:
+ * staff session, the protocol's own accessToken, or a signed-in client who owns it.
+ */
+describe("chat authorization (commentsRouter)", () => {
+  let caller: (user: any) => any;
+  let protocolId: number;
+  const TOKEN = "chat-authz-token-abc";
+  const OWNER = "owner@example.com";
+
+  beforeEach(async () => {
+    await truncate("protocol_comments", "client_protocols", "contacts");
+    const { appRouter } = await import("./routers");
+    caller = (user: any) => appRouter.createCaller({ req: {}, res: {}, user } as any);
+    const [r] = await rawPool().query(
+      `INSERT INTO client_protocols (clientName, clientEmail, accessToken, status, version, isActiveVersion)
+       VALUES (?,?,?,?,?,?)`,
+      ["Owner Client", OWNER, TOKEN, "active", 1, 1]
+    );
+    protocolId = (r as any).insertId;
+    await rawPool().query(
+      `INSERT INTO protocol_comments (clientProtocolId, authorType, authorName, message, isRead)
+       VALUES (?,?,?,?,?)`,
+      [protocolId, "coach", "Lisa", "private clinical note", 0]
+    );
+  });
+  afterAll(async () => {
+    await closePool();
+  });
+
+  const staff = { id: 9, name: "Lisa Bennett", email: "lisa@x.com", role: "admin" };
+  const stranger = { id: 77, name: "Nosy", email: "nosy@example.com", role: "user" };
+
+  it("REJECTS an anonymous read — the original hole", async () => {
+    await expect(caller(null).comments.list({ clientProtocolId: protocolId })).rejects.toThrow(
+      /not available/i
+    );
+  });
+
+  it("REJECTS a signed-in client who does not own the protocol", async () => {
+    await expect(
+      caller(stranger).comments.list({ clientProtocolId: protocolId })
+    ).rejects.toThrow(/not available/i);
+  });
+
+  it("REJECTS a wrong token", async () => {
+    await expect(
+      caller(null).comments.list({ clientProtocolId: protocolId, accessToken: "not-the-token" })
+    ).rejects.toThrow(/not available/i);
+  });
+
+  it("gives the SAME error for a protocol that does not exist (no id probing)", async () => {
+    const real = caller(null).comments.list({ clientProtocolId: protocolId });
+    const fake = caller(null).comments.list({ clientProtocolId: protocolId + 9999 });
+    const [a, b] = await Promise.all([real.catch((e: any) => e.message), fake.catch((e: any) => e.message)]);
+    expect(a).toBe(b);
+  });
+
+  it("ALLOWS the protocol's own token (the /protocol/:token page has no session)", async () => {
+    const rows = await caller(null).comments.list({ clientProtocolId: protocolId, accessToken: TOKEN });
+    expect(rows.map((c: any) => c.message)).toEqual(["private clinical note"]);
+  });
+
+  it("ALLOWS the signed-in client who owns it, case-insensitively", async () => {
+    const owner = { id: 5, name: "Owner", email: OWNER.toUpperCase(), role: "user" };
+    const rows = await caller(owner).comments.list({ clientProtocolId: protocolId });
+    expect(rows).toHaveLength(1);
+  });
+
+  it("ALLOWS staff", async () => {
+    const rows = await caller(staff).comments.list({ clientProtocolId: protocolId });
+    expect(rows).toHaveLength(1);
+  });
+
+  it("REJECTS anonymous writes, mark-read and unread counts too", async () => {
+    await expect(
+      caller(null).comments.create({ clientProtocolId: protocolId, authorType: "client", message: "hi" })
+    ).rejects.toThrow(/not available/i);
+    await expect(
+      caller(null).comments.markRead({ clientProtocolId: protocolId, authorType: "client" })
+    ).rejects.toThrow(/not available/i);
+    await expect(
+      caller(null).comments.unreadCount({ clientProtocolId: protocolId, forAuthorType: "client" })
+    ).rejects.toThrow(/not available/i);
+  });
+
+  it("a client's own token does NOT let them post as the coach", async () => {
+    await expect(
+      caller(null).comments.create({
+        clientProtocolId: protocolId,
+        authorType: "coach",
+        message: "pretending to be the coach",
+        accessToken: TOKEN,
+      })
+    ).rejects.toThrow(/only a signed-in coach/i);
+  });
+
+  it("but the same token CAN post as the client", async () => {
+    await caller(null).comments.create({
+      clientProtocolId: protocolId,
+      authorType: "client",
+      authorName: "Owner Client",
+      message: "a genuine client reply",
+      accessToken: TOKEN,
+    });
+    const rows = await caller(staff).comments.list({ clientProtocolId: protocolId });
+    expect(rows.map((c: any) => c.message)).toContain("a genuine client reply");
   });
 });
