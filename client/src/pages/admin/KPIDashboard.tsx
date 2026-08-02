@@ -37,7 +37,7 @@ export default function KPIDashboard() {
   if (isLoading) {
     return (
       <>
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-48" />
             <div className="grid grid-cols-4 gap-4">

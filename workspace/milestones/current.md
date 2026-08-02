@@ -37,7 +37,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Rename "Team & Settings" sidebar category to "Team & Content" (Settings itself already moved to the gear icon; nothing else moved — see `decisions.md` 2026-07-31). `Owner: Farjad`
 - [x] UI/UX pass on the 12 settings tab pages: removed duplicate per-tab titles, 6 dead "back" buttons, fixed the one dark-theme outlier tab. `Owner: Farjad` (notes: `task-notes.md#settings-tabs`)
 - [x] Browser-test the new Settings tabs page end to end. `Owner: Farjad` (checklist: `task-notes.md#settings-tabs-qa`)
-- [~] Layout tidy on the highest-traffic admin pages. `Owner: Saboor`
+- [x] Layout tidy on the highest-traffic admin pages. `Owner: Saboor` (notes: `task-notes.md#layout-tidy`)
 - [x] Restyle the admin sidebar to the HumanEdge brand. `Owner: Farjad`
 - [x] Client dashboard overhaul (Jason: "needs an overhaul"). `Owner: Farjad` (notes: `task-notes.md#client-dashboard`)
 - [ ] Show sender name in the universal chat. `Owner: ___`

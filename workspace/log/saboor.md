@@ -3,6 +3,27 @@
 Only Saboor edits this. Newest entry at top. A short running list of what you worked on
 each day, so Farjad and both Claude sessions can see progress.
 
+## 2026-08-02
+- **Layout tidy on the admin pages — finished.** Six more pages were double-padding
+  themselves (`AdminLayout` already wraps every page in `p-3 md:p-6`): Acquisition &
+  Retention, Backorders, Coaching Sessions, Conversion Tracking, Lisa's Morning Briefing,
+  and KPI Dashboard's loading state.
+- ⚠️ **KPI Dashboard was my own leftover.** The first pass fixed its main render but not its
+  `if (isLoading)` early return, so the page visibly **jumped 24px** the moment data
+  arrived. Lesson recorded in `task-notes.md`: fixing a page wrapper means fixing *every*
+  return in the component, not just the last one.
+- **Page width standardised on `max-w-7xl`.** Backorders was `5xl`, Acquisition `6xl`;
+  both moved. All 10 clamp occurrences across 8 pages now agree and `7xl` is the only clamp
+  form left. The ~54 unclamped pages stay full-width — only pages that already clamped were
+  touched, so this is a consistency fix rather than a redesign.
+- ⚠️ **Two scripted audits produced garbage and were thrown away.** Matching the last
+  `return (` picks up nested returns inside `.map()` callbacks — it reported MyActionItems
+  as unclamped when I had set the clamp myself — and a stricter pattern resolved only 13 of
+  62 pages. Every finding was confirmed by reading the surrounding code instead; 7 candidates
+  turned out to be cards or sub-components. Same false-positive trap as the table-overflow
+  check in the first pass.
+- Verified: ratchet 712, clean build, 769 tests green.
+
 ## 2026-08-01
 - **Removed the plan-quiz test** (`9752f66`). Direct UI-based payments are coming out of
   humanedge.health and the quiz routes into that funnel. Flagged clearly that this one was

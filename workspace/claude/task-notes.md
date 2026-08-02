@@ -333,7 +333,22 @@ itself in `<div class="relative w-full overflow-x-auto">`. The only raw `<table>
 (Inventory) is inside a print/export HTML template string, not JSX. No fix needed; don't
 re-investigate.
 
-**Open design question (needs the browser pass, not a code decision):** MyActionItems,
-FulfillmentQueue and KPIDashboard clamp to `max-w-7xl mx-auto`; the other ~9 admin pages are
-full-width. Left as-is deliberately — picking one is a design call, and it's a visible change
-best made while looking at the screens.
+**Second pass (2026-08-02) — six more double-padded pages, and the width call made.**
+
+- Fixed the same padding duplication on **AcquisitionDashboard, Backorders, CoachingSessions,
+  ConversionTracking, MorningBriefing**, and **KPIDashboard's loading state**.
+- ⚠️ **KPIDashboard is the lesson:** the first pass fixed its main render but not its early
+  `if (isLoading)` return, so content visibly **jumped 24px** when data arrived. Fixing a page
+  wrapper means fixing *every* return in that component, not just the last one.
+- **Width standardised on `max-w-7xl mx-auto`** (Saboor's call, 2026-08-02): Backorders was
+  `5xl` and AcquisitionDashboard `6xl`; both moved to `7xl`. All 10 clamp occurrences across
+  8 pages now agree, and `7xl` is the only clamp form left in the admin area. The other ~54
+  admin pages stay **full-width** deliberately — only pages that already clamped were touched.
+
+⚠️ **Don't audit this with a regex over `return (`.** Two scripted attempts both produced
+garbage: matching the *last* `return (` picks up nested returns inside `.map()` callbacks
+(it reported MyActionItems as unclamped when it demonstrably is not), and a stricter pattern
+resolved only 13 of 62 pages. Every candidate here was confirmed by reading its surrounding
+code. Known false positives, do not re-raise: `Inbox` and `CalendlySettings` (nested cards),
+`ClientEdit`/`MyActionItems` (Card/CardContent), `SettingsHub` (icon container),
+`ShannonKanban`/`AcquisitionDashboard` sub-components.
