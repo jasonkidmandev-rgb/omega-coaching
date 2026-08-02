@@ -383,7 +383,6 @@ export default function AdminClientEdit() {
     createCommentMutation.mutate({
       clientProtocolId: clientId,
       authorType: "coach",
-      authorName: "Coach",
       message: newComment.trim(),
       loomUrl: loomUrl.trim() || undefined,
     });

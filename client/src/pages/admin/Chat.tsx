@@ -117,7 +117,6 @@ export default function AdminChat() {
     createCommentMutation.mutate({
       clientProtocolId,
       authorType: "coach",
-      authorName: "Coach",
       message: html,
       loomUrl: loomUrl.trim() || undefined,
     });
@@ -315,10 +314,15 @@ export default function AdminChat() {
                     )}
 
                     <div className={`max-w-[80%] sm:max-w-[65%]`}>
-                      {/* Author name (only for first in sequence from client) */}
-                      {!isCoach && !isConsecutive && (
-                        <p className="text-[10px] text-gray-500 mb-0.5 ml-1">
-                          {msg.authorName || clientName}
+                      {/* Sender name, first in each run. Shown for coach messages too —
+                          several staff share this thread, so "which coach replied" is
+                          exactly what was missing. Older messages predate the name being
+                          recorded and fall back to "Coach". */}
+                      {!isConsecutive && (
+                        <p className={`text-[10px] text-gray-500 mb-0.5 ${isCoach ? "text-right mr-1" : "ml-1"}`}>
+                          {isCoach
+                            ? msg.authorName || "Coach"
+                            : msg.authorName || clientName}
                         </p>
                       )}
 

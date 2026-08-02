@@ -23,6 +23,32 @@ each day, so Farjad and both Claude sessions can see progress.
   turned out to be cards or sub-components. Same false-positive trap as the table-overflow
   check in the first pass.
 - Verified: ratchet 712, clean build, 769 tests green.
+- **Sender name now shows in the universal chat.** Root cause was not a display bug: the
+  three admin surfaces (Inbox, Chat, ClientEdit) each hard-coded `authorName: "Coach"`, so
+  **316 of the 362 coach messages in production literally read "Coach"**. Client messages
+  always had real names.
+  - Fixed **server-side** in `commentsRouter.create`: the name comes from `ctx.user` when
+    the caller is signed-in staff. One place covers all five chat surfaces and the name can
+    no longer be set by the caller. Client messages keep the supplied name (they may post
+    from a token page with no session).
+  - Display side: admin **Chat** showed no name at all on coach messages (only client ones
+    got a label); admin **Inbox** showed a blanket "You" for every coach message regardless
+    of who sent it — wrong in a shared inbox. Both now show the actual sender, with "You"
+    reserved for your own messages.
+- ⚠️ **History can't be backfilled** — those 316 rows stay "Coach"; nothing records who
+  wrote them. Only new messages carry a name.
+- ⚠️ **Found the integration harness was already RED, from the raw-SQL alias trap.** Test
+  files insert `personId` in raw SQL, but that's a Drizzle alias — the physical column is
+  `contactId`. Fixed the 3 sites in `protocol-comments.integration.test.ts`; 4 pre-existing
+  tests there now pass alongside my 6 new ones. **Left broken (same cause, flagged in
+  `context.md`):** `protocol-versions` and `provisioning/clientProvisioning`.
+- Verified properly rather than assuming: temporarily reverted the server change and
+  confirmed the new test fails with `expected 'Coach' to be 'Lisa Bennett'` — the exact
+  production bug — then restored it. A test that has never been seen to fail proves nothing.
+- ⚠️ Started extracting the name logic into a new module so it could be tested without a
+  DB; dropped that once Docker was up. Testing the real router against a real MySQL beats
+  adding a file to make a copy testable.
+- Verified: ratchet 712, clean build, 769 unit tests + 10 integration tests green.
 
 ## 2026-08-01
 - **Removed the plan-quiz test** (`9752f66`). Direct UI-based payments are coming out of

@@ -22,7 +22,7 @@ import { truncate, rawPool, closePool, seedContact } from "../test-harness/dbHel
 let tok = 0;
 async function seedProtocol(personId: number | null, version: number): Promise<number> {
   const [r] = await rawPool().query(
-    `INSERT INTO client_protocols (clientName, accessToken, status, personId, version, isActiveVersion)
+    `INSERT INTO client_protocols (clientName, accessToken, status, contactId, version, isActiveVersion)
      VALUES (?,?,?,?,?,?)`,
     ["Client", "tok-" + ++tok + Math.random().toString(36).slice(2), "active", personId, version, version]
   );
@@ -90,7 +90,7 @@ async function seedProtocolFull(opts: {
 }): Promise<number> {
   const [r] = await rawPool().query(
     `INSERT INTO client_protocols
-       (clientName, clientEmail, accessToken, status, personId, version, isActiveVersion, deletedAt)
+       (clientName, clientEmail, accessToken, status, contactId, version, isActiveVersion, deletedAt)
      VALUES (?,?,?,?,?,?,?,?)`,
     [
       opts.name ?? "Client", opts.email ?? null,
@@ -102,7 +102,7 @@ async function seedProtocolFull(opts: {
 }
 async function seedComment(protocolId: number, personId: number | null, authorType: "coach" | "client", message: string, isRead = false) {
   await rawPool().query(
-    `INSERT INTO protocol_comments (clientProtocolId, personId, authorType, authorName, message, isRead)
+    `INSERT INTO protocol_comments (clientProtocolId, contactId, authorType, authorName, message, isRead)
      VALUES (?,?,?,?,?,?)`,
     [protocolId, personId, authorType, authorType === "coach" ? "Coach" : "Client", message, isRead ? 1 : 0]
   );
@@ -151,5 +151,78 @@ describe("coach inbox — one row per contact (Phase 3 grouping)", () => {
 
     const rowB = rows.find((r) => r.clientName === "Bbb");
     expect(Number(rowB.unreadCount)).toBe(0);       // a coach message is not a client-unread
+  });
+});
+
+/**
+ * SPEC — a coach message is stamped with the signed-in staff member's real name.
+ *
+ * The three admin surfaces (Inbox, Chat, ClientEdit) each used to send a hard-coded
+ * `authorName: "Coach"`, which is why 316 of the 362 coach messages in production read
+ * "Coach" instead of a person. The name now comes from the session inside
+ * `commentsRouter.create`, so it covers every surface and cannot be set by the caller.
+ *
+ * These drive the REAL router (not the db helper) because that is where the rule lives.
+ * Protocols are seeded WITHOUT a clientEmail so the notification/email branch
+ * short-circuits — this asserts the naming rule, nothing else.
+ */
+describe("coach messages carry the sender's name (commentsRouter.create)", () => {
+  let caller: (user: any) => any;
+
+  beforeEach(async () => {
+    await truncate("protocol_comments", "client_protocols", "contacts");
+    const { appRouter } = await import("./routers");
+    caller = (user: any) => appRouter.createCaller({ req: {}, res: {}, user } as any);
+  });
+  afterAll(async () => {
+    await closePool();
+  });
+
+  const staff = (over: any = {}) => ({ id: 1, name: "Lisa Bennett", email: "lisa@x.com", role: "admin", ...over });
+
+  async function post(user: any, input: any) {
+    const protocolId = await seedProtocol(null, 1);
+    await caller(user).comments.create({ clientProtocolId: protocolId, message: "hello", ...input });
+    const [rows] = await rawPool().query(
+      "SELECT authorType, authorName FROM protocol_comments WHERE clientProtocolId = ?",
+      [protocolId]
+    );
+    return (rows as any[])[0];
+  }
+
+  it("uses the signed-in staff member's name, ignoring what the caller sent", async () => {
+    const row = await post(staff(), { authorType: "coach", authorName: "Coach" });
+    expect(row.authorName).toBe("Lisa Bennett");
+  });
+
+  it("falls back to the account email when a staff user has no name", async () => {
+    const row = await post(staff({ name: null }), { authorType: "coach", authorName: "Coach" });
+    expect(row.authorName).toBe("lisa@x.com");
+  });
+
+  it("every staff role is treated as a coach, not just admin", async () => {
+    for (const role of ["admin", "manager", "viewer", "finance"]) {
+      const row = await post(staff({ role, name: `${role} person` }), { authorType: "coach", authorName: "Coach" });
+      expect(row.authorName).toBe(`${role} person`);
+    }
+  });
+
+  it("keeps the supplied name when there is no session (token-authenticated client page)", async () => {
+    const row = await post(null, { authorType: "coach", authorName: "Jason Kidman" });
+    expect(row.authorName).toBe("Jason Kidman");
+  });
+
+  it("does not let a signed-in CLIENT account be renamed to their own account name", async () => {
+    // role 'user' is a client, not staff — their supplied name stands.
+    const row = await post(staff({ role: "user", name: "Client Person" }), {
+      authorType: "client",
+      authorName: "Richard Feyh",
+    });
+    expect(row.authorName).toBe("Richard Feyh");
+  });
+
+  it("does not rewrite a CLIENT message even when staff are signed in", async () => {
+    const row = await post(staff(), { authorType: "client", authorName: "Richard Feyh" });
+    expect(row.authorName).toBe("Richard Feyh");
   });
 });

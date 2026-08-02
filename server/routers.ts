@@ -3285,8 +3285,24 @@ const commentsRouter = router({
         loomUrl: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      const comment = await db.createProtocolComment(input);
+    .mutation(async ({ input, ctx }) => {
+      // Stamp a coach message with the signed-in staff member's real name rather than
+      // whatever the caller sent. Three admin surfaces (Inbox, Chat, ClientEdit) used to
+      // hard-code authorName: "Coach", which is why 316 of the 362 coach messages in
+      // production read "Coach" instead of a person. Doing it here covers every surface,
+      // including any added later, and means the name can't be set by the caller.
+      // Client messages keep the supplied name — a client may be posting from a
+      // token-authenticated page with no session.
+      const staffRoles = ['admin', 'manager', 'viewer', 'finance'];
+      const signedInStaffName =
+        ctx.user && staffRoles.includes(ctx.user.role)
+          ? (ctx.user.name?.trim() || ctx.user.email || null)
+          : null;
+      const authorName =
+        input.authorType === 'coach' && signedInStaffName
+          ? signedInStaffName
+          : input.authorName;
+      const comment = await db.createProtocolComment({ ...input, authorName });
 
       // Convert HTML message to plain text for notifications
       const { htmlToPlainText, htmlToPreview } = await import('./htmlToText');
@@ -3299,7 +3315,7 @@ const commentsRouter = router({
           noteType: 'comment',
           content: input.message,
           commentId: comment.id,
-          changedByName: input.authorName || (input.authorType === 'coach' ? 'Coach' : 'Client'),
+          changedByName: authorName || (input.authorType === 'coach' ? 'Coach' : 'Client'),
           changeType: 'created',
         });
       } catch (e) {
@@ -3318,7 +3334,7 @@ const commentsRouter = router({
                   userId: clientUser.id,
                   type: 'other',
                   title: `New message from your coach`,
-                  message: `${input.authorName || 'Your Coach'}: ${htmlToPreview(input.message, 200)}`,
+                  message: `${authorName || 'Your Coach'}: ${htmlToPreview(input.message, 200)}`,
                   clientProtocolId: input.clientProtocolId,
                 });
                 console.log(`[Comments] In-app notification created for client user ${clientUser.id}`);
@@ -3342,7 +3358,7 @@ const commentsRouter = router({
             const emailResult = await sendNewMessageEmailToClient({
               to: protocol.clientEmail,
               clientName: protocol.clientName || 'Client',
-              coachName: input.authorName || 'Your Coach',
+              coachName: authorName || 'Your Coach',
               messagePreview: plainMessage,
               protocolUrl: `${baseUrl}/protocol/${protocol.accessToken}`,
               clientUserId,

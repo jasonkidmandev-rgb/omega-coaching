@@ -271,3 +271,33 @@ Full sweep of every navigation target in `client/src` against the routes defined
   6, and both call `getIntakeFormContent`/`updateIntakeFormContent`, i.e. they edit the
   **same rows**. Then check reachability (`git log -S"<path>" -- AdminLayout.tsx`). That
   combination is what makes removal safe; page size or "looks newer" is not evidence.
+
+## Chat sender names + a broken integration harness (Saboor, 2026-08-02)
+
+- **Why coach messages all said "Coach".** `commentsRouter.create` took `authorName`
+  straight from the caller, and the three admin surfaces (Inbox, Chat, ClientEdit) each
+  hard-coded `authorName: "Coach"`. Production proof: of 673 messages, **316 of 362 coach
+  messages** read the literal `"Coach"`; only 45 carried a person's name. Client messages
+  were fine (real names throughout).
+- **Fix is server-side on purpose.** The name is now taken from `ctx.user` when the caller
+  is signed-in staff, inside `create`. One place covers all five chat surfaces (client
+  Protocol page, dashboard panel, admin Inbox, admin Chat, email-reply bridge) plus any
+  added later, and the name can no longer be chosen by the caller. Client messages keep the
+  supplied name — a client may be posting from a token-authenticated page with no session.
+  Note `ctx.user` is populated on `publicProcedure` too, which is what makes this possible.
+- ⚠️ **History is not backfillable.** Those 316 rows stay "Coach" — nothing records which
+  staff member wrote them. Only new messages carry a real name.
+- ⚠️ **The integration harness was RED before this task, and the cause is the raw-SQL alias
+  trap.** `personId` is a Drizzle alias; the physical column is `contactId`, and raw
+  `` sql`` ``/`rawPool().query` does not get the alias. Three test files insert/select
+  `personId` in raw SQL. Fixed the 3 sites in `protocol-comments.integration.test.ts`
+  (4 pre-existing tests there were failing and now pass). **Still broken, same cause, not
+  yet fixed:** `protocol-versions.integration.test.ts:48` and
+  `provisioning/clientProvisioning.integration.test.ts:61,65`. The other red files
+  (`waiver-settings`, `bulk-waiver-invite`, `waiver-renewal-invite`) fail for reasons not
+  investigated.
+- **Watch for multi-line SQL when grepping for this.** One of the three sites put the
+  column list on the line *after* `INSERT INTO`, so a grep for `personId` on lines matching
+  `INSERT` missed it and the first fix looked complete when it wasn't.
+- **`pnpm testdb:up` says Healthy before the schema loads** (the init server answers the
+  ping). Poll for a table before querying — the loop in `test-harness/README.md`.

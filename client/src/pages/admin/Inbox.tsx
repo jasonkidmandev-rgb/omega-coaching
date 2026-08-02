@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -201,7 +202,6 @@ export default function AdminInbox() {
     createCommentMutation.mutate({
       clientProtocolId: conv.clientProtocolId,
       authorType: "coach",
-      authorName: "Coach",
       message: text,
     });
   }, [replyTexts, createCommentMutation]);
@@ -401,6 +401,10 @@ function MessageHistoryPreview({ clientProtocolId }: { clientProtocolId: number 
     { clientProtocolId },
     { staleTime: 10000 }
   );
+  // Several staff share this inbox, so a coach message needs to say WHICH coach. Only
+  // the viewer's own messages read "You". auth.me is already fetched by AdminLayout, so
+  // this is a cache read rather than an extra request.
+  const { user } = useAuth();
 
   // Show last 5 messages
   const recentMessages = useMemo(() => {
@@ -461,7 +465,11 @@ function MessageHistoryPreview({ clientProtocolId }: { clientProtocolId: number 
                 </div>
               )}
               <p className={`text-[10px] mt-1 ${isCoach ? "text-orange-200" : "text-gray-400"}`}>
-                {isCoach ? "You" : msg.authorName || "Client"} • {timeStr}
+                {isCoach
+                  ? !msg.authorName || msg.authorName === user?.name
+                    ? "You"
+                    : msg.authorName
+                  : msg.authorName || "Client"} • {timeStr}
               </p>
             </div>
           </div>

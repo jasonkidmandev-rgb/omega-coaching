@@ -40,7 +40,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Layout tidy on the highest-traffic admin pages. `Owner: Saboor` (notes: `task-notes.md#layout-tidy`)
 - [x] Restyle the admin sidebar to the HumanEdge brand. `Owner: Farjad`
 - [x] Client dashboard overhaul (Jason: "needs an overhaul"). `Owner: Farjad` (notes: `task-notes.md#client-dashboard`)
-- [ ] Show sender name in the universal chat. `Owner: ___`
+- [x] Show sender name in the universal chat. `Owner: Saboor` (notes: `context.md`)
 - [x] Move chat to the top of the client dashboard. `Owner: Farjad`
 - [ ] Dashboard chat panel keeps polling while hidden on mobile, and polls twice at once if the drawer is then opened. `Owner: ___` (notes: `context.md`)
 - [ ] Move Web Traffic under Team & Content. `Owner: ___`
