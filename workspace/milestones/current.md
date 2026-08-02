@@ -56,7 +56,8 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 ## D. Correctness / blockers found during app review
 - [x] Fix the client dashboard's "Omega Elite" links pointing at the wrong site (`omegaelite.com` instead of the real FastPayDirect signup link). `Owner: Farjad` (flagged by Vee)
 - [x] **Security:** the Team page can mark a client account as admin. `Owner: Saboor` (notes: `context.md`)
-- [x] **Security:** the chat/messaging backend (`commentsRouter`) is fully unauthenticated — a 7th endpoint missed by the earlier "6 unauthenticated endpoints" sweep. Any caller can read any client's full message history, or send fake coach/client messages that trigger real notification emails. `Owner: ___` (notes: `context.md`)
+- [x] **Security:** the chat/messaging backend (`commentsRouter`) is fully unauthenticated — a 7th endpoint missed by the earlier "6 unauthenticated endpoints" sweep. Any caller can read any client's full message history, or send fake coach/client messages that trigger real notification emails. `Owner: Saboor` (found by Farjad; notes: `context.md`)
+- [ ] **Security:** `users.list` is `viewerProcedure` and ships all 79 user rows to the browser (the Team page filters to staff in React, client-side only) — any viewer-role account can read every client's email and phone from the network tab. `Owner: ___` (found by Saboor 2026-08-02; notes: `log/saboor.md`)
 - [x] Fix admin chat/inbox showing nothing. `Owner: Saboor`
 - [x] Centralize old-domain (peptidecoach.pro) links. `Owner: Saboor`
 - [x] Fix Stripe receipts showing a bare "Payment." `Owner: Saboor`
