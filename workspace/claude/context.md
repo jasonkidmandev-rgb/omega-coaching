@@ -301,3 +301,28 @@ Full sweep of every navigation target in `client/src` against the routes defined
   `INSERT` missed it and the first fix looked complete when it wasn't.
 - **`pnpm testdb:up` says Healthy before the schema loads** (the init server answers the
   ping). Poll for a table before querying — the loop in `test-harness/README.md`.
+
+## Tailwind `hidden` does not unmount React (Saboor, 2026-08-02)
+
+The client dashboard mounted `ClientChatPanel` **twice** — a sticky aside for desktop
+(`hidden lg:block`) and a drawer for mobile. `hidden` is `display:none`, which hides a
+component but leaves it mounted and running, so on a phone the invisible aside kept
+polling `comments.list` every 15s, and a second copy started polling the moment the
+drawer opened.
+
+- **Fix: mount only the panel in use** (`isBelowLg`), rather than hiding one with CSS.
+  React Query dedupes *concurrent* fetches on the same key, but two observers keep their
+  own `refetchInterval` timers, so staggered polls really do double the requests —
+  CSS-hiding one of them fixes nothing.
+- `useIsMobile` now takes an optional breakpoint (default still 768). The chat panel
+  flips at `lg` (1024); passing 1024 avoids a 768–1024 band where the wrong panel renders.
+- ⚠️ **Behaviour change to a shared hook:** it now initialises from `window` instead of
+  `undefined`. Previously the first render always reported "not mobile", so a mobile
+  visitor briefly got the desktop branch. That flash is only cosmetic when it picks a
+  *style*, but this hook now picks what to **mount** — a throwaway mount fires a query
+  before it unmounts. `AdminLayout` and `ui/sidebar` call it with no argument and are
+  unaffected apart from losing that same flash.
+- The drawer itself is fine: `ui/drawer.tsx` uses a Radix portal with no `forceMount`,
+  so its content unmounts when closed.
+- **Rule of thumb:** `hidden`/`lg:hidden` is for styling. If the hidden thing polls,
+  subscribes, or holds a timer, gate the MOUNT.

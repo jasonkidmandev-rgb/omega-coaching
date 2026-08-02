@@ -54,12 +54,18 @@ import { FullPageLoader } from "@/components/LoadingSpinner";
 import { SkeletonDashboard } from "@/components/ui/skeleton";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { ClientChatPanel } from "@/components/ClientChatPanel";
+import { useIsMobile } from "@/hooks/useMobile";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 
 export default function ClientDashboard() {
   const { user, loading: isAuthLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [showChatDrawer, setShowChatDrawer] = useState(false);
+  // The chat panel exists twice — sticky aside on desktop, drawer on mobile — and the
+  // aside was hidden with `hidden lg:block`. Tailwind `hidden` is display:none, which does
+  // NOT unmount React, so on a phone the invisible aside kept polling every 15s and a
+  // second copy started polling as soon as the drawer opened. Mount only the one in use.
+  const isBelowLg = useIsMobile(1024);
 
   // Fetch client's protocols grouped by visibility
   const { data: myProtocols, isLoading: isProtocolLoading, refetch: refetchProtocols } = trpc.clientProtocol.getMyProtocols.useQuery(
@@ -1270,21 +1276,26 @@ export default function ClientDashboard() {
 
         {/* Chat panel - sticky to the right on desktop, always visible so a client
             never has to leave the dashboard to read or reply to their coach. */}
-        <aside className="hidden lg:block w-90 shrink-0 sticky top-20 self-start h-[calc(100vh-6rem)]">
-          <div className="h-full rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <ClientChatPanel
-              clientProtocolId={myProtocol?.id}
-              clientName={user.name || undefined}
-              accessToken={myProtocol?.accessToken}
-              className="h-full"
-            />
-          </div>
-        </aside>
+        {!isBelowLg && (
+          <aside className="hidden lg:block w-90 shrink-0 sticky top-20 self-start h-[calc(100vh-6rem)]">
+            <div className="h-full rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <ClientChatPanel
+                clientProtocolId={myProtocol?.id}
+                clientName={user.name || undefined}
+                accessToken={myProtocol?.accessToken}
+                className="h-full"
+              />
+            </div>
+          </aside>
+        )}
         </div>
         </div>
 
         {/* Mobile/tablet: chat lives behind a floating button + slide-up drawer,
-            there's no room for a fixed side panel on a small screen. */}
+            there's no room for a fixed side panel on a small screen. Gated on the same
+            breakpoint as the desktop aside so exactly one panel is ever mounted. */}
+        {isBelowLg && (
+        <>
         <Button
           size="icon"
           className="lg:hidden fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full shadow-lg bg-purple-500 hover:bg-purple-600"
@@ -1308,6 +1319,8 @@ export default function ClientDashboard() {
             />
           </DrawerContent>
         </Drawer>
+        </>
+        )}
 
       {/* Photo Upload Dialog */}
       <Dialog open={showPhotoUpload} onOpenChange={setShowPhotoUpload}>

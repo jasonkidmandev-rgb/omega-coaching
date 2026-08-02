@@ -49,6 +49,25 @@ each day, so Farjad and both Claude sessions can see progress.
   DB; dropped that once Docker was up. Testing the real router against a real MySQL beats
   adding a file to make a copy testable.
 - Verified: ratchet 712, clean build, 769 unit tests + 10 integration tests green.
+- **Dashboard chat panel: stopped the hidden/double polling** (Farjad's finding). The panel
+  was mounted twice — sticky aside for desktop (`hidden lg:block`) and a drawer for mobile.
+  Tailwind `hidden` is `display:none`, which hides a component but leaves it **mounted and
+  running**, so on a phone the invisible aside polled every 15s and a second copy started
+  polling as soon as the drawer opened. Now only the panel actually in use is mounted.
+  - Worth knowing: React Query dedupes *concurrent* fetches on one key, but two observers
+    keep their own `refetchInterval` timers, so staggered polls genuinely double the
+    requests. Hiding one with CSS would have fixed nothing.
+  - `useIsMobile` gained an optional breakpoint (default still 768). The chat flips at `lg`
+    (1024) and the 768 default would have left a band where the wrong panel renders.
+- ⚠️ **I changed a shared hook's initialisation**, not just added a parameter: it now reads
+  `window` on first render instead of starting `undefined`. Previously the first render
+  always said "not mobile", so a mobile visitor briefly mounted the desktop branch — which
+  would have fired exactly the query I was removing. `AdminLayout` and `ui/sidebar` call it
+  with no argument; they only lose that same flash. Flagged because it touches the sidebar.
+- Checked rather than assumed: `ui/drawer.tsx` uses a Radix portal with no `forceMount`, so
+  drawer content really does unmount when closed.
+- Verified: ratchet 712, clean build, 769 tests green. The visible behaviour is browser-only
+  and still needs the deferred pass — what I can assert from code is that one panel mounts.
 
 ## 2026-08-01
 - **Removed the plan-quiz test** (`9752f66`). Direct UI-based payments are coming out of
