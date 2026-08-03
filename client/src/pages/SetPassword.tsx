@@ -82,12 +82,12 @@ export default function SetPassword() {
   };
 
   const passwordStrength = getPasswordStrength(password);
-  const strengthColors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-lime-500", "bg-green-500"];
+  const strengthColors = ["bg-red-500", "bg-brand-gold", "bg-yellow-500", "bg-lime-500", "bg-green-500"];
   const strengthLabels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -108,11 +108,11 @@ export default function SetPassword() {
 
   if (isVerifying) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4">
-              <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-brand-gold" />
               <p className="text-gray-600">Verifying your link...</p>
             </div>
           </CardContent>
@@ -123,7 +123,7 @@ export default function SetPassword() {
 
   if (verifyError || !tokenData?.valid) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -149,7 +149,7 @@ export default function SetPassword() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
@@ -160,7 +160,7 @@ export default function SetPassword() {
           </CardHeader>
           <CardContent>
             <div className="flex justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+              <Loader2 className="w-6 h-6 animate-spin text-brand-gold" />
             </div>
           </CardContent>
         </Card>
@@ -169,11 +169,11 @@ export default function SetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8 text-orange-600" />
+          <div className="w-16 h-16 bg-brand-gold/15 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-brand-gold" />
           </div>
           <CardTitle>
             {tokenData?.type === "set_password" ? "Create Your Password" : "Reset Your Password"}
@@ -283,7 +283,7 @@ export default function SetPassword() {
 
             <Button
               type="submit"
-              className="w-full bg-orange-500 hover:bg-orange-600"
+              className="w-full bg-brand-gold hover:bg-brand-gold"
               disabled={isSubmitting || password.length < 8 || password !== confirmPassword}
             >
               {isSubmitting ? (

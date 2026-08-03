@@ -34,9 +34,9 @@ export default function InstallApp() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-brand-dark">
       {/* Header */}
-      <header className="border-b border-white/10 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-40">
+      <header className="border-b border-white/10 bg-white/5 backdrop-blur-sm sticky top-0 z-40">
         <div className="container max-w-4xl py-3 px-4">
           <div className="flex items-center justify-between">
             <Button 
@@ -58,8 +58,8 @@ export default function InstallApp() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Hero Section */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center p-4 bg-orange-500/20 rounded-full mb-4">
-            <Smartphone className="h-10 w-10 text-orange-500" />
+          <div className="inline-flex items-center justify-center p-4 bg-brand-gold/20 rounded-full mb-4">
+            <Smartphone className="h-10 w-10 text-brand-gold" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
             Install the Omega Longevity App
@@ -71,7 +71,7 @@ export default function InstallApp() {
 
         {/* Benefits */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white/5 border-brand-border">
             <CardContent className="p-4 text-center">
               <div className="p-2 bg-green-500/20 rounded-full w-fit mx-auto mb-2">
                 <Sparkles className="h-5 w-5 text-green-500" />
@@ -80,7 +80,7 @@ export default function InstallApp() {
               <p className="text-slate-400 text-sm">Launch directly from your home screen</p>
             </CardContent>
           </Card>
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white/5 border-brand-border">
             <CardContent className="p-4 text-center">
               <div className="p-2 bg-blue-500/20 rounded-full w-fit mx-auto mb-2">
                 <Bell className="h-5 w-5 text-blue-500" />
@@ -89,7 +89,7 @@ export default function InstallApp() {
               <p className="text-slate-400 text-sm">Get reminders for check-ins & updates</p>
             </CardContent>
           </Card>
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white/5 border-brand-border">
             <CardContent className="p-4 text-center">
               <div className="p-2 bg-purple-500/20 rounded-full w-fit mx-auto mb-2">
                 <Wifi className="h-5 w-5 text-purple-500" />
@@ -102,12 +102,12 @@ export default function InstallApp() {
 
         {/* Installation Instructions Tabs */}
         <Tabs defaultValue={detectedOS === 'ios' ? 'iphone' : 'android'} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 mb-6">
-            <TabsTrigger value="iphone" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-2 bg-white/5 mb-6">
+            <TabsTrigger value="iphone" className="data-[state=active]:bg-brand-gold data-[state=active]:text-brand-gold-foreground">
               <Apple className="h-4 w-4 mr-2" />
               iPhone
             </TabsTrigger>
-            <TabsTrigger value="android" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+            <TabsTrigger value="android" className="data-[state=active]:bg-brand-gold data-[state=active]:text-brand-gold-foreground">
               <Chrome className="h-4 w-4 mr-2" />
               Android
             </TabsTrigger>
@@ -115,11 +115,11 @@ export default function InstallApp() {
 
           {/* iPhone Instructions */}
           <TabsContent value="iphone">
-            <Card className="bg-slate-800/50 border-slate-700 overflow-hidden">
+            <Card className="bg-white/5 border-brand-border overflow-hidden">
               <CardContent className="p-0">
                 <div className="grid md:grid-cols-2 gap-0">
                   {/* Image */}
-                  <div className="bg-gradient-to-br from-slate-700 to-slate-800 p-6 flex items-center justify-center">
+                  <div className="bg-white/5 p-6 flex items-center justify-center">
                     <img 
                       src="/iphone-install-guide.png" 
                       alt="iPhone Installation Guide" 
@@ -136,22 +136,22 @@ export default function InstallApp() {
                     
                     <div className="space-y-6">
                       <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="flex-shrink-0 w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-brand-gold-foreground font-bold">
                           1
                         </div>
                         <div>
                           <h3 className="text-white font-medium mb-1">Open Safari</h3>
                           <p className="text-slate-400 text-sm">
-                            Navigate to <span className="text-orange-400 font-medium">humanedge.health</span>
+                            Navigate to <span className="text-brand-gold font-medium">humanedge.health</span>
                           </p>
-                          <p className="text-amber-500/80 text-xs mt-1">
+                          <p className="text-brand-gold/80 text-xs mt-1">
                             ⚠️ Must use Safari - won't work in Chrome
                           </p>
                         </div>
                       </div>
 
                       <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="flex-shrink-0 w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-brand-gold-foreground font-bold">
                           2
                         </div>
                         <div>
@@ -163,7 +163,7 @@ export default function InstallApp() {
                       </div>
 
                       <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="flex-shrink-0 w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-brand-gold-foreground font-bold">
                           3
                         </div>
                         <div>
@@ -194,11 +194,11 @@ export default function InstallApp() {
 
           {/* Android Instructions */}
           <TabsContent value="android">
-            <Card className="bg-slate-800/50 border-slate-700 overflow-hidden">
+            <Card className="bg-white/5 border-brand-border overflow-hidden">
               <CardContent className="p-0">
                 <div className="grid md:grid-cols-2 gap-0">
                   {/* Image */}
-                  <div className="bg-gradient-to-br from-slate-700 to-slate-800 p-6 flex items-center justify-center">
+                  <div className="bg-white/5 p-6 flex items-center justify-center">
                     <img 
                       src="/android-install-guide.png" 
                       alt="Android Installation Guide" 
@@ -215,19 +215,19 @@ export default function InstallApp() {
                     
                     <div className="space-y-6">
                       <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="flex-shrink-0 w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-brand-gold-foreground font-bold">
                           1
                         </div>
                         <div>
                           <h3 className="text-white font-medium mb-1">Open Chrome</h3>
                           <p className="text-slate-400 text-sm">
-                            Navigate to <span className="text-orange-400 font-medium">humanedge.health</span>
+                            Navigate to <span className="text-brand-gold font-medium">humanedge.health</span>
                           </p>
                         </div>
                       </div>
 
                       <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="flex-shrink-0 w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-brand-gold-foreground font-bold">
                           2
                         </div>
                         <div>
@@ -242,7 +242,7 @@ export default function InstallApp() {
                       </div>
 
                       <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="flex-shrink-0 w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-brand-gold-foreground font-bold">
                           3
                         </div>
                         <div>
@@ -273,20 +273,20 @@ export default function InstallApp() {
         </Tabs>
 
         {/* After Installing Section */}
-        <Card className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30 mt-8">
+        <Card className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-brand-gold/30 mt-8">
           <CardContent className="p-6">
             <h3 className="text-xl font-bold text-white mb-4">After Installing</h3>
             <ul className="space-y-3 text-slate-300">
               <li className="flex items-start gap-3">
-                <Bell className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                <Bell className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
                 <span><strong>Enable Notifications</strong> - Tap "Enable" when prompted to receive check-in reminders and protocol updates</span>
               </li>
               <li className="flex items-start gap-3">
-                <Wifi className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                <Wifi className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
                 <span><strong>Works Offline</strong> - Access your information even without an internet connection</span>
               </li>
               <li className="flex items-start gap-3">
-                <Sparkles className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                <Sparkles className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
                 <span><strong>No App Store Needed</strong> - The app installs directly from your browser</span>
               </li>
             </ul>

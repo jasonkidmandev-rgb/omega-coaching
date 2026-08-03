@@ -445,7 +445,7 @@ export default function TransformationCheckout() {
                           isComplete
                             ? "bg-green-500 text-white"
                             : isCurrent
-                            ? "bg-brand-gold/100 text-white ring-2 ring-brand-gold/50"
+                            ? "bg-brand-gold text-brand-gold-foreground ring-2 ring-brand-gold/50"
                             : "bg-slate-700 text-slate-500"
                         }`}
                       >
@@ -645,7 +645,7 @@ export default function TransformationCheckout() {
                         type="button"
                         onClick={() => setVipConcierge(!vipConcierge)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          vipConcierge ? 'bg-brand-gold/100' : 'bg-slate-600'
+                          vipConcierge ? 'bg-brand-gold' : 'bg-slate-600'
                         }`}
                       >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -871,7 +871,7 @@ export default function TransformationCheckout() {
                   ].map((step, idx) => (
                     <div key={idx} className="relative flex gap-4 pb-8 last:pb-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
-                        step.active ? "bg-brand-gold/100 text-white" : "bg-slate-700 text-slate-400 border border-slate-600"
+                        step.active ? "bg-brand-gold text-brand-gold-foreground" : "bg-slate-700 text-slate-400 border border-slate-600"
                       }`}>
                         <step.icon className="w-5 h-5" />
                       </div>
@@ -917,7 +917,7 @@ export default function TransformationCheckout() {
                   ].map((step, idx) => (
                     <div key={idx} className="relative flex gap-4 pb-8 last:pb-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
-                        step.active ? "bg-brand-gold/100 text-white" : "bg-slate-700 text-slate-400 border border-slate-600"
+                        step.active ? "bg-brand-gold text-brand-gold-foreground" : "bg-slate-700 text-slate-400 border border-slate-600"
                       }`}>
                         <step.icon className="w-5 h-5" />
                       </div>
@@ -982,7 +982,7 @@ export default function TransformationCheckout() {
                   ].map((step, idx) => (
                     <div key={idx} className="relative flex gap-4 pb-8 last:pb-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
-                        step.active ? "bg-brand-gold/100 text-white" : "bg-slate-700 text-slate-400 border border-slate-600"
+                        step.active ? "bg-brand-gold text-brand-gold-foreground" : "bg-slate-700 text-slate-400 border border-slate-600"
                       }`}>
                         <step.icon className="w-5 h-5" />
                       </div>

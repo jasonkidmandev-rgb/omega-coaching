@@ -7,9 +7,9 @@ export default function Privacy() {
   const [, setLocation] = useLocation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div className="min-h-screen bg-brand-dark text-white">
       {/* Header */}
-      <header className="border-b border-white/10 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-40">
+      <header className="border-b border-white/10 bg-white/5 backdrop-blur-sm sticky top-0 z-40">
         <div className="container max-w-4xl py-4">
           <div className="flex items-center gap-4">
             <Button
@@ -21,7 +21,7 @@ export default function Privacy() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-brand-gold rounded-lg flex items-center justify-center">
                 <Shield className="h-5 w-5 text-white" />
               </div>
               <span className="font-bold text-xl">Privacy Policy</span>
@@ -161,10 +161,10 @@ export default function Privacy() {
             <strong className="text-white">Email:</strong> omega@omegalongevity.com
           </p>
 
-          <div className="mt-12 pt-8 border-t border-slate-700">
+          <div className="mt-12 pt-8 border-t border-brand-border">
             <Button
               onClick={() => goBackTo("/")}
-              className="bg-gradient-to-r from-amber-400 to-orange-500 text-black hover:from-amber-500 hover:to-orange-600"
+              className="bg-brand-gold text-brand-gold-foreground hover:opacity-90 hover:from-amber-500 hover:to-orange-600"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Home

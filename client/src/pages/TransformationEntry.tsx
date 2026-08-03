@@ -1382,7 +1382,7 @@ export default function TransformationEntry() {
 
               {/* 60-min session */}
               <Card className="border-2 border-brand-gold/40 shadow-lg hover:shadow-xl transition-shadow relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold/100 text-white text-xs font-bold px-3 py-1 rounded-full">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold text-brand-gold-foreground text-xs font-bold px-3 py-1 rounded-full">
                   Most Popular
                 </div>
                 <CardHeader className="text-center pb-3">

@@ -4,6 +4,30 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-02 (continued, 4)
+- Brand pass batch 3, the last of the client-facing rollout: age gate, terms, privacy,
+  set/forgot password, accept invite, partners, promotions, install, 404. Kept the
+  "don't have an account yet" alert on the forgot-password page amber, since it's a real
+  alert rather than branding, and left the per-category badge colours on partners and
+  promotions since those distinguish categories.
+- The more useful part of this session was auditing my own previous work rather than just
+  adding to it. Grepping after the pass instead of trusting it turned up two problems I'd
+  introduced earlier and not noticed:
+  - A shade-name prefix collision: because `amber-50` is the start of `amber-500`, an
+    earlier rule had been quietly rewriting one into the other. The result was still valid
+    and still rendered correctly, so it passed every check and looked fine in a browser,
+    which is exactly why 23 of them had accumulated across two batches unnoticed.
+  - Twenty places where white text sat on the gold, including two buttons where a leftover
+    white overrode the button's own text colour. Gold is a light colour, so white on it is
+    close to unreadable. All now use the navy foreground.
+- Wrote all three find-and-replace traps hit across the three batches into `task-notes.md`
+  as a short checklist, since the pattern (audit with a grep afterwards, don't trust the
+  pass) is what caught every one of them.
+- Client-facing rollout is now complete at roughly 38 pages. Flagged clearly that none of
+  it has been browser-verified, and added that as its own tracked item rather than letting
+  it sit as an assumption.
+- Hours: ~
+
 ## 2026-08-02 (continued, 3)
 - Brand pass batch 2: the whole enrollment/intake/protocol-build funnel, 14 pages. Surveyed
   every file's colour usage before editing rather than running the same replacements over

@@ -360,7 +360,7 @@ export default function PaymentSuccess() {
             </div>
             <div className="w-8 h-0.5 bg-green-500" />
             <div className="flex items-center gap-1">
-              <div className="w-8 h-8 rounded-full bg-brand-gold/100 flex items-center justify-center text-white text-xs font-bold">2</div>
+              <div className="w-8 h-8 rounded-full bg-brand-gold flex items-center justify-center text-brand-gold-foreground text-xs font-bold">2</div>
               <span className="text-xs text-brand-gold hidden sm:inline">Intake Form</span>
             </div>
             {!SKIP_CALENDLY_TIERS.includes(tier) && (
@@ -429,7 +429,7 @@ export default function PaymentSuccess() {
             </div>
             <div className="w-8 h-0.5 bg-green-500" />
             <div className="flex items-center gap-1">
-              <div className="w-8 h-8 rounded-full bg-brand-gold/100 flex items-center justify-center text-white text-xs font-bold">3</div>
+              <div className="w-8 h-8 rounded-full bg-brand-gold flex items-center justify-center text-brand-gold-foreground text-xs font-bold">3</div>
               <span className="text-xs text-brand-gold hidden sm:inline">Schedule Session</span>
             </div>
           </div>

@@ -72,9 +72,9 @@ export default function Partners() {
   const categoryOrder = ["peptides", "supplements", "nootropics", "tools", "health", "other"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div className="min-h-screen bg-brand-dark text-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-white/10">
+      <header className="sticky top-0 z-50 bg-white/5 backdrop-blur-md border-b border-white/10">
         <div className="container max-w-6xl py-4 flex items-center justify-between">
           <Button 
             variant="ghost" 
@@ -92,12 +92,12 @@ export default function Partners() {
       {/* Hero Section */}
       <section className="py-16 border-b border-white/10">
         <div className="container max-w-6xl text-center">
-          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 mb-4">
+          <Badge className="bg-brand-gold/20 text-brand-gold border-brand-gold/30 mb-4">
             <Shield className="h-3 w-3 mr-1" />
             Vetted & Trusted
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Our <span className="text-amber-400">Trusted Partners</span>
+            Our <span className="text-brand-gold">Trusted Partners</span>
           </h1>
           <p className="text-slate-400 max-w-2xl mx-auto text-lg">
             We've carefully selected partners who share our commitment to quality, safety, and results. 
@@ -111,7 +111,7 @@ export default function Partners() {
         <div className="container max-w-6xl">
           {isLoading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold mx-auto"></div>
               <p className="text-slate-400 mt-4">Loading partners...</p>
             </div>
           ) : partners && partners.length > 0 ? (
@@ -132,7 +132,7 @@ export default function Partners() {
                       {categoryPartners?.map((partner) => (
                         <Card 
                           key={partner.id} 
-                          className={`bg-slate-800/50 border-slate-700 hover:border-amber-500/50 transition-all group ${partner.isFeatured ? 'border-amber-500/30 ring-1 ring-amber-500/20' : ''}`}
+                          className={`bg-white/5 border-brand-border hover:border-brand-gold/50 transition-all group ${partner.isFeatured ? 'border-brand-gold/30 ring-1 ring-amber-500/20' : ''}`}
                         >
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between">
@@ -151,7 +151,7 @@ export default function Partners() {
                                 <CardTitle className="text-white text-lg">{partner.name}</CardTitle>
                               </div>
                               {partner.isFeatured && (
-                                <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">
+                                <Badge className="bg-brand-gold/20 text-brand-gold border-brand-gold/30 text-xs">
                                   <Shield className="h-3 w-3 mr-1" />
                                   Featured
                                 </Badge>
@@ -166,21 +166,21 @@ export default function Partners() {
                           <CardContent className="space-y-4">
                             {/* Discount Code */}
                             {partner.code ? (
-                              <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                              <div className="bg-white/5 rounded-lg p-3 border border-brand-border">
                                 <div className="flex items-center justify-between mb-2">
                                   <span className="text-xs text-slate-400">Discount Code</span>
                                   {partner.discountText && (
-                                    <span className="text-xs text-amber-400 font-medium">{partner.discountText}</span>
+                                    <span className="text-xs text-brand-gold font-medium">{partner.discountText}</span>
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <code className="flex-1 bg-amber-500/10 text-amber-400 px-3 py-2 rounded font-mono text-sm font-bold">
+                                  <code className="flex-1 bg-brand-gold/10 text-brand-gold px-3 py-2 rounded font-mono text-sm font-bold">
                                     {partner.code}
                                   </code>
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    className="border-slate-600 hover:bg-slate-700"
+                                    className="border-brand-border hover:bg-white/10"
                                     onClick={() => copyCode(partner.code!)}
                                   >
                                     {copiedCode === partner.code ? (
@@ -192,27 +192,27 @@ export default function Partners() {
                                 </div>
                               </div>
                             ) : partner.discountText ? (
-                              <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                              <div className="bg-white/5 rounded-lg p-3 border border-brand-border">
                                 <p className="text-sm text-slate-300">{partner.discountText}</p>
                               </div>
                             ) : null}
                             
                             {/* Testimonial */}
                             {partner.testimonial && (
-                              <div className="bg-amber-500/5 rounded-lg p-3 border border-amber-500/20">
+                              <div className="bg-brand-gold/5 rounded-lg p-3 border border-brand-gold/20">
                                 <div className="flex items-start gap-2">
-                                  <Quote className="h-4 w-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                                  <Quote className="h-4 w-4 text-brand-gold mt-0.5 flex-shrink-0" />
                                   <p className="text-sm text-slate-300 italic">
                                     "{partner.testimonial}"
                                   </p>
                                 </div>
-                                <p className="text-xs text-amber-400 mt-2 text-right">— Omega Team</p>
+                                <p className="text-xs text-brand-gold mt-2 text-right">— Omega Team</p>
                               </div>
                             )}
                             
                             {/* Visit Button */}
                             <Button 
-                              className="w-full bg-gradient-to-r from-amber-400 to-orange-500 text-black hover:from-amber-500 hover:to-orange-600"
+                              className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 hover:from-amber-500 hover:to-orange-600"
                               onClick={() => {
                                 // Track the click
                                 trackClickMutation.mutate({ partnerId: partner.id, userAgent: navigator.userAgent });
@@ -240,11 +240,11 @@ export default function Partners() {
       </section>
 
       {/* Affiliate Disclaimer */}
-      <section className="py-12 border-t border-white/10 bg-slate-800/30">
+      <section className="py-12 border-t border-white/10 bg-white/5/30">
         <div className="container max-w-4xl">
-          <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700">
+          <div className="bg-white/5 rounded-xl p-6 border border-brand-border">
             <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-              <Shield className="h-5 w-5 text-amber-400" />
+              <Shield className="h-5 w-5 text-brand-gold" />
               Affiliate Disclosure
             </h3>
             <p className="text-slate-400 text-sm leading-relaxed">
@@ -269,7 +269,7 @@ export default function Partners() {
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-brand-gold rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Purity Verified</h3>
@@ -278,7 +278,7 @@ export default function Partners() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-brand-gold rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Safety First</h3>
@@ -287,7 +287,7 @@ export default function Partners() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-brand-gold rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Sparkles className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Client Tested</h3>
@@ -309,7 +309,7 @@ export default function Partners() {
           </p>
           <Button 
             variant="outline" 
-            className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+            className="border-brand-gold/50 text-brand-gold hover:bg-brand-gold/10"
             onClick={() => setLocation("/")}
           >
             Return to Launchpad

@@ -323,7 +323,7 @@ export default function WaiverRenewal() {
             <Button
               onClick={handleSubmit}
               disabled={!isFormValid || renewMutation.isPending}
-              className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 text-white py-6 text-lg"
+              className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 py-6 text-lg"
             >
               {renewMutation.isPending ? (
                 <>

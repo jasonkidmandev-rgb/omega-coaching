@@ -31,7 +31,7 @@ const promotions: Promotion[] = [
     subtitle: "Volume Discount",
     description: "Save up to 18% when you order multiple units. The more you buy, the more you save on this premium GLP-1/GIP dual agonist peptide.",
     badge: "BEST VALUE",
-    badgeColor: "bg-gradient-to-r from-amber-500 to-orange-500",
+    badgeColor: "bg-brand-gold",
     savings: "Save up to 18%",
     pricingTiers: [
       { minQty: 1, maxQty: 1, pricePerUnit: 325 },
@@ -92,13 +92,13 @@ export default function Promotions() {
   const otherPromos = promotions.filter(p => !p.featured);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-brand-dark">
       {/* Header */}
-      <header className="border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-brand-border bg-white/5 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/launchpad">
             <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-brand-gold flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -109,13 +109,13 @@ export default function Promotions() {
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/store">
-              <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
+              <Button variant="outline" className="border-brand-border text-slate-300 hover:bg-white/10">
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Shop Now
               </Button>
             </Link>
             <Link href="/launchpad">
-              <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white">
+              <Button className="bg-brand-gold text-brand-gold-foreground hover:opacity-90">
                 Back to Hub
               </Button>
             </Link>
@@ -128,12 +128,12 @@ export default function Promotions() {
         <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-transparent to-orange-500/10" />
         <div className="container mx-auto px-4 relative">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/30 mb-6">
-              <Tag className="h-4 w-4 text-amber-400" />
-              <span className="text-amber-400 font-medium text-sm">Current Promotions</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-gold/20 border border-brand-gold/30 mb-6">
+              <Tag className="h-4 w-4 text-brand-gold" />
+              <span className="text-brand-gold font-medium text-sm">Current Promotions</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Special Offers & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Discounts</span>
+              Special Offers & <span className="text-transparent bg-clip-text bg-brand-gold">Discounts</span>
             </h1>
             <p className="text-lg text-slate-400 mb-8">
               Take advantage of our exclusive deals on premium peptides, supplements, and coaching packages. 
@@ -147,10 +147,10 @@ export default function Promotions() {
       {featuredPromo && (
         <section className="py-8 px-4">
           <div className="container mx-auto">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-amber-500/30 shadow-2xl shadow-amber-500/10">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-brand-gold/30 shadow-2xl shadow-amber-500/10">
               {/* Animated background */}
               <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-transparent to-orange-500/5" />
-              <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
+              <div className="absolute top-0 right-0 w-96 h-96 bg-brand-gold/10 rounded-full blur-3xl" />
               
               <div className="relative p-8 md:p-12">
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -167,12 +167,12 @@ export default function Promotions() {
                     </div>
                     
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                      <div className="p-2 rounded-lg bg-brand-gold/20 text-brand-gold">
                         {featuredPromo.icon}
                       </div>
                       <div>
                         <h2 className="text-3xl font-bold text-white">{featuredPromo.title}</h2>
-                        <p className="text-amber-400 font-medium">{featuredPromo.subtitle}</p>
+                        <p className="text-brand-gold font-medium">{featuredPromo.subtitle}</p>
                       </div>
                     </div>
                     
@@ -181,7 +181,7 @@ export default function Promotions() {
                     </p>
                     
                     <Link href={featuredPromo.ctaLink}>
-                      <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25">
+                      <Button size="lg" className="bg-brand-gold text-brand-gold-foreground hover:opacity-90 shadow-lg shadow-amber-500/25">
                         {featuredPromo.ctaText}
                         <ArrowRight className="h-5 w-5 ml-2" />
                       </Button>
@@ -209,7 +209,7 @@ export default function Promotions() {
       <section className="py-12 px-4">
         <div className="container mx-auto">
           <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-2">
-            <Percent className="h-6 w-6 text-amber-400" />
+            <Percent className="h-6 w-6 text-brand-gold" />
             More Ways to Save
           </h2>
           
@@ -217,7 +217,7 @@ export default function Promotions() {
             {otherPromos.map((promo) => (
               <Card 
                 key={promo.id}
-                className={`bg-slate-800/50 border-slate-700 hover:border-amber-500/50 transition-all duration-300 cursor-pointer group ${
+                className={`bg-white/5 border-brand-border hover:border-brand-gold/50 transition-all duration-300 cursor-pointer group ${
                   hoveredPromo === promo.id ? 'scale-[1.02] shadow-xl shadow-amber-500/10' : ''
                 }`}
                 onMouseEnter={() => setHoveredPromo(promo.id)}
@@ -233,12 +233,12 @@ export default function Promotions() {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-slate-700 text-amber-400 group-hover:bg-amber-500/20 transition-colors">
+                    <div className="p-2 rounded-lg bg-white/10 text-brand-gold group-hover:bg-brand-gold/20 transition-colors">
                       {promo.icon}
                     </div>
                     <div>
                       <CardTitle className="text-white text-lg">{promo.title}</CardTitle>
-                      <CardDescription className="text-amber-400">{promo.subtitle}</CardDescription>
+                      <CardDescription className="text-brand-gold">{promo.subtitle}</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -252,7 +252,7 @@ export default function Promotions() {
                   )}
                   
                   <Link href={promo.ctaLink}>
-                    <Button className="w-full bg-slate-700 hover:bg-amber-500 text-white transition-colors group-hover:bg-amber-500">
+                    <Button className="w-full bg-white/10 hover:bg-brand-gold text-brand-gold-foreground transition-colors group-hover:bg-brand-gold">
                       {promo.ctaText}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -267,8 +267,8 @@ export default function Promotions() {
       {/* CTA Section */}
       <section className="py-16 px-4">
         <div className="container mx-auto">
-          <div className="text-center bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl border border-slate-700 p-8 md:p-12">
-            <Clock className="h-12 w-12 text-amber-400 mx-auto mb-4" />
+          <div className="text-center bg-brand-dark rounded-2xl border border-brand-border p-8 md:p-12">
+            <Clock className="h-12 w-12 text-brand-gold mx-auto mb-4" />
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
               Don't Miss Out on These Deals
             </h2>
@@ -277,13 +277,13 @@ export default function Promotions() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/store">
-                <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white">
+                <Button size="lg" className="bg-brand-gold text-brand-gold-foreground hover:opacity-90">
                   <ShoppingCart className="h-5 w-5 mr-2" />
                   Browse Store
                 </Button>
               </Link>
               <Link href="/launchpad">
-                <Button size="lg" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
+                <Button size="lg" variant="outline" className="border-brand-border text-slate-300 hover:bg-white/10">
                   Explore All Services
                 </Button>
               </Link>
@@ -293,7 +293,7 @@ export default function Promotions() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-700/50 py-8 px-4">
+      <footer className="border-t border-brand-border py-8 px-4">
         <div className="container mx-auto text-center text-slate-500 text-sm">
           <p>© 2026 Omega Longevity. All promotions subject to availability and terms.</p>
         </div>

@@ -70,15 +70,36 @@ Judgment calls made in batch 2 (the point of "where they make sense"):
 - Cards sitting on the newly-navy shells went to `bg-white/5 border-brand-border`, the
   same surface convention the sidebar uses.
 
-⚠️ **Trap hit twice, watch for it in batch 3:** ordered string replacement on Tailwind
-opacity variants. `bg-orange-50/50` matched the `bg-orange-50` rule first and produced the
-malformed `bg-brand-gold/10/50`. Always list the `/NN` opacity variants *before* their base
-class, and grep `brand-gold/[0-9]*/[0-9]*` afterwards. (Also from batch 1: a blanket
-`text-white` replace will eat a deliberate `data-[state=active]:text-white`.)
+**Batch 3 done (2026-08-02):** the rarely-seen pages — `AgeRestricted`, `Terms`,
+`Privacy`, `SetPassword`, `ForgotPassword`, `AcceptInvite`, `Partners`, `Promotions`,
+`InstallApp`, `NotFound`. Judgment calls: `ForgotPassword`'s amber block is a real
+"Don't have an account yet?" alert (`AlertTriangle`), so only its shell and button were
+converted; `Partners`/`Promotions` per-category badge rainbow (purple/pink, green/emerald,
+blue/cyan) was left as differentiation; `NotFound`'s stray blue button went gold.
 
-**Still to do:** batch 3 (rarely-seen pages: age gate, legal, password/invite, partners,
-promos, 404). `Metrics` chart line colors are still the Recharts demo palette — cosmetic,
-lowest priority, not really page chrome.
+### ⚠️ Read this before any future find-and-replace colour pass
+Three distinct traps bit during batches 1-3. All were caught by grepping *after* the pass
+rather than trusting it — do the same.
+1. **Opacity-variant ordering.** `bg-orange-50/50` matched a `bg-orange-50` rule first and
+   produced the malformed `bg-brand-gold/10/50`. List `/NN` variants *before* their base.
+2. **Shade-name prefix collision — the nasty one.** `bg-amber-50` is a *prefix of*
+   `bg-amber-500`, so a `bg-amber-50 → bg-brand-gold/10` rule rewrote `bg-amber-500` into
+   `bg-brand-gold/100`. That is **valid Tailwind that renders correctly**, so it passes a
+   malformed-class grep and looks fine in the browser — 23 of them accumulated silently
+   across batches 2 *and* 3 before being spotted. Always order `-500` before `-50` and
+   `-100`, and audit with `grep -rn "brand-gold/[0-9][0-9][0-9]"`.
+3. **Blanket `text-white` replaces** eat deliberate white-on-colour (`data-[state=active]:
+   text-white`). Check for `text-white` on *coloured* backgrounds first.
+
+**Contrast rule this surfaced:** gold `#c9a869` is a *light* colour, so `text-white` on it
+is unreadable. 20 such pairings existed across batches 2-3 (step circles, tab triggers,
+badges, and two buttons where a stray `text-white` trailed the gold-button triplet and
+overrode its foreground). All now use `text-brand-gold-foreground` (navy). Audit with
+`grep -rn "bg-brand-gold[^/\"]*text-white"`.
+
+**Client-facing brand rollout is now complete** (batches 1-3, ~38 pages). Remaining, both
+low priority: `Metrics` chart line colours are still the Recharts demo palette (cosmetic,
+not really page chrome), and none of the three batches has been browser-verified.
 
 Not browser-verified (no local DB); these are class-string swaps, so the risk is a
 contrast miss rather than a break. Worth a look on the deployed site.

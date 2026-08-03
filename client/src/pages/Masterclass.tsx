@@ -198,7 +198,7 @@ export default function Masterclass() {
                             <CardHeader className="py-4 px-5">
                               <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                  isExpanded ? "bg-brand-gold/100 text-white" : "bg-white/10 text-blue-300"
+                                  isExpanded ? "bg-brand-gold text-brand-gold-foreground" : "bg-white/10 text-blue-300"
                                 }`}>
                                   {isExpanded ? (
                                     <Play className="h-5 w-5" />

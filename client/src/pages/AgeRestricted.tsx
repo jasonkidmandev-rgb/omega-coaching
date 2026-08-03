@@ -4,8 +4,8 @@ import { ShieldX, ArrowLeft, Mail, AlertTriangle } from "lucide-react";
 
 export default function AgeRestricted() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-center p-4">
-      <Card className="max-w-lg w-full bg-slate-800 border-slate-700 shadow-2xl">
+    <div className="min-h-screen bg-brand-dark text-white flex items-center justify-center p-4">
+      <Card className="max-w-lg w-full bg-white/5 border-brand-border shadow-2xl">
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
             <div className="p-4 bg-red-500/20 rounded-full">
@@ -18,11 +18,11 @@ export default function AgeRestricted() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="bg-white/5 rounded-lg p-4 border border-brand-border">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="h-5 w-5 text-brand-gold mt-0.5 flex-shrink-0" />
               <div className="text-sm text-slate-300">
-                <p className="font-medium text-amber-400 mb-2">Why is there an age restriction?</p>
+                <p className="font-medium text-brand-gold mb-2">Why is there an age restriction?</p>
                 <p className="mb-3">
                   Omega Longevity provides information and services related to health optimization, peptides, and supplements. This content is intended for adults who can make informed decisions about their health and wellness.
                 </p>
@@ -40,20 +40,20 @@ export default function AgeRestricted() {
             
             <Button
               onClick={() => window.location.href = "/"}
-              className="w-full bg-gradient-to-r from-amber-400 to-orange-500 text-black hover:from-amber-500 hover:to-orange-600"
+              className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 hover:from-amber-500 hover:to-orange-600"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Return to Website
             </Button>
           </div>
 
-          <div className="border-t border-slate-700 pt-6">
+          <div className="border-t border-brand-border pt-6">
             <p className="text-center text-slate-400 text-sm mb-4">
               Have questions? We're here to help.
             </p>
             <Button
               variant="outline"
-              className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+              className="w-full border-brand-border text-slate-300 hover:bg-white/10"
               onClick={() => window.location.href = "mailto:omega@omegalongevity.com"}
             >
               <Mail className="h-4 w-4 mr-2" />
@@ -63,9 +63,9 @@ export default function AgeRestricted() {
 
           <p className="text-xs text-slate-500 text-center">
             By using our website, you agree to our{" "}
-            <a href="/terms" className="text-orange-400 hover:underline">Terms of Service</a>
+            <a href="/terms" className="text-brand-gold hover:underline">Terms of Service</a>
             {" "}and{" "}
-            <a href="/privacy" className="text-orange-400 hover:underline">Privacy Policy</a>.
+            <a href="/privacy" className="text-brand-gold hover:underline">Privacy Policy</a>.
           </p>
         </CardContent>
       </Card>
