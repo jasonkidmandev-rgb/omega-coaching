@@ -53,7 +53,7 @@ export default function CommunityChoice() {
           <div className="flex items-center justify-between">
             <button 
               onClick={() => goBackTo('/')}
-              className="flex items-center gap-2 text-gray-600 hover:text-amber-600 transition-colors"
+              className="flex items-center gap-2 text-gray-600 hover:text-brand-gold transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
               <span className="font-medium">Back to Launchpad</span>
@@ -66,7 +66,7 @@ export default function CommunityChoice() {
       {/* Hero Section */}
       <section className="py-16 px-4">
         <div className="container max-w-4xl text-center">
-          <Badge className="bg-amber-100 text-amber-700 border-amber-200 mb-4">Choose Your Path</Badge>
+          <Badge className="bg-brand-gold/15 text-brand-gold border-brand-gold/30 mb-4">Choose Your Path</Badge>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Ready to Start Your Peptide Journey?
           </h1>
@@ -83,20 +83,20 @@ export default function CommunityChoice() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* Elite Community - Highlighted */}
-            <Card className="border-2 border-amber-400 ring-2 ring-amber-200 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-center py-2 text-sm font-semibold">
+            <Card className="border-2 border-brand-gold ring-2 ring-brand-gold/40 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 bg-brand-gold text-brand-gold-foreground hover:opacity-90 text-center py-2 text-sm font-semibold">
                 <Crown className="h-4 w-4 inline mr-1" />
                 RECOMMENDED - Most Popular Choice
               </div>
               <CardHeader className="pt-12">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
+                  <div className="w-14 h-14 bg-brand-gold rounded-xl flex items-center justify-center">
                     <Star className="h-7 w-7 text-white" />
                   </div>
                   <div>
                     <CardTitle className="text-2xl text-gray-900">Omega Elite Community</CardTitle>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-3xl font-bold text-amber-600">$69</span>
+                      <span className="text-3xl font-bold text-brand-gold">$69</span>
                       <span className="text-gray-500">/month</span>
                     </div>
                   </div>
@@ -122,12 +122,12 @@ export default function CommunityChoice() {
                   ))}
                 </ul>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-                  <h5 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
+                <div className="bg-brand-gold/10 border border-brand-gold/30 rounded-lg p-4 mb-6">
+                  <h5 className="font-semibold text-brand-gold mb-2 flex items-center gap-2">
                     <Zap className="h-4 w-4" />
                     Perfect For:
                   </h5>
-                  <ul className="text-sm text-amber-700 space-y-1">
+                  <ul className="text-sm text-brand-gold space-y-1">
                     <li>• Anyone who wants continuous education and guidance</li>
                     <li>• Practitioners growing their skills</li>
                     <li>• Self-researchers who value expert resources</li>
@@ -136,7 +136,7 @@ export default function CommunityChoice() {
                 </div>
 
                 <Button 
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 text-lg py-6"
+                  className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 text-lg py-6"
                   onClick={() => window.open('https://link.fastpaydirect.com/payment-link/6871a1cbd6ab80936ce6849c', '_blank')}
                 >
                   Start 7-Day Free Trial
@@ -210,7 +210,7 @@ export default function CommunityChoice() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="py-12 px-4 bg-[#1e3a5f]">
+      <section className="py-12 px-4 bg-brand-dark">
         <div className="container max-w-4xl text-center">
           <h2 className="text-2xl font-bold text-white mb-4">
             Still Not Sure? Let's Talk.

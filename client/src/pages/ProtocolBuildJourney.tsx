@@ -259,7 +259,7 @@ export default function ProtocolBuildJourney() {
                       <Button
                         className={`w-full ${
                           required && !watched
-                            ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                            ? 'bg-brand-gold text-brand-gold-foreground hover:opacity-90'
                             : watched
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
                             : 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -429,7 +429,7 @@ export default function ProtocolBuildJourney() {
                     Complete the required Anti-Aging & Bioregulators video (Section 4) in the Masterclass tab to unlock the protocol builder.
                   </p>
                   <Button
-                    className="bg-amber-500 hover:bg-amber-600 text-white"
+                    className="bg-brand-gold text-brand-gold-foreground hover:opacity-90"
                     onClick={() => setActiveTab("masterclass")}
                   >
                     <Play className="h-4 w-4 mr-2" />

@@ -48,11 +48,37 @@ they're the two most-visited client pages and didn't match), `Checkin`, `Checkin
 `ClientPaymentPortal`. `Inventory` was on the list but needed **no** change — its orange/
 blue are genuine stock-status indicators, not chrome.
 
-**Still to do:** batch 2 (enrollment/intake/protocol-build funnel — note
-`TransformationEntry` and `PaymentSuccess` also carry genuine per-tier rainbow gradients,
-so brand the chrome and leave the tier differentiation), batch 3 (rarely-seen pages).
-`Metrics` chart line colors are still the Recharts demo palette — cosmetic, lowest
-priority, not really page chrome.
+**Batch 2 done (2026-08-02):** the enrollment/intake/protocol-build funnel —
+`IntakeLanding`, `CommunityChoice`, `Masterclass`, `TransformationEntry`,
+`TransformationCheckout`, `TransformationVerify`, `ProtocolBuildEntry`,
+`ProtocolBuildJourney`, `Order`, `OrderConfirmation`, `OrderHistory`, `PaymentSuccess`,
+`WaiverRenewal`, `CustomOrderPaymentCancelled`. Diff was 318 insertions / 318 deletions —
+exactly balanced, i.e. every change was a class-string swap with no structural edit.
+
+Judgment calls made in batch 2 (the point of "where they make sense"):
+- **`ProtocolBuildJourney`'s amber is semantic, not brand** — it's the required/locked/
+  alert system (`AlertCircle` "Required: Watch the Bioregulator Video", a "required"
+  badge, a `Lock` icon). Left alone; only its two *buttons* went gold. Same for
+  `CustomOrderPaymentCancelled` (amber alert icon kept, only the shell changed) and
+  `PaymentFailure` (red, untouched).
+- **Per-tier colours kept on `TransformationEntry`/`PaymentSuccess`.** Each tier card and
+  its matching CTA share a colour (orange/yellow, amber, violet, cyan, rose, emerald…);
+  that's differentiation, not decoration. Branded the shell/badges/section backgrounds
+  and left the tier palette. A red urgency banner on each was also left.
+- Everywhere else amber/orange genuinely *was* the gold stand-in (prices, VIP badges,
+  hero gradient text, primary CTAs) and went to `brand-gold`.
+- Cards sitting on the newly-navy shells went to `bg-white/5 border-brand-border`, the
+  same surface convention the sidebar uses.
+
+⚠️ **Trap hit twice, watch for it in batch 3:** ordered string replacement on Tailwind
+opacity variants. `bg-orange-50/50` matched the `bg-orange-50` rule first and produced the
+malformed `bg-brand-gold/10/50`. Always list the `/NN` opacity variants *before* their base
+class, and grep `brand-gold/[0-9]*/[0-9]*` afterwards. (Also from batch 1: a blanket
+`text-white` replace will eat a deliberate `data-[state=active]:text-white`.)
+
+**Still to do:** batch 3 (rarely-seen pages: age gate, legal, password/invite, partners,
+promos, 404). `Metrics` chart line colors are still the Recharts demo palette — cosmetic,
+lowest priority, not really page chrome.
 
 Not browser-verified (no local DB); these are class-string swaps, so the risk is a
 contrast miss rather than a break. Worth a look on the deployed site.

@@ -18,7 +18,7 @@ export default function OrderConfirmation() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-12 px-4">
+    <div className="min-h-screen bg-brand-dark py-12 px-4">
       {/* Confetti animation */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
@@ -52,27 +52,27 @@ export default function OrderConfirmation() {
         </div>
 
         {/* Order Details Card */}
-        <Card className="bg-slate-800 border-slate-700 mb-6">
+        <Card className="bg-white/5 border-brand-border mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
-              <Package className="w-5 h-5 text-orange-500" />
+              <Package className="w-5 h-5 text-brand-gold" />
               Order Details
             </CardTitle>
             {orderId && (
               <CardDescription className="text-slate-400">
-                Order ID: <span className="font-mono text-orange-400">{orderId}</span>
+                Order ID: <span className="font-mono text-brand-gold">{orderId}</span>
               </CardDescription>
             )}
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Payment Method */}
-            <div className="flex items-center justify-between py-3 border-b border-slate-700">
+            <div className="flex items-center justify-between py-3 border-b border-brand-border">
               <span className="text-slate-400">Payment Method</span>
               <span className="text-white font-medium capitalize">{paymentMethod}</span>
             </div>
 
             {/* Payment Status */}
-            <div className="flex items-center justify-between py-3 border-b border-slate-700">
+            <div className="flex items-center justify-between py-3 border-b border-brand-border">
               <span className="text-slate-400">Payment Status</span>
               <span className="inline-flex items-center gap-1.5 text-green-400 font-medium">
                 <CheckCircle className="w-4 h-4" />
@@ -83,7 +83,7 @@ export default function OrderConfirmation() {
         </Card>
 
         {/* Shipping Information Card */}
-        <Card className="bg-slate-800 border-slate-700 mb-6">
+        <Card className="bg-white/5 border-brand-border mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
               <Truck className="w-5 h-5 text-blue-500" />
@@ -103,15 +103,15 @@ export default function OrderConfirmation() {
             </div>
 
             {/* Expedited Shipping Notice */}
-            <div className="flex items-start gap-3 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-              <Mail className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-3 p-4 bg-brand-gold/10 border border-brand-gold/20 rounded-lg">
+              <Mail className="w-5 h-5 text-brand-gold mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-medium text-white">Need Expedited Shipping?</p>
                 <p className="text-sm text-slate-400 mt-1">
                   For urgent shipping needs, please contact us at{" "}
                   <a 
                     href="mailto:omega@omegalongevity.com" 
-                    className="text-orange-400 hover:text-orange-300 underline"
+                    className="text-brand-gold hover:text-brand-gold underline"
                   >
                     omega@omegalongevity.com
                   </a>
@@ -122,7 +122,7 @@ export default function OrderConfirmation() {
         </Card>
 
         {/* What's Next Card */}
-        <Card className="bg-slate-800 border-slate-700 mb-6">
+        <Card className="bg-white/5 border-brand-border mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
               <ArrowRight className="w-5 h-5 text-green-500" />
@@ -132,19 +132,19 @@ export default function OrderConfirmation() {
           <CardContent>
             <ol className="space-y-3 text-slate-300">
               <li className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center text-sm font-medium">1</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-brand-gold/20 text-brand-gold rounded-full flex items-center justify-center text-sm font-medium">1</span>
                 <span>You'll receive an order confirmation email shortly</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center text-sm font-medium">2</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-brand-gold/20 text-brand-gold rounded-full flex items-center justify-center text-sm font-medium">2</span>
                 <span>Our team will prepare your order for shipment</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center text-sm font-medium">3</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-brand-gold/20 text-brand-gold rounded-full flex items-center justify-center text-sm font-medium">3</span>
                 <span>You'll receive a shipping confirmation with tracking info</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center text-sm font-medium">4</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-brand-gold/20 text-brand-gold rounded-full flex items-center justify-center text-sm font-medium">4</span>
                 <span>Your order will arrive within 5-7 business days</span>
               </li>
             </ol>
@@ -153,7 +153,7 @@ export default function OrderConfirmation() {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
-          <Button asChild className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">
+          <Button asChild className="flex-1 bg-brand-gold text-brand-gold-foreground hover:opacity-90">
             <Link to="/order">
               <ShoppingBag className="w-4 h-4 mr-2" />
               Continue Shopping
@@ -171,7 +171,7 @@ export default function OrderConfirmation() {
           Questions about your order? Contact us at{" "}
           <a 
             href="mailto:omega@omegalongevity.com" 
-            className="text-orange-400 hover:text-orange-300"
+            className="text-brand-gold hover:text-brand-gold"
           >
             omega@omegalongevity.com
           </a>

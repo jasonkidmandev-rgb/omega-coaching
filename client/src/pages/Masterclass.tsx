@@ -69,9 +69,9 @@ export default function Masterclass() {
   let globalIndex = 0;
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800">
+    <div className="min-h-screen bg-brand-dark">
       {/* Header */}
-      <header className="border-b border-white/10 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+      <header className="border-b border-white/10 bg-white/5 backdrop-blur sticky top-0 z-40">
         <div className="container max-w-7xl py-3 md:py-4 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 md:gap-3" style={{ background: 'transparent' }}>
@@ -86,7 +86,7 @@ export default function Masterclass() {
                 Back
               </Button>
               <Button 
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white"
+                className="bg-brand-gold text-brand-gold-foreground hover:opacity-90"
                 onClick={() => setLocation("/transformation/select-tier")}
               >
                 Explore Coaching Plans
@@ -101,19 +101,19 @@ export default function Masterclass() {
       <section className="py-12 md:py-16 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-brand-gold/5 rounded-full blur-3xl" />
         </div>
         
         <div className="container max-w-4xl px-4 relative z-10">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/30 text-amber-300 px-4 py-2 rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 bg-brand-gold/15 border border-brand-gold/30 text-brand-gold px-4 py-2 rounded-full mb-6">
               <Play className="h-4 w-4" />
               <span className="text-sm font-semibold tracking-wide uppercase">Free Peptide Masterclass</span>
             </div>
             
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
               Clarity in a World of<br />
-              <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Peptide Confusion</span>
+              <span className="text-brand-gold">Peptide Confusion</span>
             </h1>
             
             <p className="text-lg text-blue-200/70 max-w-2xl mx-auto mb-6">
@@ -124,15 +124,15 @@ export default function Masterclass() {
             {/* Stats bar */}
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-blue-300/60 mb-8">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-amber-400/60" />
+                <Users className="h-4 w-4 text-brand-gold/60" />
                 <span><span className="text-white font-semibold">{getClientsTransformed()}+</span> have watched</span>
               </div>
               <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-amber-400/60" />
+                <Star className="h-4 w-4 text-brand-gold/60" />
                 <span><span className="text-white font-semibold">4.9/5</span> rating</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-400/60" />
+                <Clock className="h-4 w-4 text-brand-gold/60" />
                 <span><span className="text-white font-semibold">{orderedVideos.length} modules</span> · {totalHours}h {remainingMinutes}m total</span>
               </div>
             </div>
@@ -140,7 +140,7 @@ export default function Masterclass() {
             {/* Disclaimer */}
             <div className="bg-blue-900/30 border border-blue-500/20 rounded-lg px-4 py-3 max-w-2xl mx-auto">
               <p className="text-blue-300/70 text-xs leading-relaxed">
-                <span className="text-amber-400/80 font-medium">Note:</span> This masterclass was originally produced for a men's health optimization community. The peptide science, protocols, and dosing guidance apply universally regardless of gender. Your personalized coaching program will be tailored specifically to your individual goals and health profile.
+                <span className="text-brand-gold/80 font-medium">Note:</span> This masterclass was originally produced for a men's health optimization community. The peptide science, protocols, and dosing guidance apply universally regardless of gender. Your personalized coaching program will be tailored specifically to your individual goals and health profile.
               </p>
             </div>
           </div>
@@ -148,7 +148,7 @@ export default function Masterclass() {
           {/* Video Modules */}
           {isLoading ? (
             <div className="text-center py-20">
-              <div className="w-12 h-12 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <div className="w-12 h-12 border-2 border-brand-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <p className="text-blue-200/60">Loading your masterclass...</p>
             </div>
           ) : orderedVideos.length > 0 ? (
@@ -159,13 +159,13 @@ export default function Masterclass() {
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex items-center gap-2">
                       {section.label === "Client Testimonials" ? (
-                        <MessageCircle className="h-4 w-4 text-amber-400" />
+                        <MessageCircle className="h-4 w-4 text-brand-gold" />
                       ) : section.label === "Bonus Content" ? (
-                        <Sparkles className="h-4 w-4 text-amber-400" />
+                        <Sparkles className="h-4 w-4 text-brand-gold" />
                       ) : (
-                        <GraduationCap className="h-4 w-4 text-amber-400" />
+                        <GraduationCap className="h-4 w-4 text-brand-gold" />
                       )}
-                      <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider">{section.label}</h2>
+                      <h2 className="text-sm font-bold text-brand-gold uppercase tracking-wider">{section.label}</h2>
                     </div>
                     <div className="flex-1 h-px bg-white/10" />
                     <span className="text-xs text-blue-300/40">{section.videos.length} {section.videos.length === 1 ? 'video' : 'videos'}</span>
@@ -187,7 +187,7 @@ export default function Masterclass() {
                           key={video.id}
                           className={`border transition-all duration-300 overflow-hidden ${
                             isExpanded 
-                              ? "border-amber-500/50 bg-slate-800/80 shadow-lg shadow-amber-500/10" 
+                              ? "border-brand-gold/50 bg-white/5 shadow-lg shadow-brand-gold/10" 
                               : "border-white/10 bg-white/5 hover:bg-white/8 hover:border-white/20"
                           }`}
                         >
@@ -198,7 +198,7 @@ export default function Masterclass() {
                             <CardHeader className="py-4 px-5">
                               <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                  isExpanded ? "bg-amber-500 text-white" : "bg-white/10 text-blue-300"
+                                  isExpanded ? "bg-brand-gold/100 text-white" : "bg-white/10 text-blue-300"
                                 }`}>
                                   {isExpanded ? (
                                     <Play className="h-5 w-5" />
@@ -222,7 +222,7 @@ export default function Masterclass() {
                                     </span>
                                   )}
                                   {isExpanded ? (
-                                    <ChevronUp className="h-5 w-5 text-amber-400" />
+                                    <ChevronUp className="h-5 w-5 text-brand-gold" />
                                   ) : (
                                     <ChevronDown className="h-5 w-5 text-blue-300/40" />
                                   )}
@@ -268,7 +268,7 @@ export default function Masterclass() {
                               
                               {video.chapters && (
                                 <div className="mt-4 bg-white/5 rounded-lg p-4">
-                                  <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+                                  <p className="text-xs font-semibold text-brand-gold uppercase tracking-wide mb-2 flex items-center gap-1">
                                     <BookOpen className="h-3 w-3" />
                                     Chapters
                                   </p>
@@ -286,8 +286,8 @@ export default function Masterclass() {
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="w-20 h-20 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Play className="h-10 w-10 text-amber-400" />
+              <div className="w-20 h-20 bg-brand-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Play className="h-10 w-10 text-brand-gold" />
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">Masterclass Coming Soon</h3>
               <p className="text-blue-200/60 max-w-md mx-auto">
@@ -298,7 +298,7 @@ export default function Masterclass() {
           
           {/* CTA to coaching */}
           <div className="mt-12 text-center">
-            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-8">
+            <div className="bg-brand-gold/10 border border-brand-gold/20 rounded-2xl p-8">
               <h3 className="text-2xl font-bold text-white mb-3">
                 Ready for Personalized Coaching?
               </h3>
@@ -307,7 +307,7 @@ export default function Masterclass() {
                 accountability, and expert guidance to transform your health.
               </p>
               <Button 
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold text-lg px-8 py-5 rounded-xl shadow-lg shadow-amber-500/25"
+                className="bg-brand-gold text-brand-gold-foreground hover:opacity-90 font-bold text-lg px-8 py-5 rounded-xl shadow-lg shadow-brand-gold/25"
                 onClick={() => setLocation("/transformation/select-tier")}
               >
                 Explore All Coaching Plans
@@ -338,7 +338,7 @@ export default function Masterclass() {
           <img src="/omega-longevity-logo.png" alt="Omega Longevity" className="h-8 mx-auto mb-4" />
           <p className="text-blue-300/40 text-sm mb-2">
             Questions? Email us at{" "}
-            <a href="mailto:omega@omegalongevity.com" className="text-amber-400/60 hover:text-amber-400">
+            <a href="mailto:omega@omegalongevity.com" className="text-brand-gold/60 hover:text-brand-gold">
               omega@omegalongevity.com
             </a>
           </p>

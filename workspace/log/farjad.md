@@ -4,6 +4,26 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-02 (continued, 3)
+- Brand pass batch 2: the whole enrollment/intake/protocol-build funnel, 14 pages. Surveyed
+  every file's colour usage before editing rather than running the same replacements over
+  all of them, which was the right call because the amber in these pages is not all the
+  same thing.
+- The judgment calls are the substance of this one. On the protocol-build journey page the
+  amber turned out to be a genuine required/locked/alert system, not the brand colour, so
+  only its buttons went gold and the alert boxes stayed; same for the payment-cancelled
+  icon and the payment-failure page. On the two tier pages, each plan card and its matching
+  button share a colour, which is real differentiation, so I branded the shells, badges and
+  section backgrounds and left the tier palette alone. Everywhere else amber/orange really
+  was standing in for the gold and was converted.
+- Verified the pass was structurally safe by checking the diff came out exactly balanced,
+  318 lines changed each way, meaning every edit was a class swap with no markup touched.
+- Caught a bug I introduced partway through: ordered text replacement on Tailwind opacity
+  variants produced a malformed class where a half-opacity background matched the base rule
+  first. Found it by grepping for the pattern rather than trusting the pass, fixed both
+  occurrences, and wrote the trap into `task-notes.md` so batch 3 doesn't repeat it.
+- Hours: ~
+
 ## 2026-08-02 (continued, 2)
 - Spotted from a production screenshot that the Web Traffic page was rendering with
   unreadable labels, and traced the cause rather than just darkening the text: the whole

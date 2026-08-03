@@ -65,7 +65,7 @@ export default function IntakeLanding() {
   // Success state
   if (isComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1f3d] to-[#0a1628] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-brand-dark flex items-center justify-center p-4">
         <Card className="max-w-lg w-full bg-white/5 border-green-500/30 backdrop-blur-sm">
           <CardContent className="pt-8 pb-8 text-center space-y-6">
             <div className="w-20 h-20 mx-auto bg-green-500/20 rounded-full flex items-center justify-center">
@@ -79,7 +79,7 @@ export default function IntakeLanding() {
                 Thank you, {name}! Your intake form and waiver have been submitted successfully.
               </p>
             </div>
-            <div className="bg-slate-800/50 rounded-lg p-4 text-left space-y-2">
+            <div className="bg-white/5 rounded-lg p-4 text-left space-y-2">
               <p className="text-slate-300 text-sm">
                 <strong className="text-white">What happens next:</strong>
               </p>
@@ -110,9 +110,9 @@ export default function IntakeLanding() {
   // Intake form step
   if (enrollmentId) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1f3d] to-[#0a1628]">
+      <div className="min-h-screen bg-brand-dark">
         {/* Header */}
-        <div className="bg-[#0a1628]/80 border-b border-slate-700/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="bg-brand-dark/80 border-b border-brand-border backdrop-blur-sm sticky top-0 z-50">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img
@@ -155,9 +155,9 @@ export default function IntakeLanding() {
 
   // Landing / info collection step
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1f3d] to-[#0a1628]">
+    <div className="min-h-screen bg-brand-dark">
       {/* Header */}
-      <div className="bg-[#0a1628]/80 border-b border-slate-700/50 backdrop-blur-sm">
+      <div className="bg-brand-dark/80 border-b border-brand-border backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-center">
           <img
             src="/omega-longevity-logo.png"
@@ -170,8 +170,8 @@ export default function IntakeLanding() {
       <div className="max-w-2xl mx-auto px-4 py-12 space-y-8">
         {/* Hero */}
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto bg-orange-500/20 rounded-2xl flex items-center justify-center mb-6">
-            <ClipboardList className="w-8 h-8 text-orange-400" />
+          <div className="w-16 h-16 mx-auto bg-brand-gold/20 rounded-2xl flex items-center justify-center mb-6">
+            <ClipboardList className="w-8 h-8 text-brand-gold" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-white">
             Client Intake Form
@@ -183,17 +183,17 @@ export default function IntakeLanding() {
 
         {/* What to expect */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white/5 border border-slate-700/50 rounded-xl p-4 text-center">
-            <ClipboardList className="w-6 h-6 text-orange-400 mx-auto mb-2" />
+          <div className="bg-white/5 border border-brand-border rounded-xl p-4 text-center">
+            <ClipboardList className="w-6 h-6 text-brand-gold mx-auto mb-2" />
             <p className="text-white text-sm font-medium">Health History</p>
             <p className="text-slate-400 text-xs mt-1">Medical background & goals</p>
           </div>
-          <div className="bg-white/5 border border-slate-700/50 rounded-xl p-4 text-center">
+          <div className="bg-white/5 border border-brand-border rounded-xl p-4 text-center">
             <Heart className="w-6 h-6 text-red-400 mx-auto mb-2" />
             <p className="text-white text-sm font-medium">Lifestyle & Wellness</p>
             <p className="text-slate-400 text-xs mt-1">Diet, exercise & sleep habits</p>
           </div>
-          <div className="bg-white/5 border border-slate-700/50 rounded-xl p-4 text-center">
+          <div className="bg-white/5 border border-brand-border rounded-xl p-4 text-center">
             <Shield className="w-6 h-6 text-green-400 mx-auto mb-2" />
             <p className="text-white text-sm font-medium">Waiver & Consent</p>
             <p className="text-slate-400 text-xs mt-1">Digital signature required</p>
@@ -201,7 +201,7 @@ export default function IntakeLanding() {
         </div>
 
         {/* Form card */}
-        <Card className="bg-white/5 border-slate-700/50 backdrop-blur-sm">
+        <Card className="bg-white/5 border-brand-border backdrop-blur-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-white text-xl">
               Enter Your Information to Begin
@@ -215,7 +215,7 @@ export default function IntakeLanding() {
                 placeholder="Enter your full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-500 h-12"
+                className="bg-white/5 border-slate-600 text-white placeholder:text-slate-500 h-12"
                 onKeyDown={(e) => e.key === "Enter" && document.getElementById("intake-email")?.focus()}
               />
             </div>
@@ -227,7 +227,7 @@ export default function IntakeLanding() {
                 placeholder="Enter your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-500 h-12"
+                className="bg-white/5 border-slate-600 text-white placeholder:text-slate-500 h-12"
                 onKeyDown={(e) => e.key === "Enter" && handleStart()}
               />
             </div>
@@ -247,7 +247,7 @@ export default function IntakeLanding() {
             <Button
               onClick={handleStart}
               disabled={createEnrollment.isPending || !name.trim() || !email.trim()}
-              className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold text-lg"
+              className="w-full h-12 bg-brand-gold text-brand-gold-foreground hover:opacity-90 font-semibold text-lg"
             >
               {createEnrollment.isPending ? (
                 <>

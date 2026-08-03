@@ -116,8 +116,8 @@ export default function WaiverRenewal() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      <div className="min-h-screen bg-brand-dark flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-gold" />
       </div>
     );
   }
@@ -125,9 +125,9 @@ export default function WaiverRenewal() {
   // Invalid or expired token
   if (error || !waiverInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
+      <div className="min-h-screen bg-brand-dark p-4 md:p-8">
         <div className="max-w-lg mx-auto">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white/5 border-brand-border">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
                 <div className="p-3 bg-red-500/20 rounded-full">
@@ -143,7 +143,7 @@ export default function WaiverRenewal() {
               <p className="text-slate-400 mb-4">
                 If you need to renew your waiver, please contact your coach.
               </p>
-              <Button onClick={() => setLocation("/launchpad")} className="bg-orange-600 hover:bg-orange-700">
+              <Button onClick={() => setLocation("/launchpad")} className="bg-brand-gold text-brand-gold-foreground hover:opacity-90">
                 Go to Launchpad
               </Button>
             </CardContent>
@@ -156,9 +156,9 @@ export default function WaiverRenewal() {
   // Renewal complete
   if (renewalComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
+      <div className="min-h-screen bg-brand-dark p-4 md:p-8">
         <div className="max-w-lg mx-auto">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white/5 border-brand-border">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
                 <div className="p-3 bg-green-500/20 rounded-full">
@@ -171,7 +171,7 @@ export default function WaiverRenewal() {
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
-              <Button onClick={() => setLocation("/launchpad")} className="bg-orange-600 hover:bg-orange-700">
+              <Button onClick={() => setLocation("/launchpad")} className="bg-brand-gold text-brand-gold-foreground hover:opacity-90">
                 Go to Launchpad
               </Button>
             </CardContent>
@@ -182,13 +182,13 @@ export default function WaiverRenewal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
+    <div className="min-h-screen bg-brand-dark p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardHeader className="text-center border-b border-slate-700 pb-6">
+        <Card className="bg-white/5 border-brand-border">
+          <CardHeader className="text-center border-b border-brand-border pb-6">
             <div className="flex justify-center mb-4">
-              <div className="p-3 bg-orange-500/20 rounded-full">
-                <RefreshCw className="h-8 w-8 text-orange-500" />
+              <div className="p-3 bg-brand-gold/20 rounded-full">
+                <RefreshCw className="h-8 w-8 text-brand-gold" />
               </div>
             </div>
             <CardTitle className="text-2xl md:text-3xl text-white">
@@ -200,7 +200,7 @@ export default function WaiverRenewal() {
           </CardHeader>
           <CardContent className="pt-6 space-y-6">
             {/* Your Information (Read-only) */}
-            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+            <div className="bg-white/5 rounded-lg p-4 border border-brand-border">
               <h3 className="text-sm font-medium text-slate-400 mb-2">Your Information</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -215,10 +215,10 @@ export default function WaiverRenewal() {
             </div>
 
             {/* Waiver Content */}
-            <ScrollArea className="h-[300px] rounded-lg border border-slate-700 bg-slate-900/50 p-4">
+            <ScrollArea className="h-[300px] rounded-lg border border-brand-border bg-white/5 p-4">
               <div className="space-y-6 text-slate-300 text-sm leading-relaxed pr-4">
                 <section>
-                  <h3 className="text-lg font-semibold text-orange-500 mb-2">1. Consulting Waiver and Release of Liability</h3>
+                  <h3 className="text-lg font-semibold text-brand-gold mb-2">1. Consulting Waiver and Release of Liability</h3>
                   <p>
                     I, the undersigned, understand and acknowledge that the consulting services provided by Omega Longevity and its representatives ("Consultant") are for informational and educational purposes only. These services are not intended to diagnose, treat, cure, or prevent any disease or medical condition.
                   </p>
@@ -228,28 +228,28 @@ export default function WaiverRenewal() {
                 </section>
 
                 <section>
-                  <h3 className="text-lg font-semibold text-orange-500 mb-2">2. Assumption of Risk</h3>
+                  <h3 className="text-lg font-semibold text-brand-gold mb-2">2. Assumption of Risk</h3>
                   <p>
                     I understand that participating in any health optimization program, including the use of peptides, supplements, or other substances, carries inherent risks. I voluntarily assume all risks associated with my participation, including but not limited to physical injury, adverse reactions, or other health complications.
                   </p>
                 </section>
 
                 <section>
-                  <h3 className="text-lg font-semibold text-orange-500 mb-2">3. Release and Indemnification</h3>
+                  <h3 className="text-lg font-semibold text-brand-gold mb-2">3. Release and Indemnification</h3>
                   <p>
                     I hereby release, discharge, and hold harmless Omega Longevity, its owners, employees, agents, and affiliates from any and all claims, liabilities, damages, or expenses arising out of or related to the consulting services provided or my participation in any recommended programs or protocols.
                   </p>
                 </section>
 
                 <section>
-                  <h3 className="text-lg font-semibold text-orange-500 mb-2">4. Collaboration Agreement</h3>
+                  <h3 className="text-lg font-semibold text-brand-gold mb-2">4. Collaboration Agreement</h3>
                   <p>
                     I understand that the products available through the Omega Store are provided as part of a collaboration between myself and Omega Longevity. By purchasing these products, I acknowledge that I am participating in a collaborative health optimization journey and that the products are intended for my personal use only.
                   </p>
                 </section>
 
                 <section>
-                  <h3 className="text-lg font-semibold text-orange-500 mb-2">5. Confidentiality</h3>
+                  <h3 className="text-lg font-semibold text-brand-gold mb-2">5. Confidentiality</h3>
                   <p>
                     I agree to keep confidential all information shared during our consulting relationship, including but not limited to protocols, product recommendations, and pricing information.
                   </p>
@@ -287,7 +287,7 @@ export default function WaiverRenewal() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Pen className="h-4 w-4 text-orange-500" />
+                  <Pen className="h-4 w-4 text-brand-gold" />
                   <span className="text-sm font-medium text-white">Your Signature</span>
                 </div>
                 <Button
@@ -299,7 +299,7 @@ export default function WaiverRenewal() {
                   Clear
                 </Button>
               </div>
-              <div className="border border-slate-700 rounded-lg overflow-hidden bg-white">
+              <div className="border border-brand-border rounded-lg overflow-hidden bg-white">
                 <canvas
                   ref={canvasRef}
                   width={600}
@@ -323,7 +323,7 @@ export default function WaiverRenewal() {
             <Button
               onClick={handleSubmit}
               disabled={!isFormValid || renewMutation.isPending}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg"
+              className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 text-white py-6 text-lg"
             >
               {renewMutation.isPending ? (
                 <>

@@ -396,9 +396,9 @@ export default function TransformationCheckout() {
   if (!plan) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-brand-dark">
       {/* Header */}
-      <div className="bg-slate-900/80 border-b border-slate-700/50 sticky top-0 z-10 backdrop-blur-sm">
+      <div className="bg-white/5 border-b border-brand-border sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <button
             onClick={() => setLocation("/transformation")}
@@ -420,7 +420,7 @@ export default function TransformationCheckout() {
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">{plan.name}</h1>
           <p className="text-slate-400 mb-3">{plan.description}</p>
           <div className="inline-flex items-baseline gap-1">
-            <span className="text-4xl font-bold text-amber-400">${plan.price.toLocaleString()}</span>
+            <span className="text-4xl font-bold text-brand-gold">${plan.price.toLocaleString()}</span>
             <span className="text-slate-500 text-sm">USD</span>
           </div>
         </div>
@@ -445,7 +445,7 @@ export default function TransformationCheckout() {
                           isComplete
                             ? "bg-green-500 text-white"
                             : isCurrent
-                            ? "bg-amber-500 text-white ring-2 ring-amber-400/50"
+                            ? "bg-brand-gold/100 text-white ring-2 ring-brand-gold/50"
                             : "bg-slate-700 text-slate-500"
                         }`}
                       >
@@ -453,7 +453,7 @@ export default function TransformationCheckout() {
                       </div>
                       <span
                         className={`text-xs whitespace-nowrap ${
-                          isComplete ? "text-green-400" : isCurrent ? "text-amber-400" : "text-slate-600"
+                          isComplete ? "text-green-400" : isCurrent ? "text-brand-gold" : "text-slate-600"
                         }`}
                       >
                         {step.label}
@@ -473,17 +473,17 @@ export default function TransformationCheckout() {
 
         {/* Step: Guest Info (only for non-logged-in users) */}
         {currentStep === "info" && (
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white/5 border-brand-border">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-amber-400" />
+                <CreditCard className="w-5 h-5 text-brand-gold" />
                 Get Started
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-slate-400 text-sm">
                 Enter your information to begin enrollment in the{" "}
-                <span className="text-amber-400 font-medium">{plan.name}</span> program.
+                <span className="text-brand-gold font-medium">{plan.name}</span> program.
               </p>
               <div className="space-y-3">
                 <div>
@@ -509,7 +509,7 @@ export default function TransformationCheckout() {
               <Button
                 onClick={handleStartCheckout}
                 disabled={isSubmitting || !guestName || !guestEmail}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-6 text-lg"
+                className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 text-black font-semibold py-6 text-lg"
               >
                 {isSubmitting ? (
                   <>
@@ -532,12 +532,12 @@ export default function TransformationCheckout() {
           <div className="space-y-4">
             {/* Create enrollment if not yet created (logged-in users skip info step) */}
             {!enrollmentId ? (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-white/5 border-brand-border">
                 <CardContent className="pt-6">
                   <Button
                     onClick={handleStartCheckout}
                     disabled={isSubmitting}
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-6 text-lg"
+                    className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 text-black font-semibold py-6 text-lg"
                   >
                     {isSubmitting ? (
                       <>
@@ -553,7 +553,7 @@ export default function TransformationCheckout() {
             ) : (
               <div className="space-y-4">
                 {/* Alumni Code Section */}
-                <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                <div className="bg-white/5 border border-brand-border rounded-xl p-4">
                   {appliedPromo ? (
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -621,18 +621,18 @@ export default function TransformationCheckout() {
 
                 {/* VIP Supply Concierge Add-on */}
                 {showConciergeOption && (
-                  <div className="bg-gradient-to-br from-amber-900/20 to-amber-800/10 border border-amber-600/30 rounded-xl p-5 space-y-3">
+                  <div className="bg-brand-gold/10 border border-brand-gold/30 rounded-xl p-5 space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Sparkles className="w-5 h-5 text-amber-400" />
-                          <h4 className="text-lg font-semibold text-amber-200">VIP Supply Concierge</h4>
-                          <span className="text-xs bg-amber-700/40 text-amber-300 px-2 py-0.5 rounded-full">+${conciergeFee.toLocaleString()}</span>
+                          <Sparkles className="w-5 h-5 text-brand-gold" />
+                          <h4 className="text-lg font-semibold text-brand-gold">VIP Supply Concierge</h4>
+                          <span className="text-xs bg-brand-gold/40 text-brand-gold px-2 py-0.5 rounded-full">+${conciergeFee.toLocaleString()}</span>
                         </div>
                         <p className="text-sm text-slate-300 leading-relaxed">
                           Your protocol may require peptides from 2–5 specialized vendors — each with different lead times, availability, and quality standards. Our concierge team handles the entire procurement process: coordinating physician referrals, placing and tracking orders across multiple suppliers, navigating shortages, and confirming that every possible product meets our non-negotiable quality standard — USA-manufactured, cGMP-grade, HPLC-tested for purity, endotoxin-screened, and sterility-verified.
                         </p>
-                        <p className="text-sm text-amber-300/80 mt-2 font-medium">
+                        <p className="text-sm text-brand-gold/80 mt-2 font-medium">
                           Plus, our direct vendor partnerships mean you receive preferred pricing on every order.
                         </p>
                         <p className="text-xs text-slate-400 mt-3 italic">
@@ -640,12 +640,12 @@ export default function TransformationCheckout() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 pt-2 border-t border-amber-700/20">
+                    <div className="flex items-center gap-3 pt-2 border-t border-brand-gold/20">
                       <button
                         type="button"
                         onClick={() => setVipConcierge(!vipConcierge)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          vipConcierge ? 'bg-amber-500' : 'bg-slate-600'
+                          vipConcierge ? 'bg-brand-gold/100' : 'bg-slate-600'
                         }`}
                       >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -654,7 +654,7 @@ export default function TransformationCheckout() {
                       </button>
                       <span className="text-sm text-slate-300">
                         {vipConcierge ? (
-                          <span className="text-amber-300 font-medium">VIP Concierge added (+${conciergeFee.toLocaleString()})</span>
+                          <span className="text-brand-gold font-medium">VIP Concierge added (+${conciergeFee.toLocaleString()})</span>
                         ) : (
                           'Add VIP Supply Concierge'
                         )}
@@ -665,9 +665,9 @@ export default function TransformationCheckout() {
 
                 {/* Total with concierge */}
                 {vipConcierge && showConciergeOption && (
-                  <div className="text-center bg-amber-900/20 border border-amber-700/30 rounded-lg p-3">
+                  <div className="text-center bg-brand-gold/10 border border-brand-gold/30 rounded-lg p-3">
                     <div className="text-slate-400 text-sm">Program: ${basePrice.toLocaleString()} + Concierge: ${conciergeFee.toLocaleString()}</div>
-                    <div className="text-amber-300 text-2xl font-bold mt-1">Total: ${effectivePrice.toLocaleString()}</div>
+                    <div className="text-brand-gold text-2xl font-bold mt-1">Total: ${effectivePrice.toLocaleString()}</div>
                   </div>
                 )}
 
@@ -757,10 +757,10 @@ export default function TransformationCheckout() {
               </p>
             </div>
 
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="bg-white/5 border-brand-border">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-amber-400" />
+                  <Calendar className="w-5 h-5 text-brand-gold" />
                   Schedule Your Strategy Session
                 </CardTitle>
               </CardHeader>
@@ -775,7 +775,7 @@ export default function TransformationCheckout() {
                 {!showCalendly ? (
                   <Button
                     onClick={() => setShowCalendly(true)}
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-6 text-lg"
+                    className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 text-black font-semibold py-6 text-lg"
                   >
                     <Calendar className="w-5 h-5 mr-2" />
                     Open Scheduling Calendar
@@ -819,13 +819,13 @@ export default function TransformationCheckout() {
                 </h2>
                 <p className="text-slate-400">
                   {isCoachingSession
-                    ? <>Thank you for booking a <span className="text-amber-400 font-medium">{plan.name}</span>.  We'll reach out within 24 hours to schedule your session.</>
-                    : <>Thank you for enrolling in <span className="text-amber-400 font-medium">{plan.name}</span>.</>}
+                    ? <>Thank you for booking a <span className="text-brand-gold font-medium">{plan.name}</span>.  We'll reach out within 24 hours to schedule your session.</>
+                    : <>Thank you for enrolling in <span className="text-brand-gold font-medium">{plan.name}</span>.</>}
                 </p>
               </div>
 
               {/* Completed Steps Summary */}
-              <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 inline-flex flex-col gap-2 text-left">
+              <div className="bg-white/5 border border-brand-border rounded-xl p-4 inline-flex flex-col gap-2 text-left">
                 <div className="flex items-center gap-2 text-green-400 text-sm">
                   <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Payment confirmed
                 </div>
@@ -843,16 +843,16 @@ export default function TransformationCheckout() {
             </div>
 
             {/* What's Next Section */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 md:p-8">
+            <div className="bg-white/5 border border-brand-border rounded-2xl p-6 md:p-8">
               <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-400" />
+                <Sparkles className="w-5 h-5 text-brand-gold" />
                 What Happens Next
               </h3>
 
               {isCoachingSession ? (
                 /* Coaching Session: Simple 2-step roadmap */
                 <div className="relative">
-                  <div className="absolute left-5 top-8 bottom-8 w-0.5 bg-gradient-to-b from-amber-500 to-slate-700" />
+                  <div className="absolute left-5 top-8 bottom-8 w-0.5 bg-gradient-to-b from-brand-gold to-white/10" />
                   {[
                     {
                       icon: Calendar,
@@ -871,7 +871,7 @@ export default function TransformationCheckout() {
                   ].map((step, idx) => (
                     <div key={idx} className="relative flex gap-4 pb-8 last:pb-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
-                        step.active ? "bg-amber-500 text-white" : "bg-slate-700 text-slate-400 border border-slate-600"
+                        step.active ? "bg-brand-gold/100 text-white" : "bg-slate-700 text-slate-400 border border-slate-600"
                       }`}>
                         <step.icon className="w-5 h-5" />
                       </div>
@@ -879,10 +879,10 @@ export default function TransformationCheckout() {
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="text-white font-medium">{step.title}</h4>
                           {step.active && (
-                            <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">In Progress</span>
+                            <span className="text-xs bg-brand-gold/20 text-brand-gold px-2 py-0.5 rounded-full">In Progress</span>
                           )}
                         </div>
-                        <p className="text-amber-400/70 text-xs font-medium mb-1">{step.subtitle}</p>
+                        <p className="text-brand-gold/70 text-xs font-medium mb-1">{step.subtitle}</p>
                         <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
                       </div>
                     </div>
@@ -891,7 +891,7 @@ export default function TransformationCheckout() {
               ) : isEssentials ? (
                 /* Essentials: Simple 3-step roadmap */
                 <div className="relative">
-                  <div className="absolute left-5 top-8 bottom-8 w-0.5 bg-gradient-to-b from-amber-500 via-amber-500/50 to-slate-700" />
+                  <div className="absolute left-5 top-8 bottom-8 w-0.5 bg-gradient-to-b from-brand-gold via-brand-gold/50 to-white/10" />
                   {[
                     {
                       icon: FileText,
@@ -917,7 +917,7 @@ export default function TransformationCheckout() {
                   ].map((step, idx) => (
                     <div key={idx} className="relative flex gap-4 pb-8 last:pb-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
-                        step.active ? "bg-amber-500 text-white" : "bg-slate-700 text-slate-400 border border-slate-600"
+                        step.active ? "bg-brand-gold/100 text-white" : "bg-slate-700 text-slate-400 border border-slate-600"
                       }`}>
                         <step.icon className="w-5 h-5" />
                       </div>
@@ -925,10 +925,10 @@ export default function TransformationCheckout() {
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="text-white font-medium">{step.title}</h4>
                           {step.active && (
-                            <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">In Progress</span>
+                            <span className="text-xs bg-brand-gold/20 text-brand-gold px-2 py-0.5 rounded-full">In Progress</span>
                           )}
                         </div>
-                        <p className="text-amber-400/70 text-xs font-medium mb-1">{step.subtitle}</p>
+                        <p className="text-brand-gold/70 text-xs font-medium mb-1">{step.subtitle}</p>
                         <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
                       </div>
                     </div>
@@ -937,7 +937,7 @@ export default function TransformationCheckout() {
               ) : (
                 /* Coached Plans: Full program roadmap */
                 <div className="relative">
-                  <div className="absolute left-5 top-8 bottom-8 w-0.5 bg-gradient-to-b from-green-500 via-amber-500/50 to-purple-500/30" />
+                  <div className="absolute left-5 top-8 bottom-8 w-0.5 bg-gradient-to-b from-green-500 via-brand-gold/50 to-purple-500/30" />
                   {[
                     {
                       icon: FileText,
@@ -982,7 +982,7 @@ export default function TransformationCheckout() {
                   ].map((step, idx) => (
                     <div key={idx} className="relative flex gap-4 pb-8 last:pb-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
-                        step.active ? "bg-amber-500 text-white" : "bg-slate-700 text-slate-400 border border-slate-600"
+                        step.active ? "bg-brand-gold/100 text-white" : "bg-slate-700 text-slate-400 border border-slate-600"
                       }`}>
                         <step.icon className="w-5 h-5" />
                       </div>
@@ -990,10 +990,10 @@ export default function TransformationCheckout() {
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="text-white font-medium">{step.title}</h4>
                           {step.active && (
-                            <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">In Progress</span>
+                            <span className="text-xs bg-brand-gold/20 text-brand-gold px-2 py-0.5 rounded-full">In Progress</span>
                           )}
                         </div>
-                        <p className="text-amber-400/70 text-xs font-medium mb-1">{step.subtitle}</p>
+                        <p className="text-brand-gold/70 text-xs font-medium mb-1">{step.subtitle}</p>
                         <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
                       </div>
                     </div>
@@ -1004,12 +1004,12 @@ export default function TransformationCheckout() {
 
             {/* Coaching Call Upsell for Essentials */}
             {isEssentials && (
-              <div className="bg-slate-800/40 border border-slate-700/40 rounded-xl p-5 text-center">
+              <div className="bg-white/5 border border-brand-border rounded-xl p-5 text-center">
                 <p className="text-slate-300 text-sm mb-2">
                   Need personalized guidance? Book a 1-on-1 coaching call anytime.
                 </p>
                 <p className="text-slate-500 text-xs">
-                  <span className="text-amber-400 font-medium">$125 / 20 min</span> targeted focus call &nbsp;|&nbsp; <span className="text-amber-400 font-medium">$350 / 1 hour</span> deep-dive session
+                  <span className="text-brand-gold font-medium">$125 / 20 min</span> targeted focus call &nbsp;|&nbsp; <span className="text-brand-gold font-medium">$350 / 1 hour</span> deep-dive session
                 </p>
               </div>
             )}

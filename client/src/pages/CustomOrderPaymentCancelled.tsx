@@ -6,7 +6,7 @@ export default function CustomOrderPaymentCancelled() {
   const params = useParams<{ id: string }>();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-6">
         <div className="bg-amber-50 rounded-full p-4 w-20 h-20 mx-auto flex items-center justify-center">
           <AlertCircle className="h-12 w-12 text-amber-500" />

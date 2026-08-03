@@ -113,7 +113,7 @@ export default function TransformationEntry() {
               </Button>
               <Button 
                 variant="outline"
-                className="border-amber-300 text-amber-700 hover:bg-amber-50 hidden sm:inline-flex"
+                className="border-brand-gold/40 text-brand-gold hover:bg-brand-gold/10 hidden sm:inline-flex"
                 onClick={() => {
                   const el = document.getElementById('coaching-plans');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -129,22 +129,22 @@ export default function TransformationEntry() {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* MASTERCLASS HERO — Email capture for free masterclass              */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 py-16 md:py-24">
+      <section className="relative overflow-hidden bg-brand-dark py-16 md:py-24">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-brand-gold/10 rounded-full blur-3xl" />
         </div>
         
         <div className="container max-w-5xl px-4 relative z-10">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/30 text-amber-300 px-4 py-2 rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 bg-brand-gold/15 border border-brand-gold/30 text-brand-gold px-4 py-2 rounded-full mb-6">
               <Play className="h-4 w-4" />
               <span className="text-sm font-semibold tracking-wide uppercase">Free Peptide Masterclass</span>
             </div>
             
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
               Clarity in a World of<br />
-              <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Peptide Confusion</span>
+              <span className="text-brand-gold">Peptide Confusion</span>
             </h1>
             
             <p className="text-lg md:text-xl text-blue-200/80 max-w-3xl mx-auto mb-4 leading-relaxed">
@@ -164,7 +164,7 @@ export default function TransformationEntry() {
                 { icon: Brain, title: "Protocol Foundations", desc: "Stacking strategies, dosing basics, and the biomarkers that matter" },
               ].map(({ icon: Icon, title, desc }, i) => (
                 <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 text-left">
-                  <Icon className="h-6 w-6 text-amber-400 mb-2" />
+                  <Icon className="h-6 w-6 text-brand-gold mb-2" />
                   <h3 className="text-white font-semibold text-sm mb-1">{title}</h3>
                   <p className="text-blue-200/60 text-xs leading-relaxed">{desc}</p>
                 </div>
@@ -183,7 +183,7 @@ export default function TransformationEntry() {
                        value={firstName}
                        required
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="pl-9 py-4 bg-white/10 border-white/20 text-white placeholder:text-blue-200/40 focus:border-amber-400 focus:ring-amber-400/30 text-sm"
+                      className="pl-9 py-4 bg-white/10 border-white/20 text-white placeholder:text-blue-200/40 focus:border-brand-gold focus:ring-brand-gold/30 text-sm"
                       disabled={isSubmitting}
                     />
                   </div>
@@ -194,7 +194,7 @@ export default function TransformationEntry() {
                       placeholder="Last name (optional)"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className="pl-9 py-4 bg-white/10 border-white/20 text-white placeholder:text-blue-200/40 focus:border-amber-400 focus:ring-amber-400/30 text-sm"
+                      className="pl-9 py-4 bg-white/10 border-white/20 text-white placeholder:text-blue-200/40 focus:border-brand-gold focus:ring-brand-gold/30 text-sm"
                       disabled={isSubmitting}
                     />
                   </div>
@@ -209,7 +209,7 @@ export default function TransformationEntry() {
                       placeholder="Email address *"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-9 py-4 bg-white/10 border-white/20 text-white placeholder:text-blue-200/40 focus:border-amber-400 focus:ring-amber-400/30 text-sm"
+                      className="pl-9 py-4 bg-white/10 border-white/20 text-white placeholder:text-blue-200/40 focus:border-brand-gold focus:ring-brand-gold/30 text-sm"
                       disabled={isSubmitting}
                       required
                     />
@@ -221,7 +221,7 @@ export default function TransformationEntry() {
                       placeholder="Phone (optional)"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="pl-9 py-4 bg-white/10 border-white/20 text-white placeholder:text-blue-200/40 focus:border-amber-400 focus:ring-amber-400/30 text-sm"
+                      className="pl-9 py-4 bg-white/10 border-white/20 text-white placeholder:text-blue-200/40 focus:border-brand-gold focus:ring-brand-gold/30 text-sm"
                       disabled={isSubmitting}
                     />
                   </div>
@@ -231,7 +231,7 @@ export default function TransformationEntry() {
                 <Button
                   type="submit"
                   disabled={isSubmitting || !email.trim()}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold px-6 py-5 rounded-lg shadow-lg shadow-amber-500/25 transition-all"
+                  className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 font-bold px-6 py-5 rounded-lg shadow-lg shadow-brand-gold/25 transition-all"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">
@@ -253,15 +253,15 @@ export default function TransformationEntry() {
             
             <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-blue-300/60">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-amber-400/60" />
+                <Users className="h-4 w-4 text-brand-gold/60" />
                 <span><span className="text-white font-semibold">{getClientsTransformed()}+</span> clients transformed</span>
               </div>
               <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-amber-400/60" />
+                <Star className="h-4 w-4 text-brand-gold/60" />
                 <span><span className="text-white font-semibold">4.9/5</span> average rating</span>
               </div>
               <div className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-amber-400/60" />
+                <Award className="h-4 w-4 text-brand-gold/60" />
                 <span><span className="text-white font-semibold">{getYearsExperience()}+ years</span> clinical experience</span>
               </div>
             </div>
@@ -269,15 +269,15 @@ export default function TransformationEntry() {
         </div>
       </section>
       
-      <div className="bg-gradient-to-b from-indigo-950 to-amber-50/50 h-16" />
+      <div className="bg-gradient-to-b from-brand-dark to-white h-16" />
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* CTA — See the full A-Z journey                                     */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <section className="py-8 bg-amber-50/50">
+      <section className="py-8 bg-brand-gold/5">
         <div className="container max-w-3xl px-4">
-          <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 md:p-8 shadow-xl border border-slate-700 text-center">
-            <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-3">
+          <div className="bg-brand-dark rounded-2xl p-6 md:p-8 shadow-xl border border-slate-700 text-center">
+            <div className="inline-flex items-center gap-2 bg-brand-gold/20 text-brand-gold px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-3">
               <MapPin className="h-3.5 w-3.5" />
               See the Full Picture
             </div>
@@ -289,7 +289,7 @@ export default function TransformationEntry() {
             </p>
             <Button
               variant="outline"
-              className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 font-semibold px-6 py-5 text-base"
+              className="border-brand-gold/50 text-brand-gold hover:bg-brand-gold/10 hover:opacity-80 font-semibold px-6 py-5 text-base"
               onClick={() => {
                 const el = document.getElementById('transformation-roadmap');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -306,7 +306,7 @@ export default function TransformationEntry() {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* COACHING PLANS — All plans visible, direct purchase path           */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <section className="py-10 md:py-14 bg-gradient-to-b from-amber-50/50 to-white" id="coaching-plans">
+      <section className="py-10 md:py-14 bg-gradient-to-b from-brand-gold/5 to-white" id="coaching-plans">
         <div className="container max-w-7xl px-4">
           <div className="flex items-center gap-4 max-w-2xl mx-auto mb-10">
             <div className="flex-1 h-px bg-gray-300" />
@@ -315,7 +315,7 @@ export default function TransformationEntry() {
           </div>
           
           <div className="max-w-4xl mx-auto text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-full mb-5">
+            <div className="inline-flex items-center gap-2 bg-brand-gold/15 text-brand-gold px-4 py-2 rounded-full mb-5">
               <Sparkles className="h-4 w-4" />
               <span className="text-sm font-medium">Transformation Coaching Programs</span>
             </div>
@@ -346,15 +346,15 @@ export default function TransformationEntry() {
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-gray-600">
                       <div className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5 text-amber-600" />
+                        <Clock className="h-3.5 w-3.5 text-brand-gold" />
                         <span>3-5 days protocol development</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Users className="h-3.5 w-3.5 text-amber-600" />
+                        <Users className="h-3.5 w-3.5 text-brand-gold" />
                         <span>1-on-1 coaching sessions</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Target className="h-3.5 w-3.5 text-amber-600" />
+                        <Target className="h-3.5 w-3.5 text-brand-gold" />
                         <span>Fully customized approach</span>
                       </div>
                     </div>
@@ -369,7 +369,7 @@ export default function TransformationEntry() {
           {/* ═══════════════════════════════════════════════════════════════════ */}
           <div className="mb-16">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-sm font-medium mb-3">
+              <div className="inline-flex items-center gap-2 bg-brand-gold/15 text-brand-gold px-4 py-1.5 rounded-full text-sm font-medium mb-3">
                 <Flame className="h-4 w-4" />
                 90-Day Transformation Programs
               </div>
@@ -383,22 +383,22 @@ export default function TransformationEntry() {
             <div className="grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
               
               {/* ── Weight Loss & Physique Coaching - $3,000 ── */}
-              <Card className="h-full border-2 border-amber-300 shadow-xl shadow-amber-50 hover:shadow-2xl transition-shadow">
+              <Card className="h-full border-2 border-brand-gold/40 shadow-xl shadow-brand-gold/20 hover:shadow-2xl transition-shadow">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-1.5 shadow-lg">
+                  <div className="bg-brand-gold text-brand-gold-foreground hover:opacity-90 px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-1.5 shadow-lg">
                     <Crown className="h-4 w-4" />
                     MOST POPULAR
                   </div>
                 </div>
                 
                 <CardHeader className="text-center pb-3 pt-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                  <div className="w-16 h-16 bg-brand-gold rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
                     <Users className="h-8 w-8 text-white" />
                   </div>
                   <CardTitle className="text-2xl text-gray-900">Weight Loss & Physique</CardTitle>
                   {/* Ideal For — moved under title */}
-                  <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    <p className="text-sm text-amber-800 font-medium">
+                  <div className="mt-2 bg-brand-gold/10 border border-brand-gold/30 rounded-lg px-3 py-2">
+                    <p className="text-sm text-brand-gold font-medium">
                       Ideal for anyone ready to lose weight, build lean muscle, and transform their body
                     </p>
                   </div>
@@ -421,14 +421,14 @@ export default function TransformationEntry() {
                 </CardHeader>
                 <CardContent className="space-y-2 pt-0">
                   {/* Coaching Sessions */}
-                  <div className="bg-amber-50/50 rounded-lg p-3 border border-amber-100">
-                    <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <div className="bg-brand-gold/5 rounded-lg p-3 border border-brand-gold/20">
+                    <p className="text-xs font-semibold text-brand-gold uppercase tracking-wide mb-2 flex items-center gap-1">
                       <Calendar className="h-3 w-3" /> Coaching Sessions
                     </p>
                     <div className="space-y-1.5">
                       {COACHING_SESSIONS_90DAY.map((item, index) => (
                         <div key={index} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-4 w-4 text-brand-gold flex-shrink-0 mt-0.5" />
                           <span className="text-gray-700">{item}</span>
                         </div>
                       ))}
@@ -455,8 +455,8 @@ export default function TransformationEntry() {
                   </div>
                   
                   {/* Core Protocol Stack May Include — at bottom */}
-                  <div className="bg-amber-50/50 rounded-lg p-3 border border-amber-100">
-                    <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <div className="bg-brand-gold/5 rounded-lg p-3 border border-brand-gold/20">
+                    <p className="text-xs font-semibold text-brand-gold uppercase tracking-wide mb-2 flex items-center gap-1">
                       <Dna className="h-3 w-3" /> Core Protocol Stack May Include
                     </p>
                     <div className="space-y-1.5">
@@ -467,7 +467,7 @@ export default function TransformationEntry() {
                         "Targeted Supplement Stack for Results",
                       ].map((item, index) => (
                         <div key={index} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-4 w-4 text-brand-gold flex-shrink-0 mt-0.5" />
                           <span className="text-gray-700">{item}</span>
                         </div>
                       ))}
@@ -476,11 +476,11 @@ export default function TransformationEntry() {
                   
                   {/* Tagline — above Get Started */}
                   <div className="pt-3 border-t border-gray-100 mt-2">
-                    <p className="text-sm text-amber-700 font-medium text-center italic mb-4">
+                    <p className="text-sm text-brand-gold font-medium text-center italic mb-4">
                       Full Coaching Support for Maximum Results
                     </p>
                     <Button 
-                      className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-semibold py-5"
+                      className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 font-semibold py-5"
                       onClick={() => setLocation('/transformation/checkout?plan=flagship')}
                     >
                       Get Started
@@ -920,15 +920,15 @@ export default function TransformationEntry() {
               </Card>
 
               {/* ── Mitochondria Restoration - $3,000 ── */}
-              <Card className="h-full border-2 border-gray-200 hover:border-amber-300 transition-all shadow-md hover:shadow-lg">
+              <Card className="h-full border-2 border-gray-200 hover:border-brand-gold/40 transition-all shadow-md hover:shadow-lg">
                 <CardHeader className="text-center pb-3 pt-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-yellow-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
                     <Battery className="h-8 w-8 text-white" />
                   </div>
                   <CardTitle className="text-2xl text-gray-900">Mitochondria Restoration</CardTitle>
                   {/* Ideal For — moved under title */}
-                  <div className="mt-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
-                    <p className="text-sm text-orange-800 font-medium">
+                  <div className="mt-2 bg-brand-gold/10 border border-brand-gold/30 rounded-lg px-3 py-2">
+                    <p className="text-sm text-brand-gold font-medium">
                       For those experiencing fatigue, brain fog, or declining energy who want to restore cellular power
                     </p>
                   </div>
@@ -951,14 +951,14 @@ export default function TransformationEntry() {
                     Restore your mitochondria's strength and enhance energy and NAD+ levels. Repair the CD38 and NNMT cascades to reclaim youthful energy through targeted peptides and supplements.
                   </p>
                   {/* Coaching Sessions */}
-                  <div className="bg-orange-50/50 rounded-lg p-3 border border-orange-100">
-                    <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <div className="bg-brand-gold/5 rounded-lg p-3 border border-brand-gold/20">
+                    <p className="text-xs font-semibold text-brand-gold uppercase tracking-wide mb-2 flex items-center gap-1">
                       <Calendar className="h-3 w-3" /> Coaching Sessions
                     </p>
                     <div className="space-y-1.5">
                       {COACHING_SESSIONS_90DAY.map((item, index) => (
                         <div key={index} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-4 w-4 text-brand-gold flex-shrink-0 mt-0.5" />
                           <span className="text-gray-700">{item}</span>
                         </div>
                       ))}
@@ -983,8 +983,8 @@ export default function TransformationEntry() {
                       </div>
                     ))}
                   </div>
-                  <div className="bg-orange-50/50 rounded-lg p-3 border border-orange-100">
-                    <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <div className="bg-brand-gold/5 rounded-lg p-3 border border-brand-gold/20">
+                    <p className="text-xs font-semibold text-brand-gold uppercase tracking-wide mb-2 flex items-center gap-1">
                       <Dna className="h-3 w-3" /> Core Protocol Stack May Include
                     </p>
                     <div className="space-y-1.5">
@@ -997,7 +997,7 @@ export default function TransformationEntry() {
                         "CoQ10, PQQ & MitoQ Supplement Stack",
                       ].map((item, index) => (
                         <div key={index} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-4 w-4 text-brand-gold flex-shrink-0 mt-0.5" />
                           <span className="text-gray-700">{item}</span>
                         </div>
                       ))}
@@ -1005,7 +1005,7 @@ export default function TransformationEntry() {
                   </div>
                   {/* Tagline — above Get Started */}
                   <div className="pt-3 border-t border-gray-100 mt-2">
-                    <p className="text-sm text-orange-700 font-medium text-center italic mb-4">
+                    <p className="text-sm text-brand-gold font-medium text-center italic mb-4">
                       Recharge Your Cellular Power Plants
                     </p>
                     <Button 
@@ -1307,7 +1307,7 @@ export default function TransformationEntry() {
                   </div>
                   <div className="mt-3 bg-slate-50 border border-slate-200 rounded-lg p-3">
                     <p className="text-xs text-slate-600">
-                      <span className="font-semibold text-slate-700">Need 1-on-1 guidance during your program?</span> Book a coaching call anytime — <span className="text-amber-600 font-medium">$125/20 min</span> or <span className="text-amber-600 font-medium">$350/1 hr</span>
+                      <span className="font-semibold text-slate-700">Need 1-on-1 guidance during your program?</span> Book a coaching call anytime — <span className="text-brand-gold font-medium">$125/20 min</span> or <span className="text-brand-gold font-medium">$350/1 hr</span>
                     </p>
                   </div>
                   <div className="pt-4">
@@ -1329,7 +1329,7 @@ export default function TransformationEntry() {
           {/* ═══════════════════════════════════════════════════════════════════ */}
           <div className="mt-16">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-sm font-medium mb-3">
+              <div className="inline-flex items-center gap-2 bg-brand-gold/15 text-brand-gold px-4 py-1.5 rounded-full text-sm font-medium mb-3">
                 <Video className="h-4 w-4" />
                 On-Demand Coaching
               </div>
@@ -1341,7 +1341,7 @@ export default function TransformationEntry() {
 
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {/* 20-min session */}
-              <Card className="border-2 border-amber-200 shadow-lg hover:shadow-xl transition-shadow">
+              <Card className="border-2 border-brand-gold/30 shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="text-center pb-3">
                   <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
                     <Clock className="h-7 w-7 text-white" />
@@ -1363,7 +1363,7 @@ export default function TransformationEntry() {
                       "Side effect guidance",
                     ].map((item, index) => (
                       <div key={index} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-4 w-4 text-brand-gold flex-shrink-0 mt-0.5" />
                         <span className="text-gray-700">{item}</span>
                       </div>
                     ))}
@@ -1381,8 +1381,8 @@ export default function TransformationEntry() {
               </Card>
 
               {/* 60-min session */}
-              <Card className="border-2 border-amber-300 shadow-lg hover:shadow-xl transition-shadow relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+              <Card className="border-2 border-brand-gold/40 shadow-lg hover:shadow-xl transition-shadow relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold/100 text-white text-xs font-bold px-3 py-1 rounded-full">
                   Most Popular
                 </div>
                 <CardHeader className="text-center pb-3">
@@ -1406,7 +1406,7 @@ export default function TransformationEntry() {
                       "Guidance on adjustments & next steps",
                     ].map((item, index) => (
                       <div key={index} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-4 w-4 text-brand-gold flex-shrink-0 mt-0.5" />
                         <span className="text-gray-700">{item}</span>
                       </div>
                     ))}
@@ -1434,10 +1434,10 @@ export default function TransformationEntry() {
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       {/* YOUR TRANSFORMATION ROADMAP                                           */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section id="transformation-roadmap" className="py-16 bg-gradient-to-b from-slate-900 to-slate-800">
+      <section id="transformation-roadmap" className="py-16 bg-brand-dark">
         <div className="container max-w-4xl px-4">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 bg-brand-gold/20 text-brand-gold px-4 py-2 rounded-full text-sm font-medium mb-4">
               <MapPin className="h-4 w-4" />
               Your Journey at a Glance
             </div>
@@ -1450,7 +1450,7 @@ export default function TransformationEntry() {
           </div>
           
           <div className="relative">
-            <div className="absolute left-6 md:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-amber-500 via-amber-400 to-emerald-500" />
+            <div className="absolute left-6 md:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-gold via-brand-gold to-emerald-500" />
             
             {[
               {
@@ -1517,7 +1517,7 @@ export default function TransformationEntry() {
                 
                 <div className="flex-1 pb-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Step {phase.step}</span>
+                    <span className="text-xs font-bold text-brand-gold uppercase tracking-wider">Step {phase.step}</span>
                   </div>
                   <h3 className="text-lg md:text-xl font-bold text-white mb-1">{phase.title}</h3>
                   <p className="text-slate-400 text-sm mb-2">{phase.desc}</p>
@@ -1541,7 +1541,7 @@ export default function TransformationEntry() {
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       {/* READY TO TRANSFORM CTA                                                 */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-16 bg-gradient-to-b from-amber-50 to-white">
+      <section className="py-16 bg-gradient-to-b from-brand-gold/5 to-white">
         <div className="container max-w-3xl px-4">
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
@@ -1553,8 +1553,8 @@ export default function TransformationEntry() {
           </div>
           
           <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-amber-200 text-center">
-              <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-brand-gold/30 text-center">
+              <div className="w-14 h-14 bg-brand-gold rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Zap className="h-7 w-7 text-white" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">I Know What I Want</h3>
@@ -1562,7 +1562,7 @@ export default function TransformationEntry() {
                 Scroll up, pick your plan, and check out directly. Secure checkout.
               </p>
               <Button
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-semibold py-5 text-base"
+                className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 font-semibold py-5 text-base"
                 onClick={() => document.getElementById('coaching-plans')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 View Plans
@@ -1597,7 +1597,7 @@ export default function TransformationEntry() {
           <div className="text-center mt-6">
             <p className="text-gray-500 text-sm">
               Questions? Email us at{" "}
-              <a href="mailto:omega@omegalongevity.com" className="text-amber-600 hover:underline font-medium">
+              <a href="mailto:omega@omegalongevity.com" className="text-brand-gold hover:underline font-medium">
                 omega@omegalongevity.com
               </a>
             </p>
@@ -1608,10 +1608,10 @@ export default function TransformationEntry() {
 
 
       {/* Success Stories Section */}
-      <section className="py-16 bg-gradient-to-br from-amber-50 to-orange-50">
+      <section className="py-16 bg-brand-gold/5">
         <div className="container max-w-6xl px-4">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 bg-brand-gold/15 text-brand-gold px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Star className="h-4 w-4" />
               Real Results from Real Clients
             </div>
@@ -1624,19 +1624,19 @@ export default function TransformationEntry() {
             
             <div className="flex flex-wrap justify-center gap-8 mt-8">
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-amber-600">
+                <div className="text-4xl md:text-5xl font-bold text-brand-gold">
                   {getClientsTransformed().toLocaleString()}+
                 </div>
                 <div className="text-gray-600 font-medium mt-1">Clients Transformed</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-amber-600">
+                <div className="text-4xl md:text-5xl font-bold text-brand-gold">
                   {getProtocolsCreated().toLocaleString()}+
                 </div>
                 <div className="text-gray-600 font-medium mt-1">Protocols Created</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-amber-600">
+                <div className="text-4xl md:text-5xl font-bold text-brand-gold">
                   {getYearsExperience()}+
                 </div>
                 <div className="text-gray-600 font-medium mt-1">Years Coaching Experience</div>
@@ -1646,8 +1646,8 @@ export default function TransformationEntry() {
           
           <div className="grid md:grid-cols-3 gap-6">
             {/* Testimonial 1 - David H. */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-amber-100 relative">
-              <div className="absolute -top-3 -right-3 w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-brand-gold/20 relative">
+              <div className="absolute -top-3 -right-3 w-12 h-12 bg-brand-gold rounded-full flex items-center justify-center shadow-lg">
                 <Quote className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center gap-3 mb-4">
@@ -1656,7 +1656,7 @@ export default function TransformationEntry() {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900">David H.</h4>
-                  <div className="flex items-center gap-1 text-amber-500">
+                  <div className="flex items-center gap-1 text-brand-gold">
                     {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-current" />)}
                   </div>
                 </div>
@@ -1673,8 +1673,8 @@ export default function TransformationEntry() {
             </div>
             
             {/* Testimonial 2 - Sam T. */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-amber-100 relative">
-              <div className="absolute -top-3 -right-3 w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-brand-gold/20 relative">
+              <div className="absolute -top-3 -right-3 w-12 h-12 bg-brand-gold rounded-full flex items-center justify-center shadow-lg">
                 <Quote className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center gap-3 mb-4">
@@ -1686,7 +1686,7 @@ export default function TransformationEntry() {
                   <div className="flex items-center gap-1 text-xs text-gray-500">
                     <MapPin className="h-3 w-3" /> Texas
                   </div>
-                  <div className="flex items-center gap-1 text-amber-500">
+                  <div className="flex items-center gap-1 text-brand-gold">
                     {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-current" />)}
                   </div>
                 </div>
@@ -1703,8 +1703,8 @@ export default function TransformationEntry() {
             </div>
             
             {/* Testimonial 3 - Jill R. */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-amber-100 relative">
-              <div className="absolute -top-3 -right-3 w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-brand-gold/20 relative">
+              <div className="absolute -top-3 -right-3 w-12 h-12 bg-brand-gold rounded-full flex items-center justify-center shadow-lg">
                 <Quote className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center gap-3 mb-4">
@@ -1716,7 +1716,7 @@ export default function TransformationEntry() {
                   <div className="flex items-center gap-1 text-xs text-gray-500">
                     Age 60
                   </div>
-                  <div className="flex items-center gap-1 text-amber-500">
+                  <div className="flex items-center gap-1 text-brand-gold">
                     {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-current" />)}
                   </div>
                 </div>
@@ -1738,7 +1738,7 @@ export default function TransformationEntry() {
               href="https://omegalongevity.com/success-stories/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-amber-600 hover:text-amber-700 font-medium"
+              className="inline-flex items-center gap-2 text-brand-gold hover:text-brand-gold font-medium"
             >
               Read More Success Stories
               <ArrowRight className="h-4 w-4" />
@@ -1753,7 +1753,7 @@ export default function TransformationEntry() {
           <img src="/omega-longevity-logo.png" alt="Omega Longevity" className="h-8 mx-auto mb-4" />
           <p className="text-gray-500 text-sm mb-2">
             Questions? Email us at{" "}
-            <a href="mailto:omega@omegalongevity.com" className="text-amber-600 hover:underline">
+            <a href="mailto:omega@omegalongevity.com" className="text-brand-gold hover:underline">
               omega@omegalongevity.com
             </a>
           </p>
@@ -1769,7 +1769,7 @@ export default function TransformationEntry() {
         className="fixed bottom-6 right-6 z-40 text-white px-5 py-3 rounded-full shadow-lg shadow-black/20 hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
         style={{ background: 'linear-gradient(to right, #1B2B4B, #2a3f6b)' }}
       >
-        <HelpCircle className="w-5 h-5 text-amber-400 group-hover:rotate-12 transition-transform" />
+        <HelpCircle className="w-5 h-5 text-brand-gold group-hover:rotate-12 transition-transform" />
         <span className="font-medium text-sm">Not sure which plan?</span>
       </button>
 

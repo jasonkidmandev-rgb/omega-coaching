@@ -346,8 +346,8 @@ export default function Order() {
   // Show loading state
   if (isLoading || waiverLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-gold"></div>
       </div>
     );
   }
@@ -365,7 +365,7 @@ export default function Order() {
     sessionStorage.removeItem(redirectCountKey);
     sessionStorage.removeItem(redirectTimeKey);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-red-500" />
@@ -388,7 +388,7 @@ export default function Order() {
               sessionStorage.setItem(redirectCountKey, '0');
               window.location.href = getLoginUrl('/order');
             }}
-            className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium"
+            className="bg-brand-gold text-brand-gold-foreground hover:opacity-90 px-6 py-2 rounded-lg font-medium"
           >
             Try Again
           </button>
@@ -403,9 +403,9 @@ export default function Order() {
     sessionStorage.setItem(redirectTimeKey, String(now));
     window.location.href = getLoginUrl('/order');
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-gold mx-auto mb-4"></div>
           <p className="text-gray-600">Redirecting to login...</p>
         </div>
       </div>
@@ -418,7 +418,7 @@ export default function Order() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Address Confirmation Modal */}
       {showAddressConfirmation && confirmedAddress && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -483,13 +483,13 @@ export default function Order() {
                 </div>
                 <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-2 mt-2">
                   <span>Total</span>
-                  <span className="text-amber-600">${(orderConfirmation.total / 100).toFixed(2)}</span>
+                  <span className="text-brand-gold">${(orderConfirmation.total / 100).toFixed(2)}</span>
                 </div>
               </div>
               
               <button
                 onClick={closeConfirmation}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg font-bold transition-colors"
+                className="w-full bg-brand-gold text-brand-gold-foreground hover:opacity-90 py-3 rounded-lg font-bold transition-colors"
               >
                 Continue Shopping
               </button>
@@ -499,16 +499,16 @@ export default function Order() {
       )}
 
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-amber-200 sticky top-0 z-40">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-brand-gold/30 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => goBackTo('/launchpad')}
-              className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-brand-gold/15 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
-            <div className="bg-amber-500 text-white px-3 py-1.5 rounded-lg font-bold text-sm">
+            <div className="bg-brand-gold/100 text-white px-3 py-1.5 rounded-lg font-bold text-sm">
               Ω OMEGA LONGEVITY
             </div>
             <div>
@@ -519,18 +519,18 @@ export default function Order() {
           <div className="flex items-center gap-3">
             {/* Order History Link */}
             <Link href="/order-history">
-              <button className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-amber-50 border border-gray-200 rounded-lg transition-colors text-gray-600 hover:text-amber-600">
+              <button className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-brand-gold/10 border border-gray-200 rounded-lg transition-colors text-gray-600 hover:text-brand-gold">
                 <History className="w-4 h-4" />
                 <span className="hidden sm:inline text-sm">Order History</span>
               </button>
             </Link>
             
             {/* Cart Summary in Header */}
-            <div className="flex items-center gap-2 bg-amber-100 px-4 py-2 rounded-lg border border-amber-200">
-              <ShoppingCart className="w-5 h-5 text-amber-600" />
+            <div className="flex items-center gap-2 bg-brand-gold/15 px-4 py-2 rounded-lg border border-brand-gold/30">
+              <ShoppingCart className="w-5 h-5 text-brand-gold" />
               <span className="text-gray-900 font-medium">{cart.length} items</span>
               <span className="text-gray-400">|</span>
-              <span className="text-amber-600 font-bold">${(total / 100).toFixed(2)}</span>
+              <span className="text-brand-gold font-bold">${(total / 100).toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -551,7 +551,7 @@ export default function Order() {
                   placeholder="Search products by name, category, or SKU..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
                 />
               </div>
               
@@ -560,7 +560,7 @@ export default function Order() {
                 <button
                   type="button"
                   onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                  className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[200px] justify-between"
+                  className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-gold min-w-[200px] justify-between"
                 >
                   <div className="flex items-center gap-2">
                     <FolderOpen className="w-4 h-4 text-gray-500" />
@@ -584,8 +584,8 @@ export default function Order() {
                         setSelectedCategory(null);
                         setIsCategoryDropdownOpen(false);
                       }}
-                      className={`w-full flex items-center gap-3 p-3 hover:bg-amber-50 transition-colors text-left ${
-                        selectedCategory === null ? 'bg-amber-100 border-l-2 border-amber-500' : ''
+                      className={`w-full flex items-center gap-3 p-3 hover:bg-brand-gold/10 transition-colors text-left ${
+                        selectedCategory === null ? 'bg-brand-gold/15 border-l-2 border-brand-gold' : ''
                       }`}
                     >
                       <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -608,14 +608,14 @@ export default function Order() {
                             setSelectedCategory(cat.id);
                             setIsCategoryDropdownOpen(false);
                           }}
-                          className={`w-full flex items-center gap-3 p-3 hover:bg-amber-50 transition-colors text-left ${
+                          className={`w-full flex items-center gap-3 p-3 hover:bg-brand-gold/10 transition-colors text-left ${
                             selectedCategory === cat.id 
-                              ? 'bg-amber-100 border-l-2 border-amber-500'
+                              ? 'bg-brand-gold/15 border-l-2 border-brand-gold'
                               : ''
                           }`}
                         >
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            cat.name === 'Limitless Tier 1' ? 'bg-amber-100' :
+                            cat.name === 'Limitless Tier 1' ? 'bg-brand-gold/15' :
                             cat.name === 'Bioregulators' ? 'bg-purple-100' :
                             cat.name === 'Supplies & Misc' ? 'bg-blue-100' :
                             cat.name === 'Troscriptions Troches' ? 'bg-green-100' : 'bg-gray-100'
@@ -624,7 +624,7 @@ export default function Order() {
                               <img src={cat.iconUrl} alt="" className="w-6 h-6 object-contain" />
                             ) : (
                               <Package className={`w-5 h-5 ${
-                                cat.name === 'Limitless Tier 1' ? 'text-amber-600' :
+                                cat.name === 'Limitless Tier 1' ? 'text-brand-gold' :
                                 cat.name === 'Bioregulators' ? 'text-purple-600' :
                                 cat.name === 'Supplies & Misc' ? 'text-blue-600' :
                                 cat.name === 'Troscriptions Troches' ? 'text-green-600' : 'text-gray-600'
@@ -649,7 +649,7 @@ export default function Order() {
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
                   showFavoritesOnly 
                     ? 'bg-red-50 border-red-300 text-red-600' 
-                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:text-amber-600 hover:border-amber-300'
+                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:text-brand-gold hover:border-brand-gold/40'
                 }`}
               >
                 <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
@@ -670,7 +670,7 @@ export default function Order() {
                   <div className="text-center md:text-left">
                     <div className="flex items-center gap-2 justify-center md:justify-start mb-1">
                       <span className="bg-green-500 text-white text-xs font-medium px-2 py-1 rounded animate-pulse">LIMITED OFFER</span>
-                      <span className="bg-amber-100 text-amber-700 text-xs font-medium px-2 py-1 rounded border border-amber-200">Save up to 18%</span>
+                      <span className="bg-brand-gold/15 text-brand-gold text-xs font-medium px-2 py-1 rounded border border-brand-gold/30">Save up to 18%</span>
                     </div>
                     <h3 className="text-lg md:text-xl font-bold text-gray-900">Tirzepatide HA 10MG - Volume Discount</h3>
                     <p className="text-sm text-gray-600 mt-1">
@@ -714,7 +714,7 @@ export default function Order() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-xs font-medium px-2 py-1 rounded ${
-                        item.categoryName === 'Limitless Tier 1' ? 'bg-amber-100 text-amber-700' :
+                        item.categoryName === 'Limitless Tier 1' ? 'bg-brand-gold/15 text-brand-gold' :
                         item.categoryName === 'Bioregulators' ? 'bg-purple-100 text-purple-700' :
                         item.categoryName === 'Supplies & Misc' ? 'bg-blue-100 text-blue-700' :
                         item.categoryName === 'Troscriptions Troches' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
@@ -738,7 +738,7 @@ export default function Order() {
                   <div className="flex flex-col gap-1 mb-3">
                     {/* Price with tiered pricing indicator */}
                     <div className="flex items-baseline gap-2">
-                      <span className="text-amber-600 font-bold text-lg">${parseFloat(item.price!).toFixed(2)}</span>
+                      <span className="text-brand-gold font-bold text-lg">${parseFloat(item.price!).toFixed(2)}</span>
                       {!!item.isDiscountable && (
                         <span className="text-xs text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded">10% off</span>
                       )}
@@ -775,7 +775,7 @@ export default function Order() {
                   ) : (
                     <button
                       onClick={() => addToCart(item)}
-                      className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 w-full justify-center"
+                      className="bg-brand-gold text-brand-gold-foreground hover:opacity-90 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 w-full justify-center"
                     >
                       <Plus className="w-4 h-4" />
                       Add
@@ -798,7 +798,7 @@ export default function Order() {
         <div className="lg:col-span-1">
           <div className="bg-white border border-gray-200 rounded-xl p-6 sticky top-24 shadow-sm">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-amber-500" />
+              <ShoppingCart className="w-5 h-5 text-brand-gold" />
               Your Cart
             </h2>
             
@@ -829,7 +829,7 @@ export default function Order() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-amber-600 font-medium text-sm">${(lineTotal / 100).toFixed(2)}</span>
+                          <span className="text-brand-gold font-medium text-sm">${(lineTotal / 100).toFixed(2)}</span>
                           <button
                             onClick={() => removeFromCart(item.id)}
                             className="p-1 hover:bg-gray-200 rounded transition-colors"
@@ -864,7 +864,7 @@ export default function Order() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-amber-600 font-medium text-sm">${(lineTotal / 100).toFixed(2)}</span>
+                              <span className="text-brand-gold font-medium text-sm">${(lineTotal / 100).toFixed(2)}</span>
                               <button
                                 onClick={() => removeFromCart(item.id)}
                                 className="p-1 hover:bg-blue-100 rounded transition-colors"
@@ -905,14 +905,14 @@ export default function Order() {
                   )}
                   <div className="flex justify-between text-gray-900 font-bold text-lg pt-2 border-t border-gray-200">
                     <span>Total</span>
-                    <span className="text-amber-600">${(total / 100).toFixed(2)}</span>
+                    <span className="text-brand-gold">${(total / 100).toFixed(2)}</span>
                   </div>
                 </div>
 
                 <button
                   onClick={handleCheckout}
                   disabled={cart.length === 0}
-                  className="w-full mt-6 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-3 rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full mt-6 bg-brand-gold text-brand-gold-foreground hover:opacity-90 py-3 rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
                 >
                   <ShoppingCart className="w-5 h-5" />
                   Checkout

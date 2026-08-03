@@ -71,7 +71,7 @@ export default function TransformationVerify() {
 
   if (!token || !enrollmentId) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -90,7 +90,7 @@ export default function TransformationVerify() {
 
   if (verificationStatus === "loading") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <Loader2 className="w-16 h-16 text-primary animate-spin mx-auto mb-4" />
@@ -104,7 +104,7 @@ export default function TransformationVerify() {
 
   if (verificationStatus === "expired") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
@@ -120,7 +120,7 @@ export default function TransformationVerify() {
 
   if (verificationStatus === "invalid") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -140,7 +140,7 @@ export default function TransformationVerify() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />

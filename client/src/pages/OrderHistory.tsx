@@ -35,7 +35,7 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; icon: Re
   shipped: { label: "Shipped", color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", icon: <Truck className="h-4 w-4" /> },
   delivered: { label: "Delivered", color: "bg-green-500/10 text-green-500 border-green-500/20", icon: <CheckCircle2 className="h-4 w-4" /> },
   cancelled: { label: "Cancelled", color: "bg-red-500/10 text-red-500 border-red-500/20", icon: <XCircle className="h-4 w-4" /> },
-  refunded: { label: "Refunded", color: "bg-orange-500/10 text-orange-500 border-orange-500/20", icon: <XCircle className="h-4 w-4" /> },
+  refunded: { label: "Refunded", color: "bg-brand-gold/10 text-brand-gold border-brand-gold/20", icon: <XCircle className="h-4 w-4" /> },
 };
 
 interface OrderItem {
@@ -70,19 +70,19 @@ function OrderCard({ order }: { order: UnifiedOrder }) {
   const shippingFee = parseFloat(order.shippingFee || "0");
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700/50 hover:border-slate-600/50 transition-colors">
+    <Card className="bg-white/5 border-brand-border hover:border-slate-600/50 transition-colors">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardTitle className="text-lg text-white flex items-center gap-2">
               {order.type === "custom" ? (
-                <FileEdit className="h-5 w-5 text-amber-500" />
+                <FileEdit className="h-5 w-5 text-brand-gold" />
               ) : (
-                <ShoppingBag className="h-5 w-5 text-amber-500" />
+                <ShoppingBag className="h-5 w-5 text-brand-gold" />
               )}
               {order.orderNumber ? `Order ${order.orderNumber}` : `Order #${order.id}`}
               {order.type === "custom" && (
-                <Badge variant="outline" className="text-xs border-amber-500/30 text-amber-400 ml-1">Custom</Badge>
+                <Badge variant="outline" className="text-xs border-brand-gold/30 text-brand-gold ml-1">Custom</Badge>
               )}
             </CardTitle>
             <CardDescription className="flex items-center gap-2 text-slate-400">
@@ -109,7 +109,7 @@ function OrderCard({ order }: { order: UnifiedOrder }) {
         )}
 
         {/* Order Summary */}
-        <div className="flex items-center justify-between py-2 border-t border-b border-slate-700/50">
+        <div className="flex items-center justify-between py-2 border-t border-b border-brand-border">
           <div className="flex items-center gap-4">
             <div className="text-sm text-slate-400">
               <span className="font-medium text-white">{order.items.length}</span> item{order.items.length !== 1 ? 's' : ''}
@@ -119,7 +119,7 @@ function OrderCard({ order }: { order: UnifiedOrder }) {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-semibold text-amber-500">
+            <div className="text-lg font-semibold text-brand-gold">
               ${parseFloat(order.total).toFixed(2)}
             </div>
             {parseFloat(order.discountAmount) > 0 && (
@@ -141,7 +141,7 @@ function OrderCard({ order }: { order: UnifiedOrder }) {
           </button>
           
           {expanded && (
-            <div className="mt-3 space-y-2 bg-slate-900/50 rounded-lg p-3">
+            <div className="mt-3 space-y-2 bg-white/5 rounded-lg p-3">
               {order.items.map((item) => (
                 <div key={item.id} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
@@ -154,7 +154,7 @@ function OrderCard({ order }: { order: UnifiedOrder }) {
                 </div>
               ))}
               
-              <div className="border-t border-slate-700/50 pt-2 mt-2 space-y-1">
+              <div className="border-t border-brand-border pt-2 mt-2 space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Subtotal</span>
                   <span className="text-slate-300">${parseFloat(order.subtotal).toFixed(2)}</span>
@@ -173,7 +173,7 @@ function OrderCard({ order }: { order: UnifiedOrder }) {
                 )}
                 <div className="flex justify-between text-sm font-medium">
                   <span className="text-white">Total</span>
-                  <span className="text-amber-500">${parseFloat(order.total).toFixed(2)}</span>
+                  <span className="text-brand-gold">${parseFloat(order.total).toFixed(2)}</span>
                 </div>
               </div>
 
@@ -192,7 +192,7 @@ function OrderCard({ order }: { order: UnifiedOrder }) {
 
 function OrderSkeleton() {
   return (
-    <Card className="bg-slate-800/50 border-slate-700/50">
+    <Card className="bg-white/5 border-brand-border">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -262,7 +262,7 @@ export default function OrderHistory() {
     : allOrders.filter(o => o.type === "custom");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-brand-dark">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
@@ -273,7 +273,7 @@ export default function OrderHistory() {
             </Button>
           </Link>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Package className="h-8 w-8 text-amber-500" />
+            <Package className="h-8 w-8 text-brand-gold" />
             Order History
           </h1>
           <p className="text-slate-400 mt-2">
@@ -284,17 +284,17 @@ export default function OrderHistory() {
         {/* Tabs for filtering */}
         {(storeCount > 0 || customCount > 0) && (
           <Tabs value={tab} onValueChange={setTab} className="mb-6">
-            <TabsList className="bg-slate-800/50 border border-slate-700/50">
-              <TabsTrigger value="all" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400">
+            <TabsList className="bg-white/5 border border-brand-border">
+              <TabsTrigger value="all" className="data-[state=active]:bg-brand-gold/20 data-[state=active]:text-brand-gold">
                 All Orders ({allOrders.length})
               </TabsTrigger>
               {storeCount > 0 && (
-                <TabsTrigger value="store" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400">
+                <TabsTrigger value="store" className="data-[state=active]:bg-brand-gold/20 data-[state=active]:text-brand-gold">
                   Store ({storeCount})
                 </TabsTrigger>
               )}
               {customCount > 0 && (
-                <TabsTrigger value="custom" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400">
+                <TabsTrigger value="custom" className="data-[state=active]:bg-brand-gold/20 data-[state=active]:text-brand-gold">
                   Custom ({customCount})
                 </TabsTrigger>
               )}
@@ -315,7 +315,7 @@ export default function OrderHistory() {
               <OrderCard key={`${order.type}-${order.id}`} order={order} />
             ))
           ) : (
-            <Card className="bg-slate-800/50 border-slate-700/50">
+            <Card className="bg-white/5 border-brand-border">
               <CardContent className="py-12 text-center">
                 <ShoppingBag className="h-16 w-16 text-slate-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-white mb-2">No orders yet</h3>
@@ -323,7 +323,7 @@ export default function OrderHistory() {
                   You haven't placed any orders. Visit the store to browse our products.
                 </p>
                 <Link to="/order">
-                  <Button className="bg-amber-500 hover:bg-amber-600 text-black">
+                  <Button className="bg-brand-gold text-brand-gold-foreground hover:opacity-90 text-black">
                     Browse Store
                   </Button>
                 </Link>

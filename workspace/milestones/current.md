@@ -52,7 +52,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Match sidebar/login/cover pages to the real Omega Longevity palette. `Owner: Farjad`
 - [x] Scope the brand rollout: client-facing surfaces only, internal admin tools keep their working palette. `Owner: Farjad` (notes: `task-notes.md#brand-rollout`)
 - [x] Brand pass batch 1 — the client-facing pages seen most (Launchpad, Protocol, check-ins, Documents, Sessions, Account, Peptide Cheat Sheet, Compare Protocols, Payment Portal). `Owner: Farjad` (notes: `task-notes.md#brand-rollout`)
-- [ ] Brand pass batch 2 — the enrollment/intake/protocol-build funnel. `Owner: ___` (notes: `task-notes.md#brand-rollout`)
+- [x] Brand pass batch 2 — the enrollment/intake/protocol-build funnel (14 pages). `Owner: Farjad` (notes: `task-notes.md#brand-rollout`)
 - [ ] Brand pass batch 3 — rarely-seen pages (age gate, legal, password/invite, partners, promos, 404). `Owner: ___` (notes: `task-notes.md#brand-rollout`)
 
 ## D. Correctness / blockers found during app review
