@@ -204,7 +204,6 @@ const menuCategories: MenuCategory[] = [
     items: [
       // Store hidden for compliance: { icon: Store, label: "Store Promos", path: "/admin/store-promos", roles: ['admin', 'manager', 'finance'] },
       { icon: Handshake, label: "Affiliate Partners", path: "/admin/affiliate-partners", roles: ['admin', 'manager'] },
-      { icon: Globe, label: "Web Traffic", path: "/admin/web-traffic", roles: ['admin'] },
     ],
   },
   // 6. Daily Tools & Automation
@@ -244,6 +243,7 @@ const menuCategories: MenuCategory[] = [
       { icon: Bell, label: "Team Email Preferences", path: "/admin/notification-preferences", roles: ['admin', 'manager'] },
       // Data & Admin Tools
       { icon: ListTodo, label: "Workflow Templates", path: "/admin/workflow-templates", roles: ['admin', 'manager'] },
+      { icon: Globe, label: "Web Traffic", path: "/admin/web-traffic", roles: ['admin'] },
     ],
   },
 ];

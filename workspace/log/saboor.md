@@ -66,6 +66,17 @@ each day, so Farjad and both Claude sessions can see progress.
   with no argument; they only lose that same flash. Flagged because it touches the sidebar.
 - Checked rather than assumed: `ui/drawer.tsx` uses a Radix portal with no `forceMount`, so
   drawer content really does unmount when closed.
+- **Moved the Web Traffic sidebar link.** It was under "Marketing & Outreach"; it now sits
+  under "Team & Content" in the "Data & Admin Tools" group next to Workflow Templates.
+  One line moved in `client/src/components/AdminLayout.tsx` — the page itself and its route
+  (`/admin/web-traffic`) are untouched, so any bookmark still works.
+- Side effect: **"Marketing & Outreach" is now a category with one item** (Affiliate
+  Partners). Store Promos is still in the file but commented out for compliance. Whether to
+  keep a one-item category or fold Affiliate Partners elsewhere is a call for Jason/Farjad —
+  not doing it unasked.
+- Checked the empty-category case: `AdminLayout.tsx` hides a category when the signed-in
+  role can see none of its items, so finance users don't get an empty header. That was
+  already true before the move.
 - **Closed both remaining security blockers in section D.**
   - **Chat backend (the 7th unauthenticated endpoint).** All four `commentsRouter`
     procedures took a bare sequential protocol id with no check — anyone counting integers

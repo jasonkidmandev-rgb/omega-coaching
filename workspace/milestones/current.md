@@ -43,7 +43,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Show sender name in the universal chat. `Owner: Saboor` (notes: `context.md`)
 - [x] Move chat to the top of the client dashboard. `Owner: Farjad`
 - [x] Dashboard chat panel keeps polling while hidden on mobile, and polls twice at once if the drawer is then opened. `Owner: Saboor` (notes: `context.md`)
-- [ ] Move Web Traffic under Team & Content. `Owner: ___`
+- [x] Move Web Traffic under Team & Content. `Owner: Saboor`
 
 ## C. Theme
 - [x] Enable Tailwind Typography plugin (fixes `prose` app-wide). `Owner: Saboor`
