@@ -66,6 +66,25 @@ each day, so Farjad and both Claude sessions can see progress.
   with no argument; they only lose that same flash. Flagged because it touches the sidebar.
 - Checked rather than assumed: `ui/drawer.tsx` uses a Radix portal with no `forceMount`, so
   drawer content really does unmount when closed.
+- **Admin dashboard styling consistency** (`client/src/pages/admin/Dashboard.tsx`). Brief was
+  to carry over Farjad's client-dashboard overhaul as design/structure only — no data, links
+  or behaviour.
+  - The "Protocol Collaboration Center" card was moved here from the Launchpad page and
+    brought `#1e3a5f` with it. That's one of the three *fake* navies Farjad catalogued, and
+    it was the only hardcoded hex on the whole admin dashboard. Removed all 4 uses; the card
+    now looks like every other card on the page. Its amber accent is untouched.
+  - Finished a half-done responsive pass in the same card — one of its three boxes had
+    responsive padding/icon/text sizes, the other two didn't.
+  - 5 class-string edits, nothing else. Asserted bracket counts unchanged so no JSX moved.
+- ⚠️ **I flagged a conflict before starting and was overruled, correctly.** Farjad + Jason
+  decided on 2026-08-02 that internal admin pages keep their orange accent; "make admin match
+  the client dashboard" would have reversed that. Saboor's call: follow Farjad on
+  design/theme where we collide. So no brand navy/gold went near admin.
+- Once theme changes and functional changes are both excluded, most of the overhaul doesn't
+  transfer: brand tokens (excluded), merging duplicate action grids (that removes a button —
+  "Protocol Collaboration Center" and "Quick Actions" both link to `/admin/clients/new`,
+  worth raising separately), broken links (already none), welcome card and chat-to-top (no
+  admin equivalent). Recorded in `task-notes.md#admin-dashboard-consistency`.
 - **Deleted the orphaned `dataIntegrityAudit` procedure** (M2 item). It lived in
   `server/contacts/router.ts` and was left behind when the Data Integrity Audit admin page
   was removed. 270 lines. Nothing called it — the whole UI uses only `trpc.contacts.list`.

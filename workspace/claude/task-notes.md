@@ -352,3 +352,35 @@ resolved only 13 of 62 pages. Every candidate here was confirmed by reading its 
 code. Known false positives, do not re-raise: `Inbox` and `CalendlySettings` (nested cards),
 `ClientEdit`/`MyActionItems` (Card/CardContent), `SettingsHub` (icon container),
 `ShannonKanban`/`AcquisitionDashboard` sub-components.
+
+## admin-dashboard-consistency
+
+Applying what carried over from Farjad's client-dashboard overhaul to
+`client/src/pages/admin/Dashboard.tsx`. Constraint: CSS/markup only — no data, links or
+behaviour — and **the admin orange accent stays** (2026-08-02 brand-scope decision by
+Farjad + Jason: internal admin pages keep their working palette). Where his design
+decisions and mine collide, his win.
+
+**Done:**
+- The "Protocol Collaboration Center" card was moved here from the Launchpad page and
+  brought `#1e3a5f` with it — one of the three *fake* navies listed in `#brand-rollout`,
+  and the only hardcoded hex on the admin dashboard. Removed all 4 uses; the card now uses
+  the plain `<Card>` treatment every other section on the page uses. Its amber/orange
+  accent is untouched.
+- Finished a half-done responsive pass inside that card: the first of its three boxes had
+  `p-3 md:p-4`, `h-5 w-5 md:h-6 md:w-6` and `text-sm md:text-base`, the other two were
+  left at desktop-only values. All three now match.
+
+**Deliberately NOT done, and why** — most of the overhaul either doesn't apply or is
+excluded by the constraints, so this was a much smaller job than it sounds:
+- *Brand tokens (navy/gold)* — excluded, admin keeps orange per the scope decision.
+- *Merging the two action grids* — "Protocol Collaboration Center" and "Quick Actions"
+  both link to `/admin/clients/new`. That is the same duplication Farjad removed on the
+  client side, but removing a button changes what an admin can click, which the brief
+  ruled out. Left alone; worth raising separately.
+- *Broken links* — none to fix, the `/admin/*` link audit already cleared this page.
+- *Welcome card, chat-to-top* — no equivalent on the admin dashboard.
+
+Section headings were already consistent (`text-lg font-semibold` on both `<h2>`s), and
+the other custom-styled cards use semantic colours that carry meaning (red = alert), so
+they were left alone.

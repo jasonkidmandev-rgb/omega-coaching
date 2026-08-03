@@ -201,14 +201,14 @@ export default function AdminDashboard() {
 
         {/* Protocol Hub Section - Moved from Launchpad */}
         {isWidgetVisible("protocolHub") && (
-          <Card className="bg-white border-[#1e3a5f] border-2 shadow-lg">
+          <Card>
             <CardHeader className="pb-2 p-3 md:p-6">
               <div className="flex items-center gap-3 md:gap-4">
                 <div className="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
                   <MessageSquare className="h-5 w-5 md:h-8 md:w-8 text-white" />
                 </div>
                 <div className="min-w-0">
-                  <CardTitle className="text-[#1e3a5f] text-lg md:text-2xl">Protocol Collaboration Center</CardTitle>
+                  <CardTitle className="text-lg md:text-2xl">Protocol Collaboration Center</CardTitle>
                   <CardDescription className="text-gray-600 text-xs md:text-base">
                     Review protocols, communicate with clients, and manage approvals
                   </CardDescription>
@@ -222,14 +222,14 @@ export default function AdminDashboard() {
                   <h4 className="font-semibold text-gray-900 mb-1 text-sm md:text-base">Review & Approve</h4>
                   <p className="text-sm text-gray-600">View and approve client protocols</p>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <MessageSquare className="h-6 w-6 text-blue-500 mx-auto mb-2" />
-                  <h4 className="font-semibold text-gray-900 mb-1">Comments & Discussion</h4>
+                <div className="text-center p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <MessageSquare className="h-5 w-5 md:h-6 md:w-6 text-blue-500 mx-auto mb-1 md:mb-2" />
+                  <h4 className="font-semibold text-gray-900 mb-1 text-sm md:text-base">Comments & Discussion</h4>
                   <p className="text-sm text-gray-600">Collaborate with clients on protocols</p>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <Calendar className="h-6 w-6 text-violet-500 mx-auto mb-2" />
-                  <h4 className="font-semibold text-gray-900 mb-1">Loom Videos</h4>
+                <div className="text-center p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <Calendar className="h-5 w-5 md:h-6 md:w-6 text-violet-500 mx-auto mb-1 md:mb-2" />
+                  <h4 className="font-semibold text-gray-900 mb-1 text-sm md:text-base">Loom Videos</h4>
                   <p className="text-sm text-gray-600">Embed video explanations</p>
                 </div>
               </div>
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="flex-1 border-[#1e3a5f] text-[#1e3a5f] hover:bg-gray-100"
+                  className="flex-1"
                   onClick={() => setLocation("/admin/clients/new")}
                 >
                   Create New Protocol
