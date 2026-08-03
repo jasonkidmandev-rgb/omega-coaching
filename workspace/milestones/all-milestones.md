@@ -41,6 +41,9 @@ app review.
       2026-08-01 — not urgent enough for the active milestone).
 - [ ] Fix chat photo uploads.
 - [ ] Basic to-do / action-item capability.
+- [ ] Client protocol page overhaul, same treatment the client dashboard got in M1:
+      audit the whole page, cut what's redundant or unused, tidy the layout. It's the
+      second most-visited client page. Added 2026-08-04. `Owner: Farjad`
 
 ## M3 — Core workflows and accurate data (Week 3)
 - [x] Handle client-buys vs we-ship correctly in the protocol build.
