@@ -4,6 +4,14 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-04
+- Browser-verified the whole client-facing brand rollout on the deployed site, all three
+  batches, roughly 38 pages. No contrast misses or broken layouts. That closes the one
+  caveat that had been carried on this work since batch 1, so the rollout is now confirmed
+  rather than reasoned about, and the conventions recorded in `task-notes.md` are proven
+  against a real browser.
+- Hours: ~
+
 ## 2026-08-02 (continued, 4)
 - Brand pass batch 3, the last of the client-facing rollout: age gate, terms, privacy,
   set/forgot password, accept invite, partners, promotions, install, 404. Kept the

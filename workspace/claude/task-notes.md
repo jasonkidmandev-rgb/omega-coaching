@@ -97,12 +97,16 @@ badges, and two buttons where a stray `text-white` trailed the gold-button tripl
 overrode its foreground). All now use `text-brand-gold-foreground` (navy). Audit with
 `grep -rn "bg-brand-gold[^/\"]*text-white"`.
 
-**Client-facing brand rollout is now complete** (batches 1-3, ~38 pages). Remaining, both
-low priority: `Metrics` chart line colours are still the Recharts demo palette (cosmetic,
-not really page chrome), and none of the three batches has been browser-verified.
+**Client-facing brand rollout is complete** (batches 1-3, ~38 pages) and **browser-verified
+on the deployed site by Farjad, 2026-08-04** — no contrast misses or broken layouts
+reported. The earlier "not verified" caveat on batches 1-3 is now closed; treat the
+conventions above as proven in a real browser, not just reasoned about.
 
-Not browser-verified (no local DB); these are class-string swaps, so the risk is a
-contrast miss rather than a break. Worth a look on the deployed site.
+Remaining and low priority: `Metrics` chart line colours are still the Recharts demo
+palette (cosmetic, not really page chrome).
+
+(Batch 1 was unverified when written; verified along with 2 and 3 on 2026-08-04, see the
+end of this section.)
 
 **Web Traffic page, dark-theme-in-a-light-app (Farjad, 2026-08-02, found by Farjad from a
 prod screenshot).** Separate from the client-facing batches above — this is an *admin*
