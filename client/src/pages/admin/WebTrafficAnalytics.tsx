@@ -161,18 +161,18 @@ function WebTrafficAnalyticsContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Globe className="h-6 w-6 text-orange-400" />
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Globe className="h-6 w-6 text-orange-500" />
             Web Traffic Analytics
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-gray-500 text-sm mt-1">
             Track page views, visitor sources, and engagement across your site
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger className="w-[140px] bg-slate-800 border-slate-700 text-white">
-              <Calendar className="h-4 w-4 mr-2 text-slate-400" />
+            <SelectTrigger className="w-[140px]">
+              <Calendar className="h-4 w-4 mr-2 text-gray-500" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -182,7 +182,7 @@ function WebTrafficAnalyticsContent() {
               <SelectItem value="90d">Last 90 Days</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={handleRefresh} className="border-slate-700 text-slate-300">
+          <Button variant="outline" size="sm" onClick={handleRefresh} className="border-gray-200 text-gray-600">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
@@ -190,17 +190,17 @@ function WebTrafficAnalyticsContent() {
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="bg-white border-gray-200">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Total Page Views</p>
-                <p className="text-3xl font-bold text-white mt-1">
+                <p className="text-sm text-gray-500">Total Page Views</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">
                   {statsLoading ? "..." : (stats?.totalPageViews || 0).toLocaleString()}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Eye className="h-6 w-6 text-blue-400" />
+                <Eye className="h-6 w-6 text-blue-600" />
               </div>
             </div>
             {trendViews.length > 0 && (
@@ -211,47 +211,47 @@ function WebTrafficAnalyticsContent() {
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="bg-white border-gray-200">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Unique Visitors</p>
-                <p className="text-3xl font-bold text-white mt-1">
+                <p className="text-sm text-gray-500">Unique Visitors</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">
                   {statsLoading ? "..." : (stats?.uniqueVisitors || 0).toLocaleString()}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <Users className="h-6 w-6 text-green-400" />
+                <Users className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="bg-white border-gray-200">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Total Sessions</p>
-                <p className="text-3xl font-bold text-white mt-1">
+                <p className="text-sm text-gray-500">Total Sessions</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">
                   {statsLoading ? "..." : (stats?.totalSessions || 0).toLocaleString()}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-purple-400" />
+                <TrendingUp className="h-6 w-6 text-purple-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="bg-white border-gray-200">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Pages / Session</p>
-                <p className="text-3xl font-bold text-white mt-1">{avgPagesPerSession}</p>
+                <p className="text-sm text-gray-500">Pages / Session</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{avgPagesPerSession}</p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <ArrowUpRight className="h-6 w-6 text-orange-400" />
+                <ArrowUpRight className="h-6 w-6 text-orange-500" />
               </div>
             </div>
           </CardContent>
@@ -260,37 +260,37 @@ function WebTrafficAnalyticsContent() {
 
       {/* Key Pages Spotlight */}
       {keyPageStats && keyPageStats.length > 0 && (
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white text-lg flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-orange-400" />
+            <CardTitle className="text-gray-900 text-lg flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-orange-500" />
               Key Pages Performance
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {keyPageStats.map((page) => (
-                <div key={page.path} className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
+                <div key={page.path} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-orange-300">{getPageName(page.path)}</span>
+                    <span className="text-sm font-medium text-orange-600">{getPageName(page.path)}</span>
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Views</span>
-                      <span className="text-white font-semibold">{page.views.toLocaleString()}</span>
+                      <span className="text-gray-500">Views</span>
+                      <span className="text-gray-900 font-semibold">{page.views.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Visitors</span>
-                      <span className="text-white font-semibold">{page.uniqueVisitors.toLocaleString()}</span>
+                      <span className="text-gray-500">Visitors</span>
+                      <span className="text-gray-900 font-semibold">{page.uniqueVisitors.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Sessions</span>
-                      <span className="text-white font-semibold">{page.sessions.toLocaleString()}</span>
+                      <span className="text-gray-500">Sessions</span>
+                      <span className="text-gray-900 font-semibold">{page.sessions.toLocaleString()}</span>
                     </div>
                     {page.devices.length > 0 && (
                       <div className="flex gap-1 mt-2">
                         {page.devices.map((d) => (
-                          <Badge key={d.deviceType} variant="outline" className="text-xs border-slate-600 text-slate-300">
+                          <Badge key={d.deviceType} variant="outline" className="text-xs border-gray-300 text-gray-600">
                             <DeviceIcon type={d.deviceType} className="h-3 w-3 mr-1" />
                             {d.count}
                           </Badge>
@@ -307,45 +307,45 @@ function WebTrafficAnalyticsContent() {
 
       {/* Tabs for detailed views */}
       <Tabs defaultValue="pages" className="space-y-4">
-        <TabsList className="bg-slate-800 border border-slate-700">
-          <TabsTrigger value="pages" className="text-slate-300 data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-300">
+        <TabsList className="bg-gray-100 border border-gray-200">
+          <TabsTrigger value="pages" className="text-gray-600 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
             Top Pages
           </TabsTrigger>
-          <TabsTrigger value="referrers" className="text-slate-300 data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-300">
+          <TabsTrigger value="referrers" className="text-gray-600 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
             Traffic Sources
           </TabsTrigger>
-          <TabsTrigger value="devices" className="text-slate-300 data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-300">
+          <TabsTrigger value="devices" className="text-gray-600 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
             Devices & Browsers
           </TabsTrigger>
-          <TabsTrigger value="live" className="text-slate-300 data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-300">
+          <TabsTrigger value="live" className="text-gray-600 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
             Live Feed
           </TabsTrigger>
         </TabsList>
 
         {/* Top Pages Tab */}
         <TabsContent value="pages">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white text-lg">All Pages</CardTitle>
+              <CardTitle className="text-gray-900 text-lg">All Pages</CardTitle>
             </CardHeader>
             <CardContent>
               {pagesLoading ? (
-                <div className="text-slate-400 text-center py-8">Loading...</div>
+                <div className="text-gray-500 text-center py-8">Loading...</div>
               ) : !topPages || topPages.length === 0 ? (
                 <div className="text-center py-12">
-                  <Globe className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400">No page view data yet</p>
-                  <p className="text-slate-500 text-sm mt-1">Data will appear as visitors browse your site</p>
+                  <Globe className="h-12 w-12 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500">No page view data yet</p>
+                  <p className="text-gray-500 text-sm mt-1">Data will appear as visitors browse your site</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-slate-700">
-                        <th className="text-left text-sm text-slate-400 pb-3 font-medium">Page</th>
-                        <th className="text-right text-sm text-slate-400 pb-3 font-medium">Views</th>
-                        <th className="text-right text-sm text-slate-400 pb-3 font-medium">Visitors</th>
-                        <th className="text-right text-sm text-slate-400 pb-3 font-medium hidden sm:table-cell">Bar</th>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left text-sm text-gray-500 pb-3 font-medium">Page</th>
+                        <th className="text-right text-sm text-gray-500 pb-3 font-medium">Views</th>
+                        <th className="text-right text-sm text-gray-500 pb-3 font-medium">Visitors</th>
+                        <th className="text-right text-sm text-gray-500 pb-3 font-medium hidden sm:table-cell">Bar</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -353,21 +353,21 @@ function WebTrafficAnalyticsContent() {
                         const maxViews = topPages[0]?.views || 1;
                         const pct = (page.views / maxViews) * 100;
                         return (
-                          <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/20">
+                          <tr key={i} className="border-b border-gray-200 hover:bg-gray-50">
                             <td className="py-3">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm text-white">{getPageName(page.path)}</span>
-                                <span className="text-xs text-slate-500">{page.path}</span>
+                                <span className="text-sm text-gray-900">{getPageName(page.path)}</span>
+                                <span className="text-xs text-gray-500">{page.path}</span>
                               </div>
                             </td>
-                            <td className="text-right text-sm text-white font-semibold py-3">
+                            <td className="text-right text-sm text-gray-900 font-semibold py-3">
                               {page.views.toLocaleString()}
                             </td>
-                            <td className="text-right text-sm text-slate-300 py-3">
+                            <td className="text-right text-sm text-gray-600 py-3">
                               {page.uniqueVisitors.toLocaleString()}
                             </td>
                             <td className="text-right py-3 hidden sm:table-cell w-40">
-                              <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full"
                                   style={{ width: `${pct}%` }}
@@ -387,21 +387,21 @@ function WebTrafficAnalyticsContent() {
 
         {/* Traffic Sources Tab */}
         <TabsContent value="referrers">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white text-lg flex items-center gap-2">
-                <ExternalLink className="h-5 w-5 text-blue-400" />
+              <CardTitle className="text-gray-900 text-lg flex items-center gap-2">
+                <ExternalLink className="h-5 w-5 text-blue-600" />
                 Where Visitors Come From
               </CardTitle>
             </CardHeader>
             <CardContent>
               {referrersLoading ? (
-                <div className="text-slate-400 text-center py-8">Loading...</div>
+                <div className="text-gray-500 text-center py-8">Loading...</div>
               ) : !referrers || referrers.length === 0 ? (
                 <div className="text-center py-12">
-                  <ExternalLink className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400">No referrer data yet</p>
-                  <p className="text-slate-500 text-sm mt-1">Data will appear as visitors arrive from external sources</p>
+                  <ExternalLink className="h-12 w-12 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500">No referrer data yet</p>
+                  <p className="text-gray-500 text-sm mt-1">Data will appear as visitors arrive from external sources</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -417,25 +417,25 @@ function WebTrafficAnalyticsContent() {
                         />
                         <div className="relative flex items-center justify-between p-3 rounded-lg">
                           <div className="flex items-center gap-3">
-                            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isDirect ? "bg-slate-700" : "bg-blue-500/10"}`}>
+                            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isDirect ? "bg-gray-100" : "bg-blue-500/10"}`}>
                               {isDirect ? (
-                                <ArrowUpRight className="h-4 w-4 text-slate-400" />
+                                <ArrowUpRight className="h-4 w-4 text-gray-500" />
                               ) : (
-                                <Globe className="h-4 w-4 text-blue-400" />
+                                <Globe className="h-4 w-4 text-blue-600" />
                               )}
                             </div>
                             <div>
-                              <span className="text-sm text-white font-medium">{ref.referrerDomain}</span>
+                              <span className="text-sm text-gray-900 font-medium">{ref.referrerDomain}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="text-right">
-                              <span className="text-sm text-white font-semibold">{ref.views.toLocaleString()}</span>
-                              <span className="text-xs text-slate-400 ml-1">views</span>
+                              <span className="text-sm text-gray-900 font-semibold">{ref.views.toLocaleString()}</span>
+                              <span className="text-xs text-gray-500 ml-1">views</span>
                             </div>
                             <div className="text-right">
-                              <span className="text-sm text-slate-300">{ref.uniqueVisitors.toLocaleString()}</span>
-                              <span className="text-xs text-slate-400 ml-1">visitors</span>
+                              <span className="text-sm text-gray-600">{ref.uniqueVisitors.toLocaleString()}</span>
+                              <span className="text-xs text-gray-500 ml-1">visitors</span>
                             </div>
                           </div>
                         </div>
@@ -452,9 +452,9 @@ function WebTrafficAnalyticsContent() {
         <TabsContent value="devices">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Device Types */}
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="bg-white border-gray-200">
               <CardHeader>
-                <CardTitle className="text-white text-base">Device Types</CardTitle>
+                <CardTitle className="text-gray-900 text-base">Device Types</CardTitle>
               </CardHeader>
               <CardContent>
                 {deviceBreakdown?.devices && deviceBreakdown.devices.length > 0 ? (
@@ -465,12 +465,12 @@ function WebTrafficAnalyticsContent() {
                       return (
                         <div key={i} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <DeviceIcon type={d.deviceType} className="h-4 w-4 text-slate-400" />
-                            <span className="text-sm text-white capitalize">{d.deviceType}</span>
+                            <DeviceIcon type={d.deviceType} className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-900 capitalize">{d.deviceType}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-white font-semibold">{d.count.toLocaleString()}</span>
-                            <Badge variant="outline" className="text-xs border-slate-600 text-slate-400">
+                            <span className="text-sm text-gray-900 font-semibold">{d.count.toLocaleString()}</span>
+                            <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
                               {pct}%
                             </Badge>
                           </div>
@@ -479,15 +479,15 @@ function WebTrafficAnalyticsContent() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-slate-500 text-sm text-center py-4">No data yet</p>
+                  <p className="text-gray-500 text-sm text-center py-4">No data yet</p>
                 )}
               </CardContent>
             </Card>
 
             {/* Browsers */}
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="bg-white border-gray-200">
               <CardHeader>
-                <CardTitle className="text-white text-base">Browsers</CardTitle>
+                <CardTitle className="text-gray-900 text-base">Browsers</CardTitle>
               </CardHeader>
               <CardContent>
                 {deviceBreakdown?.browsers && deviceBreakdown.browsers.length > 0 ? (
@@ -497,10 +497,10 @@ function WebTrafficAnalyticsContent() {
                       const pct = total > 0 ? ((b.count / total) * 100).toFixed(1) : "0";
                       return (
                         <div key={i} className="flex items-center justify-between">
-                          <span className="text-sm text-white">{b.browser}</span>
+                          <span className="text-sm text-gray-900">{b.browser}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-white font-semibold">{b.count.toLocaleString()}</span>
-                            <Badge variant="outline" className="text-xs border-slate-600 text-slate-400">
+                            <span className="text-sm text-gray-900 font-semibold">{b.count.toLocaleString()}</span>
+                            <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
                               {pct}%
                             </Badge>
                           </div>
@@ -509,15 +509,15 @@ function WebTrafficAnalyticsContent() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-slate-500 text-sm text-center py-4">No data yet</p>
+                  <p className="text-gray-500 text-sm text-center py-4">No data yet</p>
                 )}
               </CardContent>
             </Card>
 
             {/* Operating Systems */}
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="bg-white border-gray-200">
               <CardHeader>
-                <CardTitle className="text-white text-base">Operating Systems</CardTitle>
+                <CardTitle className="text-gray-900 text-base">Operating Systems</CardTitle>
               </CardHeader>
               <CardContent>
                 {deviceBreakdown?.os && deviceBreakdown.os.length > 0 ? (
@@ -527,10 +527,10 @@ function WebTrafficAnalyticsContent() {
                       const pct = total > 0 ? ((o.count / total) * 100).toFixed(1) : "0";
                       return (
                         <div key={i} className="flex items-center justify-between">
-                          <span className="text-sm text-white">{o.os}</span>
+                          <span className="text-sm text-gray-900">{o.os}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-white font-semibold">{o.count.toLocaleString()}</span>
-                            <Badge variant="outline" className="text-xs border-slate-600 text-slate-400">
+                            <span className="text-sm text-gray-900 font-semibold">{o.count.toLocaleString()}</span>
+                            <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
                               {pct}%
                             </Badge>
                           </div>
@@ -539,7 +539,7 @@ function WebTrafficAnalyticsContent() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-slate-500 text-sm text-center py-4">No data yet</p>
+                  <p className="text-gray-500 text-sm text-center py-4">No data yet</p>
                 )}
               </CardContent>
             </Card>
@@ -548,32 +548,32 @@ function WebTrafficAnalyticsContent() {
 
         {/* Live Feed Tab */}
         <TabsContent value="live">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white text-lg flex items-center gap-2">
+              <CardTitle className="text-gray-900 text-lg flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                 Recent Visitors
-                <span className="text-xs text-slate-400 font-normal ml-2">(auto-refreshes every 15s)</span>
+                <span className="text-xs text-gray-500 font-normal ml-2">(auto-refreshes every 15s)</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               {!recentViews || recentViews.length === 0 ? (
                 <div className="text-center py-12">
-                  <Clock className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400">No recent visits</p>
-                  <p className="text-slate-500 text-sm mt-1">Live visitor data will appear here as people browse your site</p>
+                  <Clock className="h-12 w-12 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500">No recent visits</p>
+                  <p className="text-gray-500 text-sm mt-1">Live visitor data will appear here as people browse your site</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[500px] overflow-y-auto">
                   {recentViews.map((view) => (
-                    <div key={view.id} className="flex items-center justify-between p-3 bg-slate-900/30 rounded-lg border border-slate-700/30">
+                    <div key={view.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
                       <div className="flex items-center gap-3">
-                        <DeviceIcon type={view.deviceType || "desktop"} className="h-4 w-4 text-slate-400" />
+                        <DeviceIcon type={view.deviceType || "desktop"} className="h-4 w-4 text-gray-500" />
                         <div>
-                          <span className="text-sm text-white">{getPageName(view.path)}</span>
-                          <span className="text-xs text-slate-500 ml-2">{view.path}</span>
+                          <span className="text-sm text-gray-900">{getPageName(view.path)}</span>
+                          <span className="text-xs text-gray-500 ml-2">{view.path}</span>
                           {view.referrerDomain && (
-                            <span className="text-xs text-blue-400 ml-2">
+                            <span className="text-xs text-blue-600 ml-2">
                               via {view.referrerDomain}
                             </span>
                           )}
@@ -581,16 +581,16 @@ function WebTrafficAnalyticsContent() {
                       </div>
                       <div className="flex items-center gap-3">
                         {view.browser && (
-                          <Badge variant="outline" className="text-xs border-slate-600 text-slate-400">
+                          <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
                             {view.browser}
                           </Badge>
                         )}
                         {view.os && (
-                          <Badge variant="outline" className="text-xs border-slate-600 text-slate-400">
+                          <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
                             {view.os}
                           </Badge>
                         )}
-                        <span className="text-xs text-slate-500 whitespace-nowrap">
+                        <span className="text-xs text-gray-500 whitespace-nowrap">
                           {view.createdAt ? toLocaleDateStringMT(view.createdAt) : ""}
                         </span>
                       </div>

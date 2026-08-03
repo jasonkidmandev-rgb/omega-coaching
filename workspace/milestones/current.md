@@ -44,6 +44,7 @@ Add a line before touching `server/routers.ts`, `server/db.ts`, or `drizzle/sche
 - [x] Move chat to the top of the client dashboard. `Owner: Farjad`
 - [x] Dashboard chat panel keeps polling while hidden on mobile, and polls twice at once if the drawer is then opened. `Owner: Saboor` (notes: `context.md`)
 - [x] Move Web Traffic under Team & Content. `Owner: Saboor`
+- [x] Fix the Web Traffic page rendering as a dark-theme page inside the light admin app (labels were invisible against washed-out cards). `Owner: Farjad` (notes: `task-notes.md#brand-rollout`)
 - [x] Admin dashboard: adopt the structural/styling consistency from Farjad's client-dashboard overhaul — CSS and markup only, no data, links or behaviour touched, and the admin orange accent kept per the 2026-08-02 brand-scope decision. `Owner: Saboor` (notes: `task-notes.md#admin-dashboard-consistency`)
 
 ## C. Theme

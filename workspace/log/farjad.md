@@ -4,6 +4,24 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-02 (continued, 2)
+- Spotted from a production screenshot that the Web Traffic page was rendering with
+  unreadable labels, and traced the cause rather than just darkening the text: the whole
+  page had been built as a dark-theme page while the admin app is light. Because its cards
+  were set at half opacity, they composited to mid-grey over the light background, and the
+  mid-grey labels disappeared into them. The white numbers stayed readable, which is why it
+  looked half-broken instead of obviously broken. Converted the page to the light admin
+  theme and darkened the accent icons, which had been chosen to glow on a dark card.
+- Swept every other admin page for the same problem afterwards rather than assuming it was
+  a one-off. Found none: the handful of remaining dark-background hits are all legitimate
+  (proper dark-mode variants, an active filter pill, a video letterbox). Worth noting this
+  is the second time this exact bug class has turned up as a single isolated page, after
+  the notification-templates tab earlier in the week.
+- Noted the one real trap in the fix for future passes: a blanket white-to-dark text
+  replacement also caught the deliberate white text on the orange active tab, which had to
+  be restored. Recorded in `task-notes.md`.
+- Hours: ~
+
 ## 2026-08-02 (continued)
 - Scoped the Omega Longevity theme rollout before writing any code, and narrowed it
   deliberately: the ~178 files still hardcoding colors are mostly *internal admin tool*

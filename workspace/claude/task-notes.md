@@ -57,6 +57,29 @@ priority, not really page chrome.
 Not browser-verified (no local DB); these are class-string swaps, so the risk is a
 contrast miss rather than a break. Worth a look on the deployed site.
 
+**Web Traffic page, dark-theme-in-a-light-app (Farjad, 2026-08-02, found by Farjad from a
+prod screenshot).** Separate from the client-facing batches above — this is an *admin*
+page, and the one exception to "internal admin tools keep their palette", because it
+wasn't a palette preference, it was unreadable. `WebTrafficAnalytics.tsx` was written as a
+dark-theme page (`bg-slate-800/50` cards, `text-white`, `text-slate-400` labels) but the
+admin app is light. The `/50` opacity meant the cards composited to mid-grey over the
+light page, and the mid-grey `text-slate-400` labels ("Total Page Views", "Unique
+Visitors", the "All Pages" table headers) disappeared into them. White numbers stayed
+readable, which is why it looked half-broken rather than obviously broken.
+- Converted to the light admin theme: cards `bg-white border-gray-200`, nested panels
+  `bg-gray-50`, `text-white`→`text-gray-900`, `text-slate-400`→`text-gray-500`,
+  `text-slate-300/500/600`→`text-gray-600`, table/progress-track borders to `gray-200`.
+- Also darkened the accent icons from `-300`/`-400` to `-500`/`-600`. Those shades were
+  picked to glow on a dark card and go washed out on white.
+- Gotcha: a blanket `text-white`→`text-gray-900` replace also hit the
+  `data-[state=active]:text-white` on the tab triggers (white-on-orange, correct), which
+  had to be put back. Check for intentional `text-white` on *coloured* backgrounds before
+  bulk-replacing it.
+- Swept the other admin pages for the same bug afterwards: none. The four hits for dark
+  backgrounds are all legitimate (`dark:` variants in `PaymentHistory`/`Inventory`, an
+  active filter pill in `Enrollments`, a video letterbox in `Chat`). This page was the
+  only one, same as `NotificationTemplates` was the only outlier in the settings tabs.
+
 ---
 
 ## hard-reloads
