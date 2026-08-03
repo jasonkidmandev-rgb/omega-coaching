@@ -15,8 +15,12 @@ app review.
 ## M2 — Declutter + chat (Week 2)
 - [x] Remove unused admin pages (AuditLogs, ContactAdmin, DataIntegrityAudit,
       EmailEngagement, OnboardingManager).
-- [ ] Delete the now-orphaned `dataIntegrityAudit` tRPC procedure (dead code, zero
-      frontend callers, left behind by the page removal above).
+- [x] Delete the now-orphaned `dataIntegrityAudit` tRPC procedure (dead code, zero
+      frontend callers, left behind by the page removal above). `Saboor`
+- [ ] Three more orphans in the same `server/contacts/router.ts`: `updateContact`,
+      `fixMismatch`, `fixAllMismatches` — no UI calls any of them (`trpc.contacts.list`
+      is the only one used). Two are write endpoints, so removing them is a decision,
+      not a tidy-up. `Owner: ___`
 - [ ] Remove Notification Analysis (Jason, 2026-07-31: it's developer reference
       documentation, not an admin tool — see `decisions.md`).
 - [x] Drop 14 dead database tables; archive 33 dead scripts.

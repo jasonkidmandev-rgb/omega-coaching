@@ -66,6 +66,19 @@ each day, so Farjad and both Claude sessions can see progress.
   with no argument; they only lose that same flash. Flagged because it touches the sidebar.
 - Checked rather than assumed: `ui/drawer.tsx` uses a Radix portal with no `forceMount`, so
   drawer content really does unmount when closed.
+- **Deleted the orphaned `dataIntegrityAudit` procedure** (M2 item). It lived in
+  `server/contacts/router.ts` and was left behind when the Data Integrity Audit admin page
+  was removed. 270 lines. Nothing called it — the whole UI uses only `trpc.contacts.list`.
+  Also dropped 10 schema imports that became unused, and corrected the file's header
+  comment, which still described the audit.
+- Ratchet **712 -> 702**: the dead code was carrying 10 tolerated type errors.
+- ⚠️ **Three more orphans in the same file, left alone and logged:** `updateContact`,
+  `fixMismatch`, `fixAllMismatches`. No UI calls them either. Two are write endpoints that
+  re-sync a contact's data across linked tables, so deleting them is a decision rather than
+  a tidy-up — added to `all-milestones.md` unowned.
+- Watch out when grepping for these: `PricingTab.tsx` has a `fixMismatchMutation`, but it
+  calls `trpc.payment.fixPaymentMismatch` — a different procedure in the payment router.
+  Only the local variable name looks similar.
 - **Moved the Web Traffic sidebar link.** It was under "Marketing & Outreach"; it now sits
   under "Team & Content" in the "Data & Admin Tools" group next to Workflow Templates.
   One line moved in `client/src/components/AdminLayout.tsx` — the page itself and its route
