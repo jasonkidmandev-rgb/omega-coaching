@@ -15,8 +15,8 @@ Two developers, **Farjad** and **Saboor**, build this app together, both pushing
   conflicting migrations never hit prod.
 - **Announce before editing a god-file.** The big shared files are
   `server/routers.ts` (~9.6k lines), `server/db.ts` (~9.2k), `drizzle/schema.ts`
-  (~169 tables), `server/emailService.ts` (~4.9k). Add a claim line in
-  `workspace/milestones/current.md` first. Two people in these at once means merge pain.
+  (~169 tables), `server/emailService.ts` (~4.9k). Add a claim line in the active
+  milestone file first. Two people in these at once means merge pain.
 - **main is always deployable.** Hide half-done work behind a flag (`shared/flags.ts`)
   rather than leaving main broken.
 - **Type safety:** the build skips type-checking. A GitHub Action runs
@@ -33,8 +33,9 @@ Two developers, **Farjad** and **Saboor**, build this app together, both pushing
 ## Coordination lives in `workspace/`
 - `workspace/README.md`, how the folder works (read this).
 - `workspace/milestones/all-milestones.md`, the whole plan.
-- `workspace/milestones/current.md`, the active milestone's tasks. Pick one, mark it
-  with your name.
+- `workspace/milestones/m<N>.md`, one file per milestone. **The active one is `m2.md`**;
+  it holds this milestone's tasks. Pick one, mark it with your name. A closed milestone
+  keeps its own file, and anything left open in it stays there.
 - `workspace/claude/context.md`, shared project context + findings for both Claude
   sessions. Read it at the start; add discoveries there.
 - `workspace/log/<name>.md`, each dev's daily log (edit only your own).
@@ -42,12 +43,12 @@ Two developers, **Farjad** and **Saboor**, build this app together, both pushing
 
 ## Keeping the workspace current (do this automatically)
 As you work, keep `workspace/` up to date without being asked:
-- At the start of work, read `workspace/milestones/current.md` and
+- At the start of work, read the active milestone file (`workspace/milestones/m2.md`) and
   `workspace/claude/context.md`.
-- When you finish a task, tick its box in `current.md`.
-- **If the dev starts on something not already listed in `current.md`, add it** (under
-  the right section, marked done/in-progress with their name as Owner) rather than
-  leaving it untracked. This applies to both devs, automatically, without being asked.
+- When you finish a task, tick its box in the active milestone file.
+- **If the dev starts on something not already listed there, add it** (under the right
+  section, marked done/in-progress with their name as Owner) rather than leaving it
+  untracked. This applies to both devs, automatically, without being asked.
 - When you discover something reusable (a root cause, a gotcha, a decision), append it
   to `workspace/claude/context.md` (Findings) or `workspace/decisions.md`.
 - Log the day's work in the active dev's `workspace/log/<name>.md`, including any

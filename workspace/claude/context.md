@@ -15,7 +15,8 @@ Old prod on Manus (peptidecoach.pro); new prod on Railway (humanedge.health). Re
 PeptideCoach -> HumanEdge. The app is the source of truth; external funnels feed in.
 
 ## Structure warnings (conflict + navigation hotspots)
-- God-files (announce before editing, see current.md claim board): `server/routers.ts`
+- God-files (announce before editing, see the claim board in the active milestone file,
+  currently `m2.md`): `server/routers.ts`
   (~9.6k lines), `server/db.ts` (~9.2k, ~500 exported fns), `drizzle/schema.ts`
   (~169 tables), `server/emailService.ts` (~4.9k).
 - Nav: the whole-app re-render on every admin navigation is FIXED (commit 5273297).
@@ -57,7 +58,7 @@ The gate is the existing choke point, renamed `isStaging()` → `sideEffectsDisa
   `markRead`, `unreadCount` (`server/routers.ts:3272-3414`) — are `publicProcedure`
   (`server/_core/trpc.ts:12`, no session check at all), unlike the sibling `inboxRouter`
   which correctly uses `adminProcedure`/`protectedProcedure`. This is the same bug class
-  as the "6 unauthenticated endpoints" fixed 2026-07-29 (`current.md` D) — this one is a
+  as the "6 unauthenticated endpoints" fixed 2026-07-29 (`m1.md` D) — this one is a
   7th that the earlier sweep missed.
   - `clientProtocolId` is a small sequential integer, visible in plain admin URLs
     (`/admin/chat/123`), and the messages it resolves to aren't even scoped to one
@@ -76,7 +77,7 @@ The gate is the existing choke point, renamed `isStaging()` → `sideEffectsDisa
   - Fix shape: swap `publicProcedure` → `protectedProcedure` (staff) is not enough alone,
     since clients (not just staff) legitimately call these — needs a token/ownership check
     on the client-facing call path specifically, mirroring how `clientProtocol.getByToken`
-    already validates. Not yet fixed; flagged in `current.md` D, owner unassigned.
+    already validates. Since fixed by Saboor — see the ticked line in `m1.md` D.
 - **One shared chat system, five UI surfaces, not five separate chats.** "Universal chat"
   in the milestone docs isn't a distinct feature — it's the informal name for the one
   `protocolComments` table + `commentsRouter`, threaded by `personId`/`contactId` so a

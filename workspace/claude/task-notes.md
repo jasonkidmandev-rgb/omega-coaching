@@ -1,11 +1,11 @@
 # Task notes (Claude-only reference)
 
-Implementation detail behind `milestones/current.md` tasks — the stuff that makes
-`current.md` unreadable if it lives inline. Nobody needs to read this file to know what's
-left to do; `current.md` is for that. This is where the trail lives so the next Claude
-session (or a human who wants the detail) can find it. Referenced from `current.md` as
-`task-notes.md#<heading>`. No structure requirements — append under the relevant heading,
-add a new one if a task needs it.
+Implementation detail behind the milestone tasks (`milestones/m1.md`, `m2.md`, …) — the
+stuff that makes those files unreadable if it lives inline. Nobody needs to read this
+file to know what's left to do; the active milestone file is for that. This is where the
+trail lives so the next Claude session (or a human who wants the detail) can find it.
+Referenced from a milestone file as `task-notes.md#<heading>`. No structure requirements
+— append under the relevant heading, add a new one if a task needs it.
 
 ---
 
@@ -280,10 +280,10 @@ two things:
 **Not done / left open:**
 - No local `.env` and no client-role login available to this session, so none of this
   could be visually verified in a browser — only reviewed as a diff. Needs a real
-  browser pass before calling it done (see the QA line added in `current.md`).
+  browser pass before calling it done (see the QA line added in `m1.md`).
 - This is a targeted fix, not the "overhaul" Jason asked for. A real overhaul (layout,
   information architecture, what's actually useful vs noise on this page) needs either
-  design direction or a scoping conversation — flagged back to `current.md` as `[~]` in
+  design direction or a scoping conversation — flagged back to `m1.md` as `[~]` in
   progress, not `[x]`.
 - Didn't touch: the still-present quickLinks "Messages" tile (kept, it's a legitimate
   quick action, not a duplicate of the new top card), the overall page density (still

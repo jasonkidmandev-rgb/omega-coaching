@@ -24,7 +24,7 @@ import { useAuth } from "../../_core/hooks/useAuth";
  *
  * `Templates` (protocol templates) is intentionally NOT here despite being on the M1 list:
  * it has `/new` and `/:id` sub-routes, so it's a CRUD area rather than a settings panel and
- * folding it in would mean nesting a router inside a tab. Flagged in current.md.
+ * folding it in would mean nesting a router inside a tab. Flagged in workspace m1.md.
  */
 
 const SiteSettings = lazyWithRetry(() => import("./Settings"));

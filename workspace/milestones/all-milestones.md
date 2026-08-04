@@ -1,49 +1,27 @@
 # HumanEdge — Launch Milestones (target ~Aug 12)
 
 Roughly one milestone per week. Farjad ~40h billed + planning, Saboor full-time. When a
-new requirement appears, add it under the most relevant milestone here (and into
-`current.md` too if it belongs in the active one).
+new requirement appears, add it under the most relevant milestone here (and into the
+active milestone's own file too if it belongs there).
 
-Status refreshed 2026-07-30. Legend: `[x]` done · `[~]` partial/in progress · `[ ]` open.
+Each milestone gets its own file once it starts: `m1.md`, `m2.md`, and so on. The active
+one is **`m2.md`**.
 
-## M1 — Stabilize, declutter nav, align theme (Week 1) [ACTIVE]
-Full task list lives in `current.md`. Summary: navigation stability and back-buttons are
-mostly done; what's left is the settings-tabs QA pass, extending the brand/theme across
-the rest of the admin app, and a handful of correctness fixes found during the initial
-app review.
+Status refreshed 2026-08-04. Legend: `[x]` done · `[~]` partial/in progress · `[ ]` open.
 
-## M2 — Declutter + chat (Week 2)
-- [x] Remove unused admin pages (AuditLogs, ContactAdmin, DataIntegrityAudit,
-      EmailEngagement, OnboardingManager).
-- [x] Delete the now-orphaned `dataIntegrityAudit` tRPC procedure (dead code, zero
-      frontend callers, left behind by the page removal above). `Saboor`
-- [ ] Three more orphans in the same `server/contacts/router.ts`: `updateContact`,
-      `fixMismatch`, `fixAllMismatches` — no UI calls any of them (`trpc.contacts.list`
-      is the only one used). Two are write endpoints, so removing them is a decision,
-      not a tidy-up. `Owner: ___`
-- [ ] Remove Notification Analysis (Jason, 2026-07-31: it's developer reference
-      documentation, not an admin tool — see `decisions.md`).
-- [x] Drop 14 dead database tables; archive 33 dead scripts.
-- [x] Trim the Launchpad hub page to Jason's keep list; send Trusted Partners and
-      Coaching Plans out to omegalongevity.com.
-- [ ] Remove Programs (from settings and the protocol build).
-- [ ] Remove Masterclass Videos; link out to the GHL masterclass instead.
-- [ ] Remove Affiliate Partners (verify first it isn't wired into protocol building).
-- [ ] Remove Daily Tools.
-- [ ] Remove payment reminders from the protocol build.
-- [ ] Export the peptide cheat sheet as an image; link out to Omega Elite.
-- [ ] Simplify email branding; decide the fate of Email Preview (see `decisions.md`).
-- [ ] Remove redundant/duplicate views.
-- [~] Finish the Team → People rename and per-person roles.
-- [x] Fix chat formatting (spacing and lists).
-- [ ] Support editing messages in chat.
-- [ ] Support deleting a sent chat message, coach or client side (moved from M1,
-      2026-08-01 — not urgent enough for the active milestone).
-- [ ] Fix chat photo uploads.
-- [ ] Basic to-do / action-item capability.
-- [ ] Client protocol page overhaul, same treatment the client dashboard got in M1:
-      audit the whole page, cut what's redundant or unused, tidy the layout. It's the
-      second most-visited client page. Added 2026-08-04. `Owner: Farjad`
+## M1 — Stabilize, declutter nav, align theme (Week 1) [CLOSED 2026-08-04]
+Full task list lives in `m1.md`. Delivered and billed as order #1: navigation and back
+buttons, the settings consolidation and QA pass, the client dashboard overhaul, and the
+client-facing brand rollout (~38 pages, browser-verified). Six items were deliberately
+left open in `m1.md` rather than carried forward — the `users.list` exposure, two
+environment/tooling chores, a manual auth browser pass, and the testing handoff.
+
+## M2 — Declutter + chat (Week 2) [ACTIVE]
+Full task list lives in `m2.md`. Summary: work through Jason's removal list (Notification
+Analysis, Programs, Masterclass Videos, Affiliate Partners, Daily Tools, protocol-build
+payment reminders, duplicate views), the chat feature work (edit, delete, photo uploads,
+basic to-dos), the client protocol page overhaul, the email-branding simplification, and
+finishing the Team → People rename.
 
 ## M3 — Core workflows and accurate data (Week 3)
 - [x] Handle client-buys vs we-ship correctly in the protocol build.

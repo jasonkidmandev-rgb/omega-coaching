@@ -5,6 +5,26 @@ report to Jason/Vilma, and the timesheet. Written as one natural list of the day
 (planning/direction and build woven together).
 
 ## 2026-08-04
+- Closed M1 and opened M2. Reviewed what was still unticked in M1 and decided deliberately
+  **not** to carry it forward: one security item (`users.list` shipping all 79 user rows
+  to the browser), two environment/tooling chores, a manual auth browser pass, and the
+  testing handoff. They stay parked in `m1.md` to be picked up when there's room, rather
+  than inflating M2's scope on day one with work that isn't this week's theme.
+- Reorganised the milestone docs to match. `current.md` was a moving target that lost its
+  history every week, so each milestone now gets its own permanent file (`m1.md`, `m2.md`,
+  …) and `all-milestones.md` records which one is active. That way a closed milestone
+  keeps its own record, including whatever was left open in it. Updated every pointer that
+  referred to `current.md` (root `CLAUDE.md`, `workspace/README.md`, `task-notes.md`,
+  `context.md`, plus a stale code comment in `SettingsHub.tsx`), phrasing them as "the
+  active milestone file" so the next rollover is a one-line change instead of another
+  sweep.
+- Also corrected a stale note in `context.md` that still described the unauthenticated
+  chat backend as unfixed; Saboor closed it and the milestone file already showed it done.
+- Built `m2.md` out of the M2 section of the plan, grouped so the work is pickable:
+  removals from Jason's go list, chat features, the client protocol overhaul, content and
+  email, the People rename, and backend cleanup. Noted on the removals that each needs an
+  "is anything still wired into this?" check first, since the protocol build reaches into
+  Programs, Affiliate Partners and payment reminders.
 - Browser-verified the whole client-facing brand rollout on the deployed site, all three
   batches, roughly 38 pages. No contrast misses or broken layouts. That closes the one
   caveat that had been carried on this work since batch 1, so the rollout is now confirmed
