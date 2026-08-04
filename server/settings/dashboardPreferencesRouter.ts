@@ -21,6 +21,10 @@ export const DEFAULT_WIDGETS = [
   { key: "emailClickRates", label: "Client Click-Through Rates", description: "Track which links clients click", defaultVisible: true },
   { key: "followUpEmails", label: "Clients Awaiting Follow-Up", description: "Clients who need follow-up emails", defaultVisible: true },
   { key: "unmappedItems", label: "Top Unmapped Protocol Items", description: "Items needing inventory mapping", defaultVisible: true },
+  // Was missing from this list while the dashboard checked for it, so the enrollment
+  // pipeline and its overdue-deadline alert were permanently on and absent from the
+  // Customize panel. isWidgetVisible() defaults an unknown key to true, which hid the bug.
+  { key: "enrollmentPipeline", label: "Coaching Enrollment Pipeline", description: "Enrollment funnel, pending intake forms and overdue alerts", defaultVisible: true },
   { key: "recentClients", label: "Recent Client Protocols", description: "Latest client protocols you've created", defaultVisible: true },
 ];
 

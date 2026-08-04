@@ -3,8 +3,23 @@ import { DEFAULT_WIDGETS, DEFAULT_WIDGET_ORDER, DEFAULT_VISIBILITY } from "./set
 
 describe("Dashboard Preferences", () => {
   describe("Default Configuration", () => {
-    it("should have 10 default widgets", () => {
-      expect(DEFAULT_WIDGETS).toHaveLength(10);
+    it("should have 11 default widgets", () => {
+      expect(DEFAULT_WIDGETS).toHaveLength(11);
+    });
+
+    // enrollmentPipeline was checked by the dashboard but missing from this list, so the
+    // enrollment funnel and its overdue alert could never be switched off and never
+    // appeared in the Customize panel. isWidgetVisible() treats an unknown key as visible,
+    // which is why nothing looked broken. A bare length check would not have caught it.
+    it("registers every widget the dashboard renders", () => {
+      const keys = DEFAULT_WIDGETS.map(w => w.key);
+      for (const required of [
+        "myProtocol", "todaysTasks", "protocolHub", "clientOverview", "quickActions",
+        "emailOpenRates", "emailClickRates", "followUpEmails", "unmappedItems",
+        "enrollmentPipeline", "recentClients",
+      ]) {
+        expect(keys).toContain(required);
+      }
     });
 
     it("should have all required widget properties", () => {

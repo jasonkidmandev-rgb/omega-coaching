@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT, toLocaleTimeStringMT } from "@/lib/timezone";
-import { Users, FileText, Package, CheckCircle, Clock, AlertCircle, Link2, AlertTriangle, MessageSquare, Calendar, ArrowRight, Mail, MailOpen, TrendingUp, MousePointer, ExternalLink, ListTodo, Send, DollarSign, User, Sparkles, Info, Settings, Eye, EyeOff, RotateCcw, GripVertical, X, Gift, Trophy, Medal, ClipboardList, UserCheck, UserX } from "lucide-react";
+import { Users, FileText, Package, CheckCircle, Clock, AlertCircle, Link2, AlertTriangle, MessageSquare, Calendar, ArrowRight, Mail, MailOpen, TrendingUp, MousePointer, ExternalLink, ListTodo, Send, DollarSign, User, Sparkles, Info, Settings, Eye, EyeOff, RotateCcw, X, Gift, Trophy, Medal, ClipboardList, UserCheck, UserX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -11,6 +11,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+// recharts is already used by CheckinReview, CheckinSummaryTab and the client Metrics page.
+// The older email chart further down this file is hand-rolled divs; new charts use this.
+import { LineChart, Line, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -26,6 +29,9 @@ export default function AdminDashboard() {
   // referral leaderboard removed - referral system cleaned up
   const { data: enrollmentStats, refetch: refetchEnrollmentStats } = trpc.transformation.getEnrollmentCompletionStats.useQuery();
   const { data: dashboardPrefs, refetch: refetchPrefs } = trpc.dashboardPreferences.get.useQuery();
+  // One query for revenue + the 6-month trend. getSummary and getMonthlyTrends would each
+  // re-scan all three payment sources; this does that work once.
+  const { data: dashboardMetrics } = trpc.paymentHistory.getDashboardMetrics.useQuery();
   const { user: currentUser } = useAuth();
   
   const updateVisibilityMutation = trpc.dashboardPreferences.updateVisibility.useMutation({
@@ -107,6 +113,20 @@ export default function AdminDashboard() {
     protocolItems: items?.length || 0,
   };
 
+  // Revenue is the only figure with real history behind it, so it is the only tile that
+  // gets a trend line and a comparison. The other three are point-in-time counts — the app
+  // stores no daily snapshot of them, and inventing a trend for a number we cannot actually
+  // track over time would be worse than showing none.
+  const revenue = dashboardMetrics?.data;
+  const revenueThisMonth = revenue?.currentMonthRevenue ?? 0;
+  const revenueLastMonth = revenue?.previousMonthRevenue ?? 0;
+  const revenueChangePct =
+    revenueLastMonth > 0
+      ? Math.round(((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100)
+      : null;
+  const money = (n: number) =>
+    n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
   return (
     <>
       <div className="space-y-4 md:space-y-8">
@@ -127,7 +147,7 @@ export default function AdminDashboard() {
                 <span className="hidden sm:inline">Customize</span>
               </Button>
             </SheetTrigger>
-            <SheetContent className="w-[400px] sm:w-[540px]">
+            <SheetContent className="w-[400px] sm:w-[540px] flex flex-col overflow-y-auto">
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5" />
@@ -138,20 +158,23 @@ export default function AdminDashboard() {
                 </SheetDescription>
               </SheetHeader>
               
-              <div className="mt-6 space-y-4">
-                <div className="flex justify-end">
-                  <Button 
-                    variant="ghost" 
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">
+                    Changes save as you make them.
+                  </p>
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => resetPrefsMutation.mutate()}
                     disabled={resetPrefsMutation.isPending}
-                    className="text-muted-foreground"
+                    className="text-muted-foreground shrink-0"
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset to Defaults
                   </Button>
                 </div>
-                
+
                 <div className="space-y-3">
                   {dashboardPrefs?.widgets?.map((widget) => (
                     <div 
@@ -159,7 +182,6 @@ export default function AdminDashboard() {
                       className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
                         <div>
                           <p className="font-medium text-sm">{widget.label}</p>
                           <p className="text-xs text-muted-foreground">{widget.description}</p>
@@ -172,12 +194,6 @@ export default function AdminDashboard() {
                       />
                     </div>
                   ))}
-                </div>
-                
-                <div className="pt-4 border-t">
-                  <p className="text-xs text-muted-foreground text-center">
-                    Your preferences are saved automatically
-                  </p>
                 </div>
               </div>
             </SheetContent>
@@ -254,80 +270,95 @@ export default function AdminDashboard() {
           </Card>
         )}
 
-        {/* Client Overview Stats - with clear label */}
+        {/* Metrics strip — the "is anything wrong?" row. Compact on purpose: this is the
+            first thing on the page and should be readable without scrolling. Templates was
+            dropped from here; it is a configuration count, not a business metric. */}
         {isWidgetVisible("clientOverview") && (
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Users className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold">Client Overview</h2>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Statistics for all your clients' protocols</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-4">
-              <Card
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setLocation("/admin/clients")}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
-                  <CardTitle className="text-xs md:text-sm font-medium">Total Clients</CardTitle>
-                  <Users className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 md:p-6 pt-0">
-                  <div className="text-xl md:text-2xl font-bold">{stats.totalClients}</div>
-                  <p className="text-[10px] md:text-xs text-muted-foreground">Active protocols</p>
-                </CardContent>
-              </Card>
+          <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-4">
+            {/* Revenue — the only tile with real history, so the only one with a trend. */}
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setLocation("/admin/payment-history")}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3 md:px-4 md:pt-4">
+                <CardTitle className="text-xs md:text-sm font-medium">Revenue this month</CardTitle>
+                <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="p-3 md:px-4 md:pb-4 pt-0">
+                <div className="text-xl md:text-2xl font-bold">{money(revenueThisMonth)}</div>
+                {revenueChangePct === null ? (
+                  <p className="text-[10px] md:text-xs text-muted-foreground">No revenue last month to compare</p>
+                ) : (
+                  <p className={`text-[10px] md:text-xs ${revenueChangePct >= 0 ? "text-green-600" : "text-red-600"}`}>
+                    {revenueChangePct >= 0 ? "▲" : "▼"} {Math.abs(revenueChangePct)}% vs last month
+                  </p>
+                )}
+                {revenue?.trend && revenue.trend.length > 0 && (
+                  <div className="h-10 mt-2 -mx-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={revenue.trend}>
+                        <RechartsTooltip
+                          cursor={false}
+                          contentStyle={{ fontSize: "12px", padding: "4px 8px" }}
+                          formatter={(value: any) => [money(Number(value)), "Revenue"]}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="#f59e0b"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-              <Card 
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setLocation("/admin/clients?status=pending_approval")}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
-                  <CardTitle className="text-xs md:text-sm font-medium">Pending</CardTitle>
-                  <Clock className="h-3 w-3 md:h-4 md:w-4 text-amber-500" />
-                </CardHeader>
-                <CardContent className="p-3 md:p-6 pt-0">
-                  <div className="text-xl md:text-2xl font-bold text-amber-600">{stats.pendingApproval}</div>
-                  <p className="text-[10px] md:text-xs text-muted-foreground">Awaiting review</p>
-                </CardContent>
-              </Card>
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setLocation("/admin/clients")}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3 md:px-4 md:pt-4">
+                <CardTitle className="text-xs md:text-sm font-medium">Active clients</CardTitle>
+                <Users className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="p-3 md:px-4 md:pb-4 pt-0">
+                <div className="text-xl md:text-2xl font-bold">{stats.totalClients}</div>
+                <p className="text-[10px] md:text-xs text-muted-foreground">{stats.approved} approved or active</p>
+              </CardContent>
+            </Card>
 
-              <Card 
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setLocation("/admin/clients?status=approved")}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
-                  <CardTitle className="text-xs md:text-sm font-medium">Approved</CardTitle>
-                  <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
-                </CardHeader>
-                <CardContent className="p-3 md:p-6 pt-0">
-                  <div className="text-xl md:text-2xl font-bold text-green-600">{stats.approved}</div>
-                  <p className="text-[10px] md:text-xs text-muted-foreground">Ready</p>
-                </CardContent>
-              </Card>
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setLocation("/admin/clients?status=pending_approval")}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3 md:px-4 md:pt-4">
+                <CardTitle className="text-xs md:text-sm font-medium">Awaiting approval</CardTitle>
+                <Clock className="h-3 w-3 md:h-4 md:w-4 text-amber-500" />
+              </CardHeader>
+              <CardContent className="p-3 md:px-4 md:pb-4 pt-0">
+                <div className="text-xl md:text-2xl font-bold text-amber-600">{stats.pendingApproval}</div>
+                <p className="text-[10px] md:text-xs text-muted-foreground">Clients yet to review</p>
+              </CardContent>
+            </Card>
 
-              <Card
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setLocation("/admin/templates")}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
-                  <CardTitle className="text-xs md:text-sm font-medium">Templates</CardTitle>
-                  <FileText className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 md:p-6 pt-0">
-                  <div className="text-xl md:text-2xl font-bold">{stats.templates}</div>
-                  <p className="text-[10px] md:text-xs text-muted-foreground">Templates</p>
-                </CardContent>
-              </Card>
-            </div>
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setLocation("/admin/enrollments")}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3 md:px-4 md:pt-4">
+                <CardTitle className="text-xs md:text-sm font-medium">Overdue intake</CardTitle>
+                <AlertTriangle className={`h-3 w-3 md:h-4 md:w-4 ${(enrollmentStats?.overdueCount ?? 0) > 0 ? "text-red-500" : "text-muted-foreground"}`} />
+              </CardHeader>
+              <CardContent className="p-3 md:px-4 md:pb-4 pt-0">
+                <div className={`text-xl md:text-2xl font-bold ${(enrollmentStats?.overdueCount ?? 0) > 0 ? "text-red-600" : ""}`}>
+                  {enrollmentStats?.overdueCount ?? 0}
+                </div>
+                <p className="text-[10px] md:text-xs text-muted-foreground">Past 10 days</p>
+              </CardContent>
+            </Card>
           </div>
         )}
 

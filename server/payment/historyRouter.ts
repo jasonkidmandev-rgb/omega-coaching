@@ -593,4 +593,82 @@ export const paymentHistoryRouter = router({
       };
     }
   }),
+
+  /**
+   * Revenue figures + a 6-month trend for the admin dashboard, from ONE pass over the
+   * payment sources.
+   *
+   * getSummary and getMonthlyTrends each fetch protocol + coaching + store payments and
+   * filter in JS. The dashboard needs both, and calling them separately would mean six
+   * full fetches on every dashboard load, on top of the ten queries that page already
+   * runs. Those two are left untouched because the Payment History page uses them.
+   *
+   * Deliberately narrow: only what the dashboard's revenue tile shows. It is not a
+   * replacement for getSummary.
+   */
+  getDashboardMetrics: adminProcedure.query(async () => {
+    try {
+      const [protocolPayments, coachingPayments, storePayments] = await Promise.all([
+        getProtocolPayments(),
+        getCoachingFeePayments(),
+        getStoreOrderPayments(),
+      ]);
+
+      const paid = [...protocolPayments, ...coachingPayments, ...storePayments]
+        .filter(p => p.paymentStatus === 'paid');
+
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+      let totalRevenue = 0;
+      let currentMonthRevenue = 0;
+      let previousMonthRevenue = 0;
+
+      for (const payment of paid) {
+        const amount = payment.amount ?? 0;
+        totalRevenue += amount;
+        const when = payment.paymentDate;
+        if (!when) continue;
+        if (when >= currentMonthStart) {
+          currentMonthRevenue += amount;
+        } else if (when >= previousMonthStart && when <= previousMonthEnd) {
+          previousMonthRevenue += amount;
+        }
+      }
+
+      // Last 6 months, oldest first, so the sparkline reads left to right.
+      const trend: Array<{ month: string; revenue: number }> = [];
+      for (let i = 5; i >= 0; i--) {
+        const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+        const monthRevenue = paid
+          .filter(p => p.paymentDate && p.paymentDate >= monthStart && p.paymentDate <= monthEnd)
+          .reduce((sum, p) => sum + (p.amount ?? 0), 0);
+        trend.push({
+          month: monthStart.toLocaleDateString('en-US', {
+            timeZone: 'America/Denver',
+            month: 'short',
+          }),
+          revenue: Math.round(monthRevenue * 100) / 100,
+        });
+      }
+
+      const round = (n: number) => Math.round(n * 100) / 100;
+
+      return {
+        success: true,
+        data: {
+          totalRevenue: round(totalRevenue),
+          currentMonthRevenue: round(currentMonthRevenue),
+          previousMonthRevenue: round(previousMonthRevenue),
+          trend,
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching dashboard metrics:", error);
+      return { success: false, error: "Failed to fetch dashboard metrics", data: null };
+    }
+  }),
 });
