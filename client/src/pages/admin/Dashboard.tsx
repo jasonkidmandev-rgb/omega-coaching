@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT, toLocaleTimeStringMT } from "@/lib/timezone";
-import { Plus, Users, FileText, Package, CheckCircle, Clock, AlertCircle, Link2, AlertTriangle, MessageSquare, Calendar, ArrowRight, Mail, TrendingUp, ExternalLink, ListTodo, Send, DollarSign, User, Sparkles, Info, Settings, RotateCcw, X, Gift, Trophy, Medal, ClipboardList, UserCheck, UserX } from "lucide-react";
+import { Plus, Users, FileText, Package, CheckCircle, Clock, AlertCircle, Link2, AlertTriangle, MessageSquare, Calendar, ArrowRight, Mail, TrendingUp, ExternalLink, ListTodo, Send, DollarSign, User, Info, Settings, RotateCcw, X, Gift, Trophy, Medal, ClipboardList, UserCheck, UserX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
             tracking pipeline is kept at all (see decisions.md). If it goes, this row goes
             with it. */}
         {isWidgetVisible("emailActivity") && (emailAnalytics || clickAnalytics) && (
-          <Card>
+          <Card className="h-full">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <TrendingUp className="h-5 w-5 text-muted-foreground" />
@@ -438,7 +438,7 @@ export default function AdminDashboard() {
           </div>
           <div className="lg:col-span-2">
         {isWidgetVisible("enrollmentPipeline") && enrollmentStats && (
-          <Card>
+          <Card className="h-full">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -539,29 +539,22 @@ function MyProtocolSection({
   if (!currentUser) return null;
 
   return (
-    <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 border-2">
+    <Card className="h-full bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 border-2">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <User className="h-6 w-6 text-white" />
+          <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
+            <User className="h-5 w-5 text-white" />
           </div>
-          <div className="flex-1">
-            <CardTitle className="flex items-center gap-2">
-              My Protocol
-              <Badge variant="secondary" className="bg-violet-100 text-violet-700">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Quick Access
-              </Badge>
-            </CardTitle>
-            <CardDescription>
-              Your personal protocol as {currentUser.email}
-            </CardDescription>
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-lg">My Protocol</CardTitle>
+            {/* The signed-in email used to be repeated here; it is already the account you
+                are logged in as, and the row below names the protocol. */}
           </div>
         </div>
       </CardHeader>
       <CardContent>
         {myProtocol ? (
-          <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-violet-100">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white rounded-lg border border-violet-100">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                 <span className="text-violet-700 font-semibold">

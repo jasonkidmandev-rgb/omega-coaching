@@ -55,6 +55,17 @@ each day, so Farjad and both Claude sessions can see progress.
   Activity, so that column carries two evenly-sized cards against the enrollment pipeline
   on the right. The column is a flex stack with `[&>*]:flex-1` and the grid is
   `items-stretch`, so both cards split whatever height the pipeline sets.
+- **Evened out the dashboard row after seeing it deployed.** Two causes, both mine:
+  the pipeline `Card` had no `h-full`, so it sat at its own content height inside a
+  stretched wrapper while the taller left column set the row height — leaving ~135px of
+  dead space beside My Protocol. And My Protocol was bulkier than its content warranted
+  (48px icon, a "Quick Access" badge, and a line repeating the email you are already
+  signed in as). All three cards now fill their column and My Protocol is slimmer.
+- ⚠️ **Correction to my own report:** I told Saboor the intake-count fix had not been
+  applied because the tool call was interrupted. It had — the script ran before the
+  interruption hit. The deployed screenshot proves it: Intake outstanding 8 + Intake done
+  20 = 28, which is the whole table. I should have checked the file instead of assuming.
+- The deploy is working again; the earlier ghcr.io failure was transient on Railway's side.
 - ⚠️ **The Railway deploy of `ada3d74` failed** — their build daemon could not pull its own
   base image from ghcr.io (`failed to authorize ... denied`). Nothing to do with our code:
   `railway.toml` only says `builder = "nixpacks"` and pins no image. This is why the site
