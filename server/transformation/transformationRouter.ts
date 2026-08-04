@@ -4154,6 +4154,18 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
       `);
       const overdueEnrollments = ((overdueResult[0] as unknown) as any[]) || [];
 
+      // The list above is LIMIT 20 for display. Counting its rows therefore caps the
+      // number at 20 — the dashboard was reporting "20 overdue" when the real figure was
+      // 28. Count separately so the number is the number.
+      const overdueCountResult = await database.execute(sql`
+        SELECT COUNT(*) as n
+        FROM transformation_enrollments e
+        WHERE e.status NOT IN ('completed', 'renewed', 'active', 'launched')
+          AND e.enrolledAt IS NOT NULL
+          AND e.enrolledAt < DATE_SUB(NOW(), INTERVAL 10 DAY)
+      `);
+      const overdueTotal = Number((((overdueCountResult[0] as unknown) as any[])[0]?.n) || 0);
+
       // Get enrollments needing intake form reminders (paid but no intake form)
       const pendingIntakeResult = await database.execute(sql`
         SELECT e.id, COALESCE(u.name, e.clientName, 'Unknown') as clientName,
@@ -4188,7 +4200,7 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
         statusCompleted: Number(stats.statusCompleted || 0),
         pendingIntake,
         overdueEnrollments,
-        overdueCount: overdueEnrollments.length,
+        overdueCount: overdueTotal,
       };
     }),
 

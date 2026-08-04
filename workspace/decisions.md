@@ -18,6 +18,13 @@ and the reason.
   chat outage. The longer we wait, the longer that risk sits there.
 
 ## Open — needs Jason's call
+- **The "overdue intake" metric flags every enrollment we have.** It means: not
+  completed/renewed/active/launched, and enrolled more than 10 days ago. Production has 28
+  enrollments, all sitting in `coaching_paid`, `intake_complete` or `enrolled`, the newest
+  from 2026-06-15 — so all 28 are "overdue" and always will be, because nothing moves them
+  to a status that clears it. Either the statuses are not being advanced in real use, or
+  the definition is wrong. A number that is always 100% tells nobody anything. (Saboor,
+  2026-08-04 — the separate bug where it displayed 20 instead of 28 is fixed.)
 - **Promotions page CTAs point at a redirect.** `Promotions.tsx` (routed at `/promotions`
   and `/offers`) has 3 buttons — "Order Now", "Start Your Journey", "View Bundle" —
   pointing at `/store`, which redirects to the homepage. The store is at `/order`, and the

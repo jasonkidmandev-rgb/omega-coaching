@@ -376,6 +376,11 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Email figures beside the pipeline. The email card is four numbers — it never
+            needed the full page width — and this bounds the funnel so it cannot take over
+            the screen. */}
+        <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
+          <div>
         {/* Client email activity, condensed.
 
             This was two full-width blocks — roughly 220 lines — showing Emails Sent,
@@ -428,6 +433,8 @@ export default function AdminDashboard() {
           </Card>
         )}
         {/* Coaching Enrollment Pipeline Widget */}
+          </div>
+          <div className="lg:col-span-2">
         {isWidgetVisible("enrollmentPipeline") && enrollmentStats && (
           <Card>
             <CardHeader>
@@ -453,7 +460,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               {/* Pipeline Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
                 <div className="text-center p-3 bg-blue-50 rounded-lg">
                   <UserCheck className="h-5 w-5 text-blue-500 mx-auto mb-1" />
                   <div className="text-xl font-bold text-blue-600">{enrollmentStats.profilesCompleted}</div>
@@ -477,9 +484,9 @@ export default function AdminDashboard() {
               </div>
 
               {/* Status Funnel */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-muted-foreground mb-3">Enrollment Funnel</h4>
-                <div className="space-y-2">
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Enrollment Funnel</h4>
+                <div className="space-y-1.5">
                   {[
                     { label: 'Enrolled', count: enrollmentStats.statusEnrolled, color: 'bg-blue-500' },
                     { label: 'Videos Watched', count: enrollmentStats.statusVideoComplete, color: 'bg-indigo-500' },
@@ -488,88 +495,28 @@ export default function AdminDashboard() {
                     { label: 'Strategy Scheduled', count: enrollmentStats.statusDiscoveryScheduled, color: 'bg-purple-500' },
                     { label: 'Active', count: enrollmentStats.statusActive, color: 'bg-green-500' },
                   ].map((step) => (
-                    <div key={step.label} className="flex items-center gap-3">
-                      <span className="text-xs text-muted-foreground w-36 shrink-0">{step.label}</span>
-                      <div className="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+                    <div key={step.label} className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-32 shrink-0">{step.label}</span>
+                      <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
                         <div
-                          className={`${step.color} h-full rounded-full flex items-center justify-end pr-2 transition-all`}
+                          className={`${step.color} h-full rounded-full transition-all`}
                           style={{ width: `${Math.max(enrollmentStats.totalEnrollments > 0 ? (step.count / enrollmentStats.totalEnrollments) * 100 : 0, step.count > 0 ? 8 : 0)}%` }}
-                        >
-                          {step.count > 0 && <span className="text-xs text-white font-medium">{step.count}</span>}
-                        </div>
+                        />
                       </div>
+                      {/* count sits outside the bar now — it does not fit inside a 12px one */}
+                      <span className="text-xs font-medium w-6 text-right shrink-0">{step.count}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Pending Intake Forms - with bulk action */}
-              {enrollmentStats.pendingIntake && enrollmentStats.pendingIntake.length > 0 && (
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-red-500" />
-                      Awaiting Intake Form ({enrollmentStats.intakePending})
-                    </h4>
-                    <Button
-                      size="sm"
-                      onClick={() => sendBulkIntakeRemindersMutation.mutate()}
-                      disabled={sendBulkIntakeRemindersMutation.isPending}
-                    >
-                      <Send className="h-3 w-3 mr-1" />
-                      Send All Reminders
-                    </Button>
-                  </div>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {enrollmentStats.pendingIntake.map((enrollment: any) => (
-                      <div
-                        key={enrollment.id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-red-50 hover:bg-red-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center">
-                            <span className="text-sm font-medium text-red-700">
-                              {enrollment.clientName?.charAt(0)?.toUpperCase() || '?'}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{enrollment.clientName}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {enrollment.email}
-                              {enrollment.intakeReminder24hSentAt && ' • 24h sent'}
-                              {enrollment.intakeReminder72hSentAt && ' • 72h sent'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => sendIntakeReminderMutation.mutate({ enrollmentId: enrollment.id })}
-                            disabled={sendIntakeReminderMutation.isPending}
-                          >
-                            <Mail className="h-3 w-3 mr-1" />
-                            Remind
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setLocation('/admin/enrollments')}
-                          >
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         )}
 
         {/* Referral Leaderboard - removed (referral system cleaned up) */}
-
+          </div>
+        </div>
       </div>
     </>
   );

@@ -35,6 +35,22 @@ each day, so Farjad and both Claude sessions can see progress.
   with two checks that can actually fail: every widget the page renders is registered, and
   no registered widget has been dropped from the page (which would leave a dead switch in
   the Customize panel).
+- ⚠️ **Found a real data bug while narrowing the dashboard: the "overdue intake" number was
+  the page size, not a count.** `getEnrollmentCompletionStats` returned
+  `overdueCount: overdueEnrollments.length`, and that query is `LIMIT 20` for display. So
+  the tile read **20** while production actually has **28**. Now counted separately.
+- ⚠️ **And the metric itself is close to meaningless.** "Overdue" = not completed/renewed/
+  active/launched AND enrolled more than 10 days ago. Production has 28 enrollments in
+  total, all in `coaching_paid` (16), `intake_complete` (7) or `enrolled` (5), newest
+  2026-06-15 — so **28 of 28 are flagged overdue**. Nothing ever reaches a status that
+  clears the flag, so everything ages in and stays forever. Fixing the count was right;
+  the definition needs Jason.
+- **Removed the pending-intake client list from the dashboard.** It duplicated the
+  enrollments page, which is where you act on it.
+- **Email card and enrollment pipeline now share a row** (1/3 + 2/3). The email card is
+  four numbers and never needed full width; the funnel was eating the screen. Funnel bars
+  cut from 20px to 12px with the count moved outside the bar.
+- File now 849 lines, from ~1,230 before the restructure.
 - Verified: ratchet 688, clean build, 59 test files / 763 tests green. **Not yet seen in a
   browser** — this is a big visual change and needs the deferred pass.
 
