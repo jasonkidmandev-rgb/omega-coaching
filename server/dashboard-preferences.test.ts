@@ -3,8 +3,8 @@ import { DEFAULT_WIDGETS, DEFAULT_WIDGET_ORDER, DEFAULT_VISIBILITY } from "./set
 
 describe("Dashboard Preferences", () => {
   describe("Default Configuration", () => {
-    it("should have 11 default widgets", () => {
-      expect(DEFAULT_WIDGETS).toHaveLength(11);
+    it("should have 6 default widgets", () => {
+      expect(DEFAULT_WIDGETS).toHaveLength(6);
     });
 
     // enrollmentPipeline was checked by the dashboard but missing from this list, so the
@@ -14,8 +14,7 @@ describe("Dashboard Preferences", () => {
     it("registers every widget the dashboard renders", () => {
       const keys = DEFAULT_WIDGETS.map(w => w.key);
       for (const required of [
-        "myProtocol", "todaysTasks", "protocolHub", "clientOverview", "quickActions",
-        "emailOpenRates", "emailClickRates", "followUpEmails", "unmappedItems",
+        "myProtocol", "needsAttention", "clientOverview", "emailActivity",
         "enrollmentPipeline", "recentClients",
       ]) {
         expect(keys).toContain(required);
@@ -65,16 +64,15 @@ describe("Dashboard Preferences", () => {
   });
 
   describe("Widget Keys", () => {
+    // 2026-08-04: the dashboard was restructured. todaysTasks, followUpEmails and
+    // unmappedItems merged into needsAttention; protocolHub and quickActions became
+    // small header buttons; the two email widgets became one condensed card.
     const expectedWidgets = [
       "myProtocol",
-      "todaysTasks",
-      "protocolHub",
+      "needsAttention",
       "clientOverview",
-      "quickActions",
-      "emailOpenRates",
-      "emailClickRates",
-      "followUpEmails",
-      "unmappedItems",
+      "emailActivity",
+      "enrollmentPipeline",
       "recentClients",
     ];
 
@@ -85,31 +83,14 @@ describe("Dashboard Preferences", () => {
       });
     });
 
-    it("should have myProtocol widget for admin's own protocol", () => {
-      const myProtocol = DEFAULT_WIDGETS.find(w => w.key === "myProtocol");
-      expect(myProtocol).toBeDefined();
-      expect(myProtocol?.label).toBe("My Protocol");
-    });
-
-    it("should have todaysTasks widget for task management", () => {
-      const todaysTasks = DEFAULT_WIDGETS.find(w => w.key === "todaysTasks");
-      expect(todaysTasks).toBeDefined();
-      expect(todaysTasks?.label).toBe("Today's Tasks");
-    });
-
-    it("should have clientOverview widget for client statistics", () => {
-      const clientOverview = DEFAULT_WIDGETS.find(w => w.key === "clientOverview");
-      expect(clientOverview).toBeDefined();
-      expect(clientOverview?.label).toBe("Client Overview");
-    });
-
-    it("should have email analytics widgets", () => {
-      const emailOpenRates = DEFAULT_WIDGETS.find(w => w.key === "emailOpenRates");
-      const emailClickRates = DEFAULT_WIDGETS.find(w => w.key === "emailClickRates");
-      expect(emailOpenRates).toBeDefined();
-      expect(emailClickRates).toBeDefined();
-      expect(emailOpenRates?.label).toBe("Client Email Open Rates");
-      expect(emailClickRates?.label).toBe("Client Click-Through Rates");
+    // Asserting each label against a copy of the label proves nothing. The real risk is a
+    // widget the page renders but nobody registered — which is what happened with
+    // enrollmentPipeline. That check lives above in "registers every widget the dashboard
+    // renders". This one guards the other direction: a registered widget the page dropped,
+    // which would show a dead switch in the Customize panel.
+    it("has no registered widget the dashboard no longer renders", () => {
+      const keys = DEFAULT_WIDGETS.map(w => w.key);
+      expect(keys.sort()).toEqual([...expectedWidgets].sort());
     });
   });
 
@@ -130,11 +111,11 @@ describe("Dashboard Preferences", () => {
       const testVisibility = { ...DEFAULT_VISIBILITY };
       
       // Toggle one widget
-      testVisibility.emailOpenRates = false;
+      testVisibility.emailActivity = false;
       
       // Check others are unchanged
       expect(testVisibility.myProtocol).toBe(true);
-      expect(testVisibility.todaysTasks).toBe(true);
+      expect(testVisibility.needsAttention).toBe(true);
       expect(testVisibility.clientOverview).toBe(true);
     });
   });

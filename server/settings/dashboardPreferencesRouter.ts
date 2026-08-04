@@ -13,14 +13,14 @@ function parseJson<T>(value: unknown, fallback: T): T {
 // Default widget configuration
 export const DEFAULT_WIDGETS = [
   { key: "myProtocol", label: "My Protocol", description: "Quick access to your personal protocol", defaultVisible: true },
-  { key: "todaysTasks", label: "Today's Tasks", description: "Tasks requiring your attention", defaultVisible: true },
-  { key: "protocolHub", label: "Protocol Collaboration Center", description: "Review, approve, and collaborate on protocols", defaultVisible: true },
-  { key: "clientOverview", label: "Client Overview", description: "Statistics for all your clients", defaultVisible: true },
-  { key: "quickActions", label: "Quick Actions", description: "Create protocols, manage templates, and items", defaultVisible: true },
-  { key: "emailOpenRates", label: "Client Email Open Rates", description: "Track how clients engage with emails", defaultVisible: true },
-  { key: "emailClickRates", label: "Client Click-Through Rates", description: "Track which links clients click", defaultVisible: true },
-  { key: "followUpEmails", label: "Clients Awaiting Follow-Up", description: "Clients who need follow-up emails", defaultVisible: true },
-  { key: "unmappedItems", label: "Top Unmapped Protocol Items", description: "Items needing inventory mapping", defaultVisible: true },
+  // Replaces todaysTasks, followUpEmails and unmappedItems, which were three separate
+  // cards spread down the page all answering "what do I need to do?". Anyone who had
+  // hidden one of those three will see those rows again inside this one — their old
+  // preference no longer maps to anything. Agreed trade-off, 2026-08-04.
+  { key: "needsAttention", label: "Needs Attention", description: "One queue: drafts, approvals, payments, follow-ups, overdue intake and unmapped items", defaultVisible: true },
+  { key: "clientOverview", label: "Key Metrics", description: "Revenue, active clients, approvals awaiting and overdue intake", defaultVisible: true },
+  // The two email widgets (opens, clicks) are one condensed card now, so one switch.
+  { key: "emailActivity", label: "Client Email Activity", description: "Sends, opens and link clicks over the last 30 days", defaultVisible: true },
   // Was missing from this list while the dashboard checked for it, so the enrollment
   // pipeline and its overdue-deadline alert were permanently on and absent from the
   // Customize panel. isWidgetVisible() defaults an unknown key to true, which hid the bug.

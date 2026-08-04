@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toLocaleDateStringMT, toLocaleTimeStringMT } from "@/lib/timezone";
-import { Users, FileText, Package, CheckCircle, Clock, AlertCircle, Link2, AlertTriangle, MessageSquare, Calendar, ArrowRight, Mail, MailOpen, TrendingUp, MousePointer, ExternalLink, ListTodo, Send, DollarSign, User, Sparkles, Info, Settings, Eye, EyeOff, RotateCcw, X, Gift, Trophy, Medal, ClipboardList, UserCheck, UserX } from "lucide-react";
+import { Plus, Users, FileText, Package, CheckCircle, Clock, AlertCircle, Link2, AlertTriangle, MessageSquare, Calendar, ArrowRight, Mail, TrendingUp, ExternalLink, ListTodo, Send, DollarSign, User, Sparkles, Info, Settings, RotateCcw, X, Gift, Trophy, Medal, ClipboardList, UserCheck, UserX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -44,11 +44,6 @@ export default function AdminDashboard() {
   const sendAllFollowUpsMutation = trpc.emailTracking.sendAllFollowUps.useMutation({
     onSuccess: (data) => {
       alert(`Sent ${data.sent} follow-up emails (${data.failed} failed)`);
-    },
-  });
-  const sendFollowUpMutation = trpc.emailTracking.sendFollowUp.useMutation({
-    onSuccess: () => {
-      alert('Follow-up email sent successfully!');
     },
   });
   const sendBulkIntakeRemindersMutation = trpc.transformation.sendBulkIntakeReminders.useMutation({
@@ -139,6 +134,24 @@ export default function AdminDashboard() {
             </p>
           </div>
           
+          {/* Actions live here as small buttons rather than as page sections. They used to
+              occupy two full blocks — a "Protocol Collaboration Center" card and a
+              three-card "Quick Actions" grid — which between them repeated the same three
+              destinations and pushed the real content further down the page. */}
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => setLocation("/admin/clients/new")} className="gap-2">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">New client</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setLocation("/admin/templates")} className="gap-2 hidden md:inline-flex">
+              <FileText className="h-4 w-4" />
+              Templates
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setLocation("/admin/items")} className="gap-2 hidden md:inline-flex">
+              <Package className="h-4 w-4" />
+              Items
+            </Button>
+
           {/* Customize Dashboard Button */}
           <Sheet open={customizeOpen} onOpenChange={setCustomizeOpen}>
             <SheetTrigger asChild>
@@ -198,6 +211,7 @@ export default function AdminDashboard() {
               </div>
             </SheetContent>
           </Sheet>
+          </div>
         </div>
 
         {/* My Protocol Section - Quick access for admin's own protocol */}
@@ -208,66 +222,6 @@ export default function AdminDashboard() {
             setLocation={setLocation}
             clients={clients}
           />
-        )}
-
-        {/* Today's Tasks Widget */}
-        {isWidgetVisible("todaysTasks") && (
-          <TodaysTasks clients={clients} />
-        )}
-
-        {/* Protocol Hub Section - Moved from Launchpad */}
-        {isWidgetVisible("protocolHub") && (
-          <Card>
-            <CardHeader className="pb-2 p-3 md:p-6">
-              <div className="flex items-center gap-3 md:gap-4">
-                <div className="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
-                  <MessageSquare className="h-5 w-5 md:h-8 md:w-8 text-white" />
-                </div>
-                <div className="min-w-0">
-                  <CardTitle className="text-lg md:text-2xl">Protocol Collaboration Center</CardTitle>
-                  <CardDescription className="text-gray-600 text-xs md:text-base">
-                    Review protocols, communicate with clients, and manage approvals
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-2 md:pt-4 p-3 md:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
-                <div className="text-center p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-emerald-400 mx-auto mb-1 md:mb-2" />
-                  <h4 className="font-semibold text-gray-900 mb-1 text-sm md:text-base">Review & Approve</h4>
-                  <p className="text-sm text-gray-600">View and approve client protocols</p>
-                </div>
-                <div className="text-center p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <MessageSquare className="h-5 w-5 md:h-6 md:w-6 text-blue-500 mx-auto mb-1 md:mb-2" />
-                  <h4 className="font-semibold text-gray-900 mb-1 text-sm md:text-base">Comments & Discussion</h4>
-                  <p className="text-sm text-gray-600">Collaborate with clients on protocols</p>
-                </div>
-                <div className="text-center p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <Calendar className="h-5 w-5 md:h-6 md:w-6 text-violet-500 mx-auto mb-1 md:mb-2" />
-                  <h4 className="font-semibold text-gray-900 mb-1 text-sm md:text-base">Loom Videos</h4>
-                  <p className="text-sm text-gray-600">Embed video explanations</p>
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button 
-                  className="flex-1 bg-gradient-to-r from-amber-400 to-orange-500 text-black hover:from-amber-500 hover:to-orange-600" 
-                  onClick={() => setLocation("/admin/clients")}
-                >
-                  View All Clients
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => setLocation("/admin/clients/new")}
-                >
-                  Create New Protocol
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         )}
 
         {/* Metrics strip — the "is anything wrong?" row. Compact on purpose: this is the
@@ -362,347 +316,56 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Quick Actions */}
-        {isWidgetVisible("quickActions") && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card
-              className="cursor-pointer hover:shadow-md transition-shadow border-2 border-dashed hover:border-primary"
-              onClick={() => setLocation("/admin/clients/new")}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Create New Client Protocol
-                </CardTitle>
-                <CardDescription>
-                  Start a new protocol from a template or from scratch
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setLocation("/admin/templates")}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Manage Templates
-                </CardTitle>
-                <CardDescription>
-                  Edit master templates and default protocol items
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setLocation("/admin/items")}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5 text-primary" />
-                  Protocol Items Library
-                </CardTitle>
-                <CardDescription>
-                  Manage peptides, supplements, and supplies
-                </CardDescription>
-              </CardHeader>
-            </Card>
+        {/* Work queue and recent activity side by side. Both used to be full-width cards
+            at opposite ends of the page; on a wide admin screen that wasted most of the
+            width and pushed everything further down. */}
+        <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            {isWidgetVisible("needsAttention") && (
+              <NeedsAttention
+                clients={clients}
+                followUps={protocolsNeedingFollowUp}
+                unmappedItems={unmappedByFrequency}
+                overdueCount={enrollmentStats?.overdueCount ?? 0}
+                onSendAllFollowUps={() => sendAllFollowUpsMutation.mutate({})}
+                sendingFollowUps={sendAllFollowUpsMutation.isPending}
+              />
+            )}
           </div>
-        )}
-
-        {/* Client Activity Section Header */}
-        {(isWidgetVisible("emailOpenRates") || isWidgetVisible("emailClickRates")) && (
-          <div className="flex items-center gap-2 pt-4 border-t">
-            <TrendingUp className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-lg font-semibold">Client Activity Overview</h2>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="h-4 w-4 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>This section shows activity from all your clients - email opens, link clicks, and engagement metrics. This is not your personal activity.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )}
-
-        {/* Email Analytics Widget */}
-        {isWidgetVisible("emailOpenRates") && emailAnalytics && (
+          <div>
+        {/* Recent Clients */}
+        {isWidgetVisible("recentClients") && clients && clients.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-blue-500" />
-                Client Email Open Rates (Last 30 Days)
+                <Users className="h-5 w-5 text-muted-foreground" />
+                Recent Client Protocols
               </CardTitle>
-              <CardDescription>
-                Track how your clients engage with protocol emails
-              </CardDescription>
+              <CardDescription>Latest client protocols you've created</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <Mail className="h-6 w-6 text-blue-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-600">{emailAnalytics.totalSent}</div>
-                  <p className="text-sm text-muted-foreground">Emails Sent</p>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <MailOpen className="h-6 w-6 text-green-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-green-600">{emailAnalytics.totalOpened}</div>
-                  <p className="text-sm text-muted-foreground">Emails Opened</p>
-                </div>
-                <div className="text-center p-4 bg-amber-50 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-amber-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-amber-600">{emailAnalytics.openRate}%</div>
-                  <p className="text-sm text-muted-foreground">Open Rate</p>
-                </div>
-              </div>
-              
-              {/* Simple bar chart visualization */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Daily Activity (Last 7 Days)</p>
-                <div className="flex items-end gap-1 h-24">
-                  {emailAnalytics.dailyStats.slice(-7).map((day, index) => {
-                    const maxValue = Math.max(...emailAnalytics.dailyStats.slice(-7).map(d => d.sent + d.opened), 1);
-                    const sentHeight = (day.sent / maxValue) * 100;
-                    const openedHeight = (day.opened / maxValue) * 100;
-                    return (
-                      <div key={index} className="flex-1 flex flex-col items-center gap-1">
-                        <div className="w-full flex flex-col items-center" style={{ height: '80px' }}>
-                          <div className="w-full flex gap-0.5 items-end h-full">
-                            <div 
-                              className="flex-1 bg-blue-400 rounded-t"
-                              style={{ height: `${sentHeight}%`, minHeight: day.sent > 0 ? '4px' : '0' }}
-                              title={`Sent: ${day.sent}`}
-                            />
-                            <div 
-                              className="flex-1 bg-green-400 rounded-t"
-                              style={{ height: `${openedHeight}%`, minHeight: day.opened > 0 ? '4px' : '0' }}
-                              title={`Opened: ${day.opened}`}
-                            />
-                          </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex justify-center gap-4 mt-2">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-blue-400 rounded" />
-                    <span className="text-xs text-muted-foreground">Sent</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-green-400 rounded" />
-                    <span className="text-xs text-muted-foreground">Opened</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Client Opens List */}
-              {emailAnalytics.clientOpens && emailAnalytics.clientOpens.length > 0 && (
-                <div className="mt-6 pt-6 border-t">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                    <MailOpen className="h-4 w-4" />
-                    Recent Client Email Opens
-                  </h4>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {emailAnalytics.clientOpens.slice(0, 10).map((client: any, index: number) => (
-                      <div 
-                        key={index} 
-                        className="flex items-center justify-between p-2 rounded-lg bg-green-50 hover:bg-green-100 cursor-pointer transition-colors"
-                        onClick={() => setLocation(`/admin/clients/${client.protocolId}/edit`)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-green-200 flex items-center justify-center">
-                            <span className="text-sm font-medium text-green-700">
-                              {client.clientName?.charAt(0)?.toUpperCase() || '?'}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{client.clientName}</p>
-                            <p className="text-xs text-muted-foreground">{client.clientEmail || 'No email'}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">
-                            {toLocaleDateStringMT(client.openedAt, { month: 'short', day: 'numeric' })}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {toLocaleTimeStringMT(client.openedAt, { hour: 'numeric', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {emailAnalytics.clientOpens.length > 10 && (
-                    <p className="text-xs text-center text-muted-foreground mt-2">
-                      +{emailAnalytics.clientOpens.length - 10} more opens
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Email Click Analytics Widget */}
-        {isWidgetVisible("emailClickRates") && clickAnalytics && clickAnalytics.totalClicks > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MousePointer className="h-5 w-5 text-purple-500" />
-                Client Click-Through Rates (Last 30 Days)
-              </CardTitle>
-              <CardDescription>
-                Track which links your clients click in their protocol emails
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <MousePointer className="h-6 w-6 text-purple-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-purple-600">{clickAnalytics.totalClicks}</div>
-                  <p className="text-sm text-muted-foreground">Total Clicks</p>
-                </div>
-                <div className="text-center p-4 bg-indigo-50 rounded-lg">
-                  <Users className="h-6 w-6 text-indigo-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-indigo-600">{clickAnalytics.uniqueClicks}</div>
-                  <p className="text-sm text-muted-foreground">Unique Clickers</p>
-                </div>
-                <div className="text-center p-4 bg-pink-50 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-pink-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-pink-600">{clickAnalytics.clickThroughRate}%</div>
-                  <p className="text-sm text-muted-foreground">Click-Through Rate</p>
-                </div>
-              </div>
-              
-              {/* Top Clicked Links */}
-              {clickAnalytics.clicksByLink && clickAnalytics.clicksByLink.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                    <Link2 className="h-4 w-4" />
-                    Most Clicked Links
-                  </h4>
-                  <div className="space-y-2">
-                    {clickAnalytics.clicksByLink.slice(0, 5).map((link: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                        <span className="text-sm font-medium truncate max-w-[200px]">{link.name}</span>
-                        <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                          {link.count} clicks
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Recent Clicks */}
-              {clickAnalytics.recentClicks && clickAnalytics.recentClicks.length > 0 && (
-                <div className="pt-4 border-t">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4" />
-                    Recent Client Link Clicks
-                  </h4>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {clickAnalytics.recentClicks.slice(0, 8).map((click: any, index: number) => (
-                      <div 
-                        key={index} 
-                        className="flex items-center justify-between p-2 rounded-lg bg-purple-50 hover:bg-purple-100 cursor-pointer transition-colors"
-                        onClick={() => setLocation(`/admin/clients/${click.protocolId}/edit`)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
-                            <span className="text-sm font-medium text-purple-700">
-                              {click.clientName?.charAt(0)?.toUpperCase() || '?'}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{click.clientName}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[150px]">
-                              Clicked: {click.linkName}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {click.clickedAt ? toLocaleDateStringMT(click.clickedAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : ''}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Follow-Up Emails Widget */}
-        {isWidgetVisible("followUpEmails") && protocolsNeedingFollowUp && protocolsNeedingFollowUp.length > 0 && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-orange-500" />
-                    Clients Awaiting Follow-Up
-                  </CardTitle>
-                  <CardDescription>
-                    Clients who haven't approved their protocol after 3+ days
-                  </CardDescription>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => sendAllFollowUpsMutation.mutate({})}
-                  disabled={sendAllFollowUpsMutation.isPending}
-                >
-                  <Mail className="h-4 w-4 mr-1" />
-                  Send All ({protocolsNeedingFollowUp.length})
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {protocolsNeedingFollowUp.slice(0, 10).map((protocol: any) => (
+              <div className="space-y-4">
+                {clients.slice(0, 5).map((client) => (
                   <div
-                    key={protocol.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"
+                    key={client.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                    onClick={() => setLocation(`/admin/clients/${client.id}`)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center">
-                        <span className="text-sm font-medium text-orange-700">
-                          {protocol.clientName?.charAt(0)?.toUpperCase() || '?'}
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-primary font-semibold">
+                          {client.clientName.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{protocol.clientName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Sent {protocol.sentAt ? toLocaleDateStringMT(protocol.sentAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) : 'N/A'}
-                          {protocol.followUpCount > 0 && ` • ${protocol.followUpCount} follow-up(s) sent`}
+                        <p className="font-medium">{client.clientName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {client.durationMonths} month protocol
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => sendFollowUpMutation.mutate({ protocolId: protocol.id })}
-                        disabled={sendFollowUpMutation.isPending}
-                      >
-                        <Mail className="h-3 w-3 mr-1" />
-                        Send
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setLocation(`/admin/clients/${protocol.id}/edit`)}
-                      >
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
+                      <StatusBadge status={client.status} />
                     </div>
                   </div>
                 ))}
@@ -710,52 +373,60 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         )}
+          </div>
+        </div>
 
-        {/* Unmapped Protocol Items Widget */}
-        {isWidgetVisible("unmappedItems") && unmappedByFrequency.length > 0 && (
+        {/* Client email activity, condensed.
+
+            This was two full-width blocks — roughly 220 lines — showing Emails Sent,
+            Opened, Open Rate, a 7-day bar chart and a per-client open list, then Total
+            Clicks, Unique Clickers, Click-Through Rate, top links and recent clicks.
+            That is email-marketing reporting, and it was taking up more of the dashboard
+            than the client work did. The headline numbers stay here; anything that needed
+            a real look was never going to be done from a dashboard tile.
+
+            Note there is an open question for Jason on whether the email-engagement
+            tracking pipeline is kept at all (see decisions.md). If it goes, this row goes
+            with it. */}
+        {isWidgetVisible("emailActivity") && (emailAnalytics || clickAnalytics) && (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-                Top Unmapped Protocol Items
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                Client email activity
               </CardTitle>
-              <CardDescription>
-                These frequently used items need inventory mapping for auto-deduction
-              </CardDescription>
+              <CardDescription>How clients are engaging with emails we send them, last 30 days</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {unmappedByFrequency.map((item: any) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-amber-50 hover:bg-amber-100 cursor-pointer transition-colors"
-                    onClick={() => setLocation("/admin/inventory")}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Link2 className="h-4 w-4 text-amber-600" />
-                      <div>
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">{item.itemType}</p>
-                      </div>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                {emailAnalytics && (
+                  <>
+                    <div>
+                      <p className="text-xl md:text-2xl font-bold">{emailAnalytics.totalSent}</p>
+                      <p className="text-xs text-muted-foreground">Emails sent</p>
                     </div>
-                    <Badge variant="secondary">
-                      Used {item.usageCount}x
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 text-center">
-                <button
-                  onClick={() => setLocation("/admin/inventory")}
-                  className="text-sm text-primary hover:underline"
-                >
-                  Go to Protocol Mapping →
-                </button>
+                    <div>
+                      <p className="text-xl md:text-2xl font-bold">{emailAnalytics.openRate}%</p>
+                      <p className="text-xs text-muted-foreground">Opened</p>
+                    </div>
+                  </>
+                )}
+                {clickAnalytics && clickAnalytics.totalClicks > 0 && (
+                  <>
+                    <div>
+                      <p className="text-xl md:text-2xl font-bold">{clickAnalytics.totalClicks}</p>
+                      <p className="text-xs text-muted-foreground">Link clicks</p>
+                    </div>
+                    <div>
+                      <p className="text-xl md:text-2xl font-bold">{clickAnalytics.uniqueClicks}</p>
+                      <p className="text-xs text-muted-foreground">Clients clicking</p>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
         )}
-
         {/* Coaching Enrollment Pipeline Widget */}
         {isWidgetVisible("enrollmentPipeline") && enrollmentStats && (
           <Card>
@@ -897,104 +568,8 @@ export default function AdminDashboard() {
           </Card>
         )}
 
-        {/* 10-Day Overdue Deadline Alert Widget */}
-        {isWidgetVisible("enrollmentPipeline") && enrollmentStats && enrollmentStats.overdueCount > 0 && (
-          <Card className="border-red-200 bg-red-50/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-red-800">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-                10-Day Start Deadline Overdue ({enrollmentStats.overdueCount})
-              </CardTitle>
-              <CardDescription className="text-red-700">
-                These clients enrolled 10+ days ago and have NOT started their program. This is causing 2-5 week delays.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {enrollmentStats.overdueEnrollments.map((enrollment: any) => {
-                  const enrolledDate = new Date(enrollment.enrolledAt);
-                  const overdueDays = Math.ceil((Date.now() - enrolledDate.getTime() - 10 * 24 * 60 * 60 * 1000) / (1000 * 60 * 60 * 24));
-                  return (
-                    <div
-                      key={enrollment.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-red-100 hover:bg-red-200 transition-colors cursor-pointer"
-                      onClick={() => setLocation('/admin/enrollments')}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-red-300 flex items-center justify-center">
-                          <span className="text-sm font-medium text-red-900">
-                            {enrollment.clientName?.charAt(0)?.toUpperCase() || '?'}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-red-900">{enrollment.clientName}</p>
-                          <p className="text-xs text-red-700">
-                            {enrollment.tier?.replace(/_/g, ' ')} • Status: {enrollment.status?.replace(/_/g, ' ')}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="bg-red-200 text-red-900 border-red-400 font-bold">
-                        {overdueDays}d overdue
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-3 w-full border-red-300 text-red-700 hover:bg-red-100"
-                onClick={() => setLocation('/admin/enrollments')}
-              >
-                View All in Enrollments
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Referral Leaderboard - removed (referral system cleaned up) */}
 
-        {/* Recent Clients */}
-        {isWidgetVisible("recentClients") && clients && clients.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-muted-foreground" />
-                Recent Client Protocols
-              </CardTitle>
-              <CardDescription>Latest client protocols you've created</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {clients.slice(0, 5).map((client) => (
-                  <div
-                    key={client.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
-                    onClick={() => setLocation(`/admin/clients/${client.id}`)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-primary font-semibold">
-                          {client.clientName.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium">{client.clientName}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {client.durationMonths} month protocol
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={client.status} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </>
   );
@@ -1128,10 +703,30 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 
-// Today's Tasks Component
-function TodaysTasks({ clients }: { clients: any[] | undefined }) {
+// One work queue for the whole dashboard.
+//
+// This used to be four separate cards scattered down the page — Today's Tasks near the
+// top, then Awaiting Follow-Up, Unmapped Items and the overdue-intake alert far below,
+// with email charts in between. All four answered the same question ("what do I need to
+// do?"), so seeing your whole workload meant scrolling the entire page. They are one
+// sorted list now; every row keeps the action it already had.
+function NeedsAttention({
+  clients,
+  followUps,
+  unmappedItems,
+  overdueCount,
+  onSendAllFollowUps,
+  sendingFollowUps,
+}: {
+  clients: any[] | undefined;
+  followUps: any[] | undefined;
+  unmappedItems: any[];
+  overdueCount: number;
+  onSendAllFollowUps: () => void;
+  sendingFollowUps: boolean;
+}) {
   const [, setLocation] = useLocation();
-  
+
   if (!clients) return null;
   
   // Calculate tasks
@@ -1196,6 +791,51 @@ function TodaysTasks({ clients }: { clients: any[] | undefined }) {
       color: 'slate',
     });
   }
+
+  // ── folded in from the three cards that used to sit further down ──────────────
+
+  if (overdueCount > 0) {
+    tasks.push({
+      id: 'overdue-intake',
+      icon: AlertTriangle,
+      title: `${overdueCount} enrollment${overdueCount > 1 ? 's' : ''} overdue by more than 10 days`,
+      description: 'Intake forms still not completed',
+      action: () => setLocation('/admin/enrollments'),
+      actionLabel: 'View Enrollments',
+      priority: 'high',
+      color: 'red',
+    });
+  }
+
+  if (followUps && followUps.length > 0) {
+    tasks.push({
+      id: 'follow-ups',
+      icon: Send,
+      title: `${followUps.length} client${followUps.length > 1 ? 's' : ''} awaiting a follow-up email`,
+      description: 'Protocol sent but not opened',
+      action: onSendAllFollowUps,
+      actionLabel: sendingFollowUps ? 'Sending…' : 'Send All',
+      priority: 'medium',
+      color: 'blue',
+    });
+  }
+
+  if (unmappedItems.length > 0) {
+    tasks.push({
+      id: 'unmapped',
+      icon: Link2,
+      title: `${unmappedItems.length} protocol item${unmappedItems.length > 1 ? 's' : ''} not mapped to inventory`,
+      description: 'Stock will not be deducted until these are mapped',
+      action: () => setLocation('/admin/inventory'),
+      actionLabel: 'Map Items',
+      priority: 'low',
+      color: 'slate',
+    });
+  }
+
+  // Most urgent first. Within a level the order is the order they were added above.
+  const rank: Record<string, number> = { high: 0, medium: 1, low: 2 };
+  tasks.sort((a, b) => rank[a.priority] - rank[b.priority]);
   
   if (tasks.length === 0) {
     return (
@@ -1227,10 +867,10 @@ function TodaysTasks({ clients }: { clients: any[] | undefined }) {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <ListTodo className="h-5 w-5 text-primary" />
-          Today's Tasks
+          Needs attention
         </CardTitle>
         <CardDescription>
-          {tasks.length} task{tasks.length > 1 ? 's' : ''} requiring attention
+          {tasks.length} item{tasks.length > 1 ? 's' : ''} to deal with
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

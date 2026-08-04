@@ -3,6 +3,41 @@
 Only Saboor edits this. Newest entry at top. A short running list of what you worked on
 each day, so Farjad and both Claude sessions can see progress.
 
+## 2026-08-04
+- **Admin dashboard restructured** (m2.md section G). It was 13 stacked full-width
+  sections with no hierarchy, three things doing the same job, and no charts. Now:
+  metrics strip → work queue and recent clients side by side → condensed email activity
+  → enrollment funnel. The file went from ~1,230 lines to 902.
+- **Four cards merged into one "Needs attention" queue.** Today's Tasks, Awaiting
+  Follow-Up, Unmapped Items and the 10-day overdue alert all answered "what do I need to
+  do?" but sat at opposite ends of the page with email charts in between. One list now,
+  sorted most-urgent first; every row kept its own action.
+- **Two full-width blocks became a two-pane row** — the queue (2/3) beside Recent Clients
+  (1/3). Admin screens are wide and the page was using one narrow column.
+- **Removed the Protocol Collaboration Center card and the Quick Actions grid.** Between
+  them they repeated the same three destinations (new client, templates, items) and the
+  Collaboration card's other three boxes were static explainer text that did nothing.
+  Those actions are now three small buttons in the page header.
+- **Email metrics cut from ~230 lines to one four-number card.** Sent, opened, clicks,
+  clients clicking. The 7-day bar chart, per-client open list, top links and recent clicks
+  were email-marketing reporting taking up more of the dashboard than the client work did.
+  ⚠️ Jason still has an open question on whether the email-engagement pipeline is kept at
+  all; if it goes, this card goes with it.
+- **Widget list went 10 → 6 and now matches the page.** `needsAttention` and
+  `emailActivity` added; `todaysTasks`, `followUpEmails`, `unmappedItems`, `protocolHub`,
+  `quickActions`, `emailClickRates` retired. Anyone who had hidden one of the merged three
+  will see those rows again — agreed trade-off, recorded before starting.
+- ⚠️ Three mistakes worth recording: I renamed the component without updating its call
+  site; I guessed a field name (`uniqueClickers`, actually `uniqueClicks`); and a block
+  replacement left an unbalanced brace that only the test transform caught, not the
+  typechecker. Each was caught by running the checks, not by reading the diff.
+- ⚠️ The old widget tests asserted labels against copies of the same constant. Replaced
+  with two checks that can actually fail: every widget the page renders is registered, and
+  no registered widget has been dropped from the page (which would leave a dead switch in
+  the Customize panel).
+- Verified: ratchet 688, clean build, 59 test files / 763 tests green. **Not yet seen in a
+  browser** — this is a big visual change and needs the deferred pass.
+
 ## 2026-08-02
 - **Layout tidy on the admin pages — finished.** Six more pages were double-padding
   themselves (`AdminLayout` already wraps every page in `p-3 md:p-6`): Acquisition &
