@@ -51,6 +51,15 @@ each day, so Farjad and both Claude sessions can see progress.
   four numbers and never needed full width; the funnel was eating the screen. Funnel bars
   cut from 20px to 12px with the count moved outside the bar.
 - File now 849 lines, from ~1,230 before the restructure.
+- **Moved My Protocol out of the top of the page** into the left column under Email
+  Activity, so that column carries two evenly-sized cards against the enrollment pipeline
+  on the right. The column is a flex stack with `[&>*]:flex-1` and the grid is
+  `items-stretch`, so both cards split whatever height the pipeline sets.
+- ⚠️ **The Railway deploy of `ada3d74` failed** — their build daemon could not pull its own
+  base image from ghcr.io (`failed to authorize ... denied`). Nothing to do with our code:
+  `railway.toml` only says `builder = "nixpacks"` and pins no image. This is why the site
+  still showed the old full-width layout and thick funnel bars — the build never landed, so
+  it was not browser cache as I first guessed. Needs a retry from the Railway dashboard.
 - Verified: ratchet 688, clean build, 59 test files / 763 tests green. **Not yet seen in a
   browser** — this is a big visual change and needs the deferred pass.
 

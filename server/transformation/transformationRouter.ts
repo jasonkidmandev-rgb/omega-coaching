@@ -4125,7 +4125,11 @@ enrollment.tier === 'flagship' ? 'Weight Loss & Physique ($3,000)' :
           COUNT(*) as totalEnrollments,
           SUM(CASE WHEN profileCompleted = 1 THEN 1 ELSE 0 END) as profilesCompleted,
           SUM(CASE WHEN profileCompleted = 0 OR profileCompleted IS NULL THEN 1 ELSE 0 END) as profilesIncomplete,
-          SUM(CASE WHEN coachingFeePaid = TRUE AND intakeFormCompleted = FALSE THEN 1 ELSE 0 END) as intakePending,
+          -- Counts everyone whose intake is not done. It used to require
+          -- coachingFeePaid = TRUE, which meant 4 of 28 enrollments (unpaid AND no intake)
+          -- appeared in neither the 'pending' nor the 'done' tile — the pair looked like a
+          -- complete breakdown but only accounted for 24 people.
+          SUM(CASE WHEN intakeFormCompleted = FALSE OR intakeFormCompleted IS NULL THEN 1 ELSE 0 END) as intakePending,
           SUM(CASE WHEN intakeFormCompleted = TRUE THEN 1 ELSE 0 END) as intakeCompleted,
           SUM(CASE WHEN discoverySessionScheduledAt IS NOT NULL THEN 1 ELSE 0 END) as consultationsScheduled,
           SUM(CASE WHEN status = 'enrolled' THEN 1 ELSE 0 END) as statusEnrolled,

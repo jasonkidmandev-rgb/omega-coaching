@@ -214,16 +214,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* My Protocol Section - Quick access for admin's own protocol */}
-        {isWidgetVisible("myProtocol") && (
-          <MyProtocolSection 
-            myProtocol={myProtocol} 
-            currentUser={currentUser} 
-            setLocation={setLocation}
-            clients={clients}
-          />
-        )}
-
         {/* Metrics strip — the "is anything wrong?" row. Compact on purpose: this is the
             first thing on the page and should be readable without scrolling. Templates was
             dropped from here; it is a configuration count, not a business metric. */}
@@ -379,8 +369,10 @@ export default function AdminDashboard() {
         {/* Email figures beside the pipeline. The email card is four numbers — it never
             needed the full page width — and this bounds the funnel so it cannot take over
             the screen. */}
-        <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
-          <div>
+        <div className="grid gap-4 md:gap-6 lg:grid-cols-3 items-stretch">
+          {/* Email activity and My Protocol stack in one column, each taking half its
+              height, so together they match the pipeline card beside them. */}
+          <div className="flex flex-col gap-4 md:gap-6 [&>*]:flex-1">
         {/* Client email activity, condensed.
 
             This was two full-width blocks — roughly 220 lines — showing Emails Sent,
@@ -433,6 +425,16 @@ export default function AdminDashboard() {
           </Card>
         )}
         {/* Coaching Enrollment Pipeline Widget */}
+        {/* Moved here from the top of the page so the left column carries two even cards
+            against the pipeline on the right. */}
+        {isWidgetVisible("myProtocol") && (
+          <MyProtocolSection
+            myProtocol={myProtocol}
+            currentUser={currentUser}
+            setLocation={setLocation}
+            clients={clients}
+          />
+        )}
           </div>
           <div className="lg:col-span-2">
         {isWidgetVisible("enrollmentPipeline") && enrollmentStats && (
@@ -474,18 +476,18 @@ export default function AdminDashboard() {
                 <div className="text-center p-3 bg-red-50 rounded-lg">
                   <ClipboardList className="h-5 w-5 text-red-500 mx-auto mb-1" />
                   <div className="text-xl font-bold text-red-600">{enrollmentStats.intakePending}</div>
-                  <p className="text-xs text-muted-foreground">Intake Pending</p>
+                  <p className="text-xs text-muted-foreground">Intake outstanding</p>
                 </div>
                 <div className="text-center p-3 bg-green-50 rounded-lg">
                   <CheckCircle className="h-5 w-5 text-green-500 mx-auto mb-1" />
                   <div className="text-xl font-bold text-green-600">{enrollmentStats.intakeCompleted}</div>
-                  <p className="text-xs text-muted-foreground">Intake Done</p>
+                  <p className="text-xs text-muted-foreground">Intake done</p>
                 </div>
               </div>
 
               {/* Status Funnel */}
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">Enrollment Funnel</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Funnel by status stage</h4>
                 <div className="space-y-1.5">
                   {[
                     { label: 'Enrolled', count: enrollmentStats.statusEnrolled, color: 'bg-blue-500' },
