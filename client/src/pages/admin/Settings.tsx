@@ -1680,7 +1680,6 @@ function ToolsSection() {
               { label: "Packing Slips", path: "/admin/packing-slips" },
               { label: "Store Orders", path: "/admin/store-orders" },
               { label: "Categories", path: "/admin/categories" },
-              { label: "Affiliate Partners", path: "/admin/affiliate-partners" },
               { label: "Dashboard", path: "/admin" },
             ].map((link) => (
               <button

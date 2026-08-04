@@ -214,55 +214,6 @@ export const transformationRouter = router({
     return (videos[0] as unknown as any[]) || [];
   }),
 
-  // Update masterclass video (admin)
-  updateMasterclassVideo: adminProcedure
-    .input(z.object({
-      id: z.number(),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      googleDriveFolderId: z.string().optional(),
-      googleDriveVideoId: z.string().optional(),
-      youtubeVideoId: z.string().optional(),
-      estimatedDurationMinutes: z.number().optional(),
-      chapters: z.string().optional(),
-      isRequired: z.boolean().optional(),
-      isActive: z.boolean().optional(),
-    }))
-    .mutation(async ({ input }) => {
-      const { id, title, description, googleDriveFolderId, googleDriveVideoId, youtubeVideoId, estimatedDurationMinutes, isRequired, isActive } = input;
-      const database = await db();
-      
-      if (title !== undefined) {
-        await database.execute(sql`UPDATE masterclass_videos SET title = ${title} WHERE id = ${id}`);
-      }
-      if (description !== undefined) {
-        await database.execute(sql`UPDATE masterclass_videos SET description = ${description} WHERE id = ${id}`);
-      }
-      if (googleDriveFolderId !== undefined) {
-        await database.execute(sql`UPDATE masterclass_videos SET googleDriveFolderId = ${googleDriveFolderId} WHERE id = ${id}`);
-      }
-      if (googleDriveVideoId !== undefined) {
-        await database.execute(sql`UPDATE masterclass_videos SET googleDriveVideoId = ${googleDriveVideoId} WHERE id = ${id}`);
-      }
-      if (youtubeVideoId !== undefined) {
-        await database.execute(sql`UPDATE masterclass_videos SET youtubeVideoId = ${youtubeVideoId} WHERE id = ${id}`);
-      }
-      if (estimatedDurationMinutes !== undefined) {
-        await database.execute(sql`UPDATE masterclass_videos SET estimatedDurationMinutes = ${estimatedDurationMinutes} WHERE id = ${id}`);
-      }
-      if (input.chapters !== undefined) {
-        await database.execute(sql`UPDATE masterclass_videos SET chapters = ${input.chapters} WHERE id = ${id}`);
-      }
-      if (isRequired !== undefined) {
-        await database.execute(sql`UPDATE masterclass_videos SET isRequired = ${isRequired} WHERE id = ${id}`);
-      }
-      if (isActive !== undefined) {
-        await database.execute(sql`UPDATE masterclass_videos SET isActive = ${isActive} WHERE id = ${id}`);
-      }
-      
-      return { success: true };
-    }),
-
   // ============================================
   // ENROLLMENTS
   // ============================================

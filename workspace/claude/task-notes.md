@@ -458,3 +458,88 @@ excluded by the constraints, so this was a much smaller job than it sounds:
 Section headings were already consistent (`text-lg font-semibold` on both `<h2>`s), and
 the other custom-styled cards use semantic colours that carry meaning (red = alert), so
 they were left alone.
+
+---
+
+## m2-removals
+
+Five removals from Jason's go list, done together on 2026-08-04 (Farjad). The whole point
+of this pass was auditing before deleting, so the audit findings matter more than the
+diff.
+
+**The trap worth remembering: two unrelated things both called "affiliate".**
+- `affiliate_partners` / `affiliatePartners` router / `/partners` page: a directory of
+  partner companies. This is the "Affiliate Partners" on Jason's list.
+- `affiliateUrl` / `affiliateCode` **on protocol items**: the "client buys it themselves"
+  fulfillment path. Load-bearing in `server/lib/protocolTotal.ts` (client-sourced items
+  must never reach a charged total), `ProtocolItemCard.tsx`, `generateProtocolPdf.ts` and
+  the packing slips. There is also a separate `affiliateRouter` for item click tracking.
+
+  A find-and-replace on "affiliate" would have silently broken protocol pricing. Only the
+  partners directory was touched.
+
+**What was actually removed**
+
+- *Daily Tools* — the whole category plus both pages (`MorningBriefing.tsx`,
+  `ConversionTracking.tsx`), their routes, GlobalSearch entries, and the
+  `automation.morningBriefing` / `automation.conversionMetrics` procedures. Two
+  `phase10Features.test.ts` blocks went with them: both only asserted against literals
+  declared inside the test itself, so they never touched the endpoints they were named
+  after (same class as the 2026-07-29 "tests that assert a name exists" decision).
+- *Masterclass Videos* — admin page + route + nav + the admin-only
+  `transformation.updateMasterclassVideo`. The client masterclass page and the Protocol
+  Build masterclass tab both read the same table through `getMasterclassVideos` and were
+  left alone: retiring them needs the GHL masterclass URL, which is nowhere in the repo,
+  and the Protocol Build tab also *gates* the protocol builder behind watching Section 4.
+- *Affiliate Partners* — admin page + route + nav + Settings quick-link + GlobalSearch,
+  and the router trimmed to `list` and `trackClick`. `featured` and `getById` went too
+  (zero callers). **`/partners` itself was kept**: it is linked from five email templates
+  and the protocol PDF, so deleting it would break links in mail clients already have.
+  Consequence to be aware of: partner rows are now editable only in the database.
+  The "Marketing & Outreach" category was left empty by this and was removed as well
+  (Store Promos, its only other item, was already hidden for compliance).
+- *Programs* — admin page + route + nav + GlobalSearch + the "New Program" quick action,
+  plus the write procedures (`create`/`update`/`delete`, `createPhase`/`updatePhase`/
+  `deletePhase`) and their `db.ts` helpers. Existing programs stay assignable.
+  **Deliberately not done here:** the assignment panel on a client's record, the
+  program-phase template sync in `ProtocolsTab`, and the phase journey on the client
+  protocol page (which also feeds `programInfo` into the PDF and the protocol email).
+  Those change what live clients see, they are already tracked as the M3 "Remove Program
+  dependencies from the protocol build" task, and the client protocol page is being
+  overhauled in M2 anyway.
+- *Payment reminders in the protocol build* — two separate things were found:
+  1. A dead per-protocol layer: `client_notification_preferences` plus three
+     `adminSettingsRouter` procedures with **zero frontend callers**, which the reminder
+     cron never consulted either (it reads the global `payment_reminders_enabled` site
+     setting). Pure dead code.
+  2. The real one: a `PaymentReminderSection` card embedded in the protocol details form
+     (manual send + reminder history), and its two backing procedures
+     `clientProtocol.getReminderLogs` / `sendManualReminder`, used nowhere else.
+
+  **Kept on purpose:** the per-client "Opt Out of Payment Reminders" toggle. It is not
+  clutter, it decides whether a real client gets automatic reminder emails and the cron
+  reads it; removing the UI would leave the column unsettable. Its dark-theme styling
+  (`bg-slate-900/50`, `text-white`) was fixed to light while there, same bug class as the
+  Web Traffic page. Also untouched: `paymentReminderCron`, the Notification Settings
+  toggle, and the bulk "Send Reminders" action on Client Protocols (which goes through
+  `sendPaymentLink`, a different procedure).
+
+**Tables left behind on purpose.** `client_notification_preferences`, `programs`,
+`program_phases`, `masterclass_videos` and the `programId`/`currentPhaseId` columns on
+`client_protocols` are all still in the schema. Dropping them is a migration, Farjad owns
+those, and `pnpm db:push` is still blocked (see `decisions.md`).
+
+⚠️ **Do not delete lines from a source file with PowerShell `Get-Content` /
+`Set-Content`.** On PS 5.1 they round-trip through the system ANSI codepage, so every em
+dash in the file becomes mojibake (`â€"`). It happened on this pass and showed up as
+`server/routers.ts` reporting 515 changed lines for a ~300-line deletion. Caught by
+`git diff --stat` looking too big, then `git diff | Select-String "â€"`. Fixed by
+reverting and re-cutting through `[System.IO.File]::ReadAllLines/WriteAllLines` with an
+explicit `UTF8Encoding($false)`. Second trap in the same script: `[int[][]]` with a single
+inner array gets flattened by PowerShell, so three files were silently skipped with no
+error. Always print before/after line counts and check them.
+
+**No local typecheck is possible** — there is no `node_modules` in this working copy, so
+`typecheck:ratchet` reports a meaningless "0 errors". Verified instead that brace and
+paren balance was unchanged from HEAD in all five files, which confirms the cuts removed
+whole blocks. The CI ratchet is the real gate.

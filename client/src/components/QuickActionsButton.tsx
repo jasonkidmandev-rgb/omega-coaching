@@ -16,7 +16,6 @@ import {
   Mail,
   Zap,
   LayoutDashboard,
-  Layers,
 } from "lucide-react";
 
 export function QuickActionsButton() {
@@ -39,17 +38,12 @@ export function QuickActionsButton() {
     {
       label: "New Protocol Item",
       icon: Package,
-      // Items and Programs are created through a dialog on their list page — neither
-      // has a /new route, so these point at the list and the user clicks Add there.
+      // Items are created through a dialog on the list page — there is no /new route,
+      // so this points at the list and the user clicks Add there.
       path: "/admin/items",
       description: "Add a new protocol item",
     },
-    {
-      label: "New Program",
-      icon: Layers,
-      path: "/admin/programs",
-      description: "Create a new coaching program",
-    },
+    // "New Program" removed 2026-08-04 with the Programs admin page (Jason's go list).
   ];
 
   const quickNav = [

@@ -7,15 +7,12 @@ import {
   FileText, 
   Package, 
   Settings, 
-  Layers, 
   Mail, 
   ShoppingCart, 
   ClipboardList,
   Warehouse,
-  TrendingUp,
   Shield,
   BarChart3,
-  Handshake,
   Ticket,
   LayoutDashboard,
   Pill,
@@ -24,7 +21,6 @@ import {
   User,
   GraduationCap,
   Loader2,
-  Zap,
   StickyNote
 } from "lucide-react";
 import { useLocation } from "wouter";
@@ -45,18 +41,14 @@ const searchItems: SearchItem[] = [
   { id: "dashboard", title: "Dashboard", description: "Overview and stats", path: "/admin", icon: <LayoutDashboard className="h-4 w-4" />, category: "navigation", keywords: ["home", "overview", "stats", "analytics"] },
   { id: "clients", title: "Clients", description: "Manage client protocols", path: "/admin/clients", icon: <Users className="h-4 w-4" />, category: "navigation", keywords: ["protocols", "customers", "users", "people"] },
   { id: "enrollments", title: "Enrollments", description: "Manage coaching enrollments", path: "/admin/enrollments", icon: <GraduationCap className="h-4 w-4" />, category: "navigation", keywords: ["coaching", "transformation", "journey", "pipeline"] },
-  { id: "programs", title: "Programs", description: "Manage coaching programs", path: "/admin/programs", icon: <Layers className="h-4 w-4" />, category: "navigation", keywords: ["coaching", "courses", "packages"] },
   { id: "templates", title: "Templates", description: "Protocol templates", path: "/admin/templates", icon: <FileText className="h-4 w-4" />, category: "navigation", keywords: ["presets", "defaults", "blueprints"] },
   { id: "items", title: "Protocol Items", description: "Manage protocol items", path: "/admin/items", icon: <Package className="h-4 w-4" />, category: "navigation", keywords: ["products", "supplements", "peptides"] },
   { id: "inventory", title: "Inventory", description: "Manage inventory levels", path: "/admin/inventory", icon: <Warehouse className="h-4 w-4" />, category: "navigation", keywords: ["stock", "warehouse", "products"] },
   { id: "team", title: "Team", description: "Manage team members", path: "/admin/team", icon: <Shield className="h-4 w-4" />, category: "navigation", keywords: ["users", "admins", "staff", "employees"] },
   { id: "settings", title: "Site Settings", description: "General site settings", path: "/admin/settings", icon: <Settings className="h-4 w-4" />, category: "navigation", keywords: ["configuration", "preferences", "options"] },
-  { id: "partners", title: "Affiliate Partners", description: "Manage partners", path: "/admin/affiliate-partners", icon: <Handshake className="h-4 w-4" />, category: "navigation", keywords: ["affiliates", "referrers", "vendors"] },
   { id: "email", title: "Email Branding", description: "Customize email templates", path: "/admin/email-branding", icon: <Mail className="h-4 w-4" />, category: "navigation", keywords: ["templates", "notifications", "logo", "design"] },
   // Store hidden for compliance: { id: "orders", title: "Store Orders", description: "View all orders", path: "/admin/store-orders", icon: <ShoppingCart className="h-4 w-4" />, category: "navigation", keywords: ["purchases", "transactions", "payments", "paypal"] },
   { id: "packing", title: "Packing Slips", description: "Fulfillment management", path: "/admin/packing-slips", icon: <ClipboardList className="h-4 w-4" />, category: "navigation", keywords: ["shipping", "fulfillment", "orders", "delivery"] },
-  { id: "morning-briefing", title: "Lisa's Morning Briefing", description: "Daily task queue, deadlines, and new clients", path: "/admin/morning-briefing", icon: <Zap className="h-4 w-4" />, category: "navigation", keywords: ["lisa", "morning", "briefing", "tasks", "queue", "deadlines", "daily"] },
-  { id: "conversion-tracking", title: "Conversion Tracking", description: "Prospect-to-client pipeline metrics", path: "/admin/conversion-tracking", icon: <Zap className="h-4 w-4" />, category: "navigation", keywords: ["conversion", "tracking", "pipeline", "funnel", "metrics", "sales", "prospects"] },
   
   // Quick actions
   { id: "new-client", title: "Create New Client", description: "Start a new protocol", path: "/admin/clients/new", icon: <Users className="h-4 w-4" />, category: "action", keywords: ["add", "create", "new", "protocol"] },

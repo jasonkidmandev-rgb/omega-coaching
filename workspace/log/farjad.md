@@ -5,6 +5,37 @@ report to Jason/Vilma, and the timesheet. Written as one natural list of the day
 (planning/direction and build woven together).
 
 ## 2026-08-04
+- Started M2 with five removals off Jason's go list: Programs, Masterclass Videos,
+  Affiliate Partners, Daily Tools, and payment reminders in the protocol build. The
+  instruction was "make sure you remove the right thing", so the value here was in the
+  audit rather than the deletion, and it paid off three times:
+  - Two unrelated features are both called "affiliate". The partners directory is what
+    Jason wanted gone; `affiliateUrl`/`affiliateCode` on protocol *items* is the "client
+    buys it themselves" path and is load-bearing in protocol totals, the PDF and the
+    packing slips. A careless sweep would have broken protocol pricing silently.
+  - The `/partners` client page turned out to be linked from five email templates and the
+    protocol PDF, so deleting it would break links in mail clients already have. Kept it
+    and removed only the admin management page.
+  - "Payment reminders in the protocol build" resolved to two different things: a dead
+    per-protocol layer with zero callers that the cron never even read, and a real
+    reminder card inside the protocol form. Removed both. Kept the per-client opt-out
+    toggle deliberately, since that one decides whether a real client gets emails.
+- Held the deeper Program dependencies (the assignment panel, the phase-template sync, the
+  phase journey on the client protocol page) rather than pulling them into this pass. They
+  change what live clients see on their protocol and PDF, they are already tracked as an
+  M3 task, and the client protocol page is being overhauled in M2 anyway. Removing the
+  page and its write endpoints freezes Programs without touching anyone's live protocol.
+- Also decided Daily Tools should take both its pages with it rather than just losing the
+  category grouping, and that Masterclass should lose only the admin page for now, since
+  nobody has the GHL masterclass URL and the Protocol Build tab gates the builder behind
+  watching one of the videos.
+- Own mistake worth recording: deleted line ranges with PowerShell `Get-Content`/
+  `Set-Content`, which round-trips through the ANSI codepage and turned every em dash in
+  the touched files into mojibake. Spotted it because `git diff --stat` reported 515
+  changed lines for a 300-line deletion. Reverted all five files and re-cut through .NET
+  with explicit UTF-8. Wrote both that and a second trap (PowerShell flattening nested
+  arrays, which silently skipped three files with no error) into `task-notes.md` so it
+  doesn't happen again.
 - Closed M1 and opened M2. Reviewed what was still unticked in M1 and decided deliberately
   **not** to carry it forward: one security item (`users.list` shipping all 79 user rows
   to the browser), two environment/tooling chores, a manual auth browser pass, and the

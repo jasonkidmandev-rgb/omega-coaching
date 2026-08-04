@@ -70,6 +70,27 @@ and the reason.
   Affects the ~1-week data-migration track in M4.
 
 ## Decided (append-only: date, decision, why)
+- 2026-08-04 — **Five M2 removals, with three things deliberately kept** (Farjad).
+  Removed: the Programs admin page and its write endpoints; the Masterclass Videos admin
+  page; the Affiliate Partners admin page (and the now-empty Marketing & Outreach
+  category); Daily Tools including both pages under it; and the payment-reminder UI inside
+  the protocol build.
+  **Kept, each for a reason:** the client-facing `/partners` page, because five email
+  templates and the protocol PDF link to it and clients already hold those emails, so
+  deleting it breaks live links (cost: partner rows are now editable only in the DB);
+  the per-client "Opt Out of Payment Reminders" toggle, because it controls whether a real
+  client receives automatic emails and the cron reads it, so removing the UI would leave
+  the column unsettable; and the client masterclass page plus the Protocol Build
+  masterclass tab, because sending people to GHL instead needs a URL nobody has, and that
+  tab also gates the protocol builder behind watching one of the videos.
+  **Not folded in:** the remaining Program dependencies (assignment panel on a client's
+  record, program-phase template sync, phase journey on the client protocol page, which
+  also feeds the PDF and the protocol email). Those change what live clients see, they are
+  already the M3 "Remove Program dependencies from the protocol build" task, and the client
+  protocol page is being overhauled in M2 regardless. Removing the page and the write
+  endpoints freezes Programs without touching an existing client's protocol.
+  Full audit trail in `claude/task-notes.md#m2-removals`.
+
 - 2026-08-01 — **Dead/broken link cleanup under `/admin/*`** (Saboor). Payment History's
   two mistargeted row links **fixed**; the Promo Codes "Access Codes" back button
   **removed** (page gone, only an orphaned table remains); the two `/new` quick actions

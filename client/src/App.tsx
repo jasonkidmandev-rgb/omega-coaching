@@ -36,10 +36,8 @@ const AdminTemplateEdit = lazyWithRetry(() => import("./pages/admin/TemplateEdit
 const AdminItems = lazyWithRetry(() => import("./pages/admin/Items"));
 // Supplements page removed - consolidated into Protocol Items
 const AdminTeam = lazyWithRetry(() => import("./pages/admin/Team"));
-const AdminPrograms = lazyWithRetry(() => import("./pages/admin/Programs"));
 const AdminInventory = lazyWithRetry(() => import("./pages/admin/Inventory"));
 const AdminSettingsHub = lazyWithRetry(() => import("./pages/admin/SettingsHub"));
-const AdminAffiliatePartners = lazyWithRetry(() => import("./pages/admin/AffiliatePartners"));
 const AdminPackingSlips = lazyWithRetry(() => import("./pages/admin/PackingSlips"));
 const AdminPackingSlipDetail = lazyWithRetry(() => import("./pages/admin/PackingSlipDetail"));
 const AdminProjectList = lazyWithRetry(() => import("./pages/admin/projects/ProjectList"));
@@ -60,7 +58,6 @@ const AdminPromoCodes = lazyWithRetry(() => import("./pages/admin/PromoCodes"));
 const AdminPromoCodeAnalytics = lazyWithRetry(() => import("./pages/admin/PromoCodeAnalytics"));
 const AdminStorePromos = lazyWithRetry(() => import("./pages/admin/StorePromos"));
 // Referral program removed
-const AdminMasterclassVideos = lazyWithRetry(() => import("./pages/admin/MasterclassVideos"));
 const AdminEnrollments = lazyWithRetry(() => import("./pages/admin/Enrollments"));
 const AdminTransformationPayments = lazyWithRetry(() => import("./pages/admin/TransformationPayments"));
 const AdminFormsEditor = lazyWithRetry(() => import("./pages/admin/FormsEditor"));
@@ -70,8 +67,6 @@ const AdminCoachingSessions = lazyWithRetry(() => import("./pages/admin/Coaching
 const AdminBookingCalendar = lazyWithRetry(() => import("./pages/admin/BookingCalendar"));
 const AdminInbox = lazyWithRetry(() => import("./pages/admin/Inbox"));
 const AdminChat = lazyWithRetry(() => import("./pages/admin/Chat"));
-const AdminMorningBriefing = lazyWithRetry(() => import("./pages/admin/MorningBriefing"));
-const AdminConversionTracking = lazyWithRetry(() => import("./pages/admin/ConversionTracking"));
 const AdminAcquisitionDashboard = lazyWithRetry(() => import("./pages/admin/AcquisitionDashboard"));
 const AdminUpcomingAppointments = lazyWithRetry(() => import("./pages/admin/UpcomingAppointments"));
 const TransformationEntry = lazyWithRetry(() => import("./pages/TransformationEntry"));
@@ -194,7 +189,6 @@ function AdminRoutes() {
           <Route path={"/admin/items"} component={AdminItems} />
           {/* Supplements route removed - use /admin/items with filter tabs */}
           <Route path={"/admin/team"} component={AdminTeam} />
-          <Route path={"/admin/programs"} component={AdminPrograms} />
           <Route path={"/admin/inventory"} component={AdminInventory} />
           <Route path={"/admin/settings/:tab"} component={AdminSettingsHub} />
           <Route path={"/admin/settings"} component={AdminSettingsHub} />
@@ -204,7 +198,6 @@ function AdminRoutes() {
           <Route path={"/admin/notification-settings"}><Redirect to={"/admin/settings/notifications"} /></Route>
           <Route path={"/admin/payment-history"} component={AdminPaymentHistory} />
           <Route path={"/admin/job-health"} component={AdminJobHealth} />
-          <Route path={"/admin/affiliate-partners"} component={AdminAffiliatePartners} />
           <Route path={"/admin/email-branding"}><Redirect to={"/admin/settings/email-branding"} /></Route>
           <Route path={"/admin/email-preview"}><Redirect to={"/admin/settings/email-preview"} /></Route>
           <Route path={"/admin/store-waivers"} component={AdminStoreWaivers} />
@@ -232,7 +225,6 @@ function AdminRoutes() {
           <Route path={"/admin/promo-code-analytics"} component={AdminPromoCodeAnalytics} />
           <Route path={"/admin/store-promos"} component={AdminStorePromos} />
 
-          <Route path={"/admin/masterclass-videos"} component={AdminMasterclassVideos} />
           <Route path={"/admin/enrollments"} component={AdminEnrollments} />
           <Route path={"/admin/transformation-payments"} component={AdminTransformationPayments} />
           <Route path={"/admin/forms-editor"} component={AdminFormsEditor} />
@@ -244,8 +236,6 @@ function AdminRoutes() {
           <Route path={"/admin/booking-calendar"} component={AdminBookingCalendar} />
           <Route path={"/admin/inbox"} component={AdminInbox} />
           <Route path={"/admin/chat/:id"} component={AdminChat} />
-          <Route path={"/admin/morning-briefing"} component={AdminMorningBriefing} />
-          <Route path={"/admin/conversion-tracking"} component={AdminConversionTracking} />
           {/* Retired: the standalone board now lives as the "Kanban" tab inside Lead Pipeline. */}
           <Route path={"/admin/shannon-kanban"}>{() => { window.location.replace('/admin/prospects?tab=kanban'); return null; }}</Route>
           <Route path={"/admin/acquisition"} component={AdminAcquisitionDashboard} />

@@ -44,12 +44,9 @@ import {
   Pill,
   Shield,
   Bell,
-  Layers,
   BarChart3,
   Warehouse,
-  TrendingUp,
   Settings,
-  Handshake,
   ChevronRight,
   Store,
   Percent,
@@ -66,10 +63,8 @@ import {
   Eye,
   HeartPulse,
   Key,
-  Video,
   Gift,
   CreditCard,
-  Megaphone,
   BookOpen,
   Wrench,
   Webhook,
@@ -80,8 +75,6 @@ import {
   Inbox,
   Globe,
   FilePen,
-  Zap,
-  Sun,
   LayoutGrid,
   CalendarClock,
   ListTodo,
@@ -196,27 +189,14 @@ const menuCategories: MenuCategory[] = [
       { icon: Activity, label: "Job Health", path: "/admin/job-health", roles: ['admin'] },
     ],
   },
-  // 5. Marketing & Outreach
-  {
-    icon: Megaphone,
-    label: "Marketing & Outreach",
-    roles: ['admin', 'manager', 'finance'],
-    items: [
-      // Store hidden for compliance: { icon: Store, label: "Store Promos", path: "/admin/store-promos", roles: ['admin', 'manager', 'finance'] },
-      { icon: Handshake, label: "Affiliate Partners", path: "/admin/affiliate-partners", roles: ['admin', 'manager'] },
-    ],
-  },
-  // 6. Daily Tools & Automation
-  {
-    icon: Zap,
-    label: "Daily Tools",
-    roles: ['admin'],
-    items: [
-      { icon: Sun, label: "Lisa's Morning Briefing", path: "/admin/morning-briefing", roles: ['admin'] },
-      { icon: TrendingUp, label: "Conversion Tracking", path: "/admin/conversion-tracking", roles: ['admin'] },
-    ],
-  },
-  // 7. Team & Content (team management + protocol/coaching content setup;
+  // Marketing & Outreach removed 2026-08-04: its only live item was the Affiliate
+  // Partners admin page (Jason's go list), and Store Promos was already hidden for
+  // compliance, so the whole category was left empty. The client-facing /partners page
+  // still runs off the same table and is linked from five email templates.
+  //
+  // Daily Tools removed 2026-08-04 (Jason's go list): the category held only Lisa's
+  // Morning Briefing and Conversion Tracking, both deleted along with it.
+  // 5. Team & Content (team management + protocol/coaching content setup;
   // true settings live behind the gear icon in the sidebar footer, not here)
   {
     icon: Wrench,
@@ -231,10 +211,13 @@ const menuCategories: MenuCategory[] = [
       { icon: FileText, label: "Templates", path: "/admin/templates", roles: ['admin', 'manager', 'viewer'] },
       { icon: Package, label: "Protocol Items", path: "/admin/items", roles: ['admin', 'manager', 'viewer'] },
       { icon: FolderOpen, label: "Categories", path: "/admin/categories", roles: ['admin', 'manager'] },
-      { icon: Layers, label: "Programs", path: "/admin/programs", roles: ['admin', 'manager', 'viewer'] },
+      // Programs admin page removed 2026-08-04 (Jason's go list). Existing programs stay
+      // assignable from a client's record; the deeper protocol-build dependency is M3.
       // Coaching Setup
       { icon: Percent, label: "Coaching Promos", path: "/admin/promo-codes", roles: ['admin', 'manager', 'finance'] },
-      { icon: Video, label: "Masterclass Videos", path: "/admin/masterclass-videos", roles: ['admin'] },
+      // Masterclass Videos admin page removed 2026-08-04 (Jason's go list). The client
+      // masterclass and the Protocol Build masterclass tab still read the same table;
+      // they stay until we have the GHL masterclass link to send people to instead.
       { icon: FileText, label: "Forms Editor", path: "/admin/forms-editor", roles: ['admin'] },
       // Content & Resources
       { icon: FileText, label: "Peptide Cheat Sheet", path: "/admin/peptide-cheat-sheet", roles: ['admin', 'manager'] },

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { TabsContent } from "@/components/ui/tabs";
-import { Save, Loader2, Layers, ChevronRight, Target, BellOff, Bell, Send, Clock, AlertTriangle, CheckCircle, XCircle, RotateCcw } from "lucide-react";
+import { Save, Loader2, Layers, ChevronRight, Target, BellOff, AlertTriangle, RotateCcw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { FormData, Template, Program, Phase, ClientProgramInfo } from "./types";
 import { trpc } from "@/lib/trpc";
@@ -323,15 +322,18 @@ export default function DetailsTab({
               />
             </div>
 
-            {/* Payment Reminder Opt-Out */}
+            {/* Payment Reminder Opt-Out. Deliberately kept when the rest of the
+                payment-reminder UI came out of the protocol build (2026-08-04): this one
+                is not clutter, it decides whether a real client receives automatic
+                reminder emails, and the cron reads it. */}
             {!isNew && (
-              <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="space-y-1">
-                  <Label htmlFor="payment-reminder-optout" className="text-white font-medium flex items-center gap-2">
+                  <Label htmlFor="payment-reminder-optout" className="text-gray-900 font-medium flex items-center gap-2">
                     <BellOff className="h-4 w-4 text-orange-500" />
                     Opt Out of Payment Reminders
                   </Label>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-gray-500">
                     When enabled, this client will not receive automatic payment reminder emails.
                   </p>
                 </div>
@@ -548,7 +550,8 @@ export default function DetailsTab({
                 )}
                 {programs?.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No programs available. <Link href="/admin/programs" className="text-primary hover:underline">Create a program</Link> first.
+                    No programs available. The Programs admin page was removed on
+                    2026-08-04, so no new programs can be created.
                   </p>
                 )}
               </div>
@@ -557,10 +560,9 @@ export default function DetailsTab({
         </Card>
       )}
 
-      {/* Payment Reminder History & Manual Trigger */}
-      {!isNew && clientId && (
-        <PaymentReminderSection clientId={clientId} clientEmail={formData.clientEmail} />
-      )}
+      {/* Payment reminders removed from the protocol build 2026-08-04 (Jason's go list).
+          The automatic reminder cron, the per-client opt-out above, and the bulk
+          "Send Reminders" action on the Client Protocols list are all untouched. */}
 
       {/* Reset Approval Section - Component handles its own visibility based on status */}
       {!isNew && clientId && (
@@ -570,172 +572,6 @@ export default function DetailsTab({
   );
 }
 
-// Separate component for payment reminder functionality
-function PaymentReminderSection({ clientId, clientEmail }: { clientId: number; clientEmail: string }) {
-  const [selectedUrgency, setSelectedUrgency] = React.useState<'friendly' | 'moderate' | 'urgent'>('friendly');
-  
-  const reminderLogsQuery = trpc.clientProtocol.getReminderLogs.useQuery(
-    { protocolId: clientId },
-    { enabled: !!clientId }
-  );
-  
-  const sendManualReminderMutation = trpc.clientProtocol.sendManualReminder.useMutation({
-    onSuccess: () => {
-      toast.success('Payment reminder sent successfully');
-      reminderLogsQuery.refetch();
-    },
-    onError: (error) => {
-      toast.error(`Failed to send reminder: ${error.message}`);
-    },
-  });
-  
-  const formatDate = (date: string | Date) => {
-    return toLocaleDateStringMT(date, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
-  
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'sent':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'manual':
-        return <Send className="h-4 w-4 text-blue-500" />;
-      case 'failed':
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
-    }
-  };
-  
-  const getUrgencyBadge = (type: string) => {
-    switch (type) {
-      case 'friendly':
-        return <Badge variant="outline" className="text-green-600 border-green-600">Friendly</Badge>;
-      case 'moderate':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Moderate</Badge>;
-      case 'urgent':
-        return <Badge variant="outline" className="text-red-600 border-red-600">Urgent</Badge>;
-      default:
-        return <Badge variant="outline">{type}</Badge>;
-    }
-  };
-  
-  return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />
-          Payment Reminders
-        </CardTitle>
-        <CardDescription>
-          View reminder history and send manual payment reminders
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Manual Reminder Trigger */}
-        <div className="p-4 border rounded-lg bg-muted/50">
-          <h4 className="font-medium mb-3">Send Manual Reminder</h4>
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="space-y-2">
-              <Label>Urgency Level</Label>
-              <Select
-                value={selectedUrgency}
-                onValueChange={(value: 'friendly' | 'moderate' | 'urgent') => setSelectedUrgency(value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="friendly">Friendly</SelectItem>
-                  <SelectItem value="moderate">Moderate</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              onClick={() => {
-                if (!clientEmail) {
-                  toast.error('No email address for this client');
-                  return;
-                }
-                sendManualReminderMutation.mutate({
-                  protocolId: clientId,
-                  urgencyLevel: selectedUrgency,
-                });
-              }}
-              disabled={sendManualReminderMutation.isPending || !clientEmail}
-            >
-              {sendManualReminderMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              Send Reminder
-            </Button>
-            {!clientEmail && (
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                No email address on file
-              </p>
-            )}
-          </div>
-        </div>
-        
-        {/* Reminder History */}
-        <div>
-          <h4 className="font-medium mb-3">Reminder History</h4>
-          {reminderLogsQuery.isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : reminderLogsQuery.data && reminderLogsQuery.data.length > 0 ? (
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium">Date</th>
-                    <th className="px-4 py-2 text-left font-medium">Type</th>
-                    <th className="px-4 py-2 text-left font-medium">Day</th>
-                    <th className="px-4 py-2 text-left font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reminderLogsQuery.data.map((log: any) => (
-                    <tr key={log.id} className="border-t">
-                      <td className="px-4 py-2">{formatDate(log.sentAt)}</td>
-                      <td className="px-4 py-2">{getUrgencyBadge(log.reminderType)}</td>
-                      <td className="px-4 py-2">
-                        {log.reminderDay === 0 ? (
-                          <span className="text-blue-600">Manual</span>
-                        ) : (
-                          `Day ${log.reminderDay}`
-                        )}
-                      </td>
-                      <td className="px-4 py-2 flex items-center gap-2">
-                        {getStatusIcon(log.status)}
-                        <span className="capitalize">{log.status}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground py-4 text-center">
-              No payment reminders have been sent to this client yet.
-            </p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 // Component for resetting protocol approval status
 function ResetApprovalSection({ clientId, clientName }: { clientId: number; clientName: string }) {

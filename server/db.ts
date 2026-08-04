@@ -27,8 +27,6 @@ import {
   InsertProtocolRequirement,
   InsertClientProtocolRequirement,
   InsertNotification,
-  InsertProgram,
-  InsertProgramPhase,
   InsertAffiliateClick,
   InsertProtocolComment,
   InsertCoachingPackage,
@@ -44,7 +42,6 @@ import {
   InsertInventoryCategory,
   InsertInventoryItem,
   affiliatePartners,
-  InsertAffiliatePartner,
   InsertInventoryTransaction,
   InsertProtocolInventoryMapping,
   InsertUserFavorite,
@@ -2113,28 +2110,6 @@ export async function getProgramById(id: number) {
   return result[0] || null;
 }
 
-export async function createProgram(data: InsertProgram) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(programs).values(data);
-  return { id: result[0].insertId, ...data };
-}
-
-export async function updateProgram(id: number, data: Partial<InsertProgram>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(programs).set(data).where(eq(programs.id, id));
-  return getProgramById(id);
-}
-
-export async function deleteProgram(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // First delete all phases
-  await db.delete(programPhases).where(eq(programPhases.programId, id));
-  // Then delete the program
-  await db.delete(programs).where(eq(programs.id, id));
-}
 
 // ============ PROGRAM PHASES ============
 export async function getPhasesByProgramId(programId: number) {
@@ -2152,25 +2127,6 @@ export async function getPhaseById(id: number) {
   return result[0] || null;
 }
 
-export async function createPhase(data: InsertProgramPhase) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(programPhases).values(data);
-  return { id: result[0].insertId, ...data };
-}
-
-export async function updatePhase(id: number, data: Partial<InsertProgramPhase>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(programPhases).set(data).where(eq(programPhases.id, id));
-  return getPhaseById(id);
-}
-
-export async function deletePhase(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.delete(programPhases).where(eq(programPhases.id, id));
-}
 
 // ============ CLIENT PROGRAM ASSIGNMENT ============
 export async function assignClientToProgram(clientProtocolId: number, programId: number, phaseId: number | null) {
@@ -3174,41 +3130,6 @@ export async function getAllAffiliatePartners(activeOnly = false) {
   return db.select().from(affiliatePartners).orderBy(affiliatePartners.sortOrder, affiliatePartners.name);
 }
 
-export async function getAffiliatePartnerById(id: number) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.select().from(affiliatePartners).where(eq(affiliatePartners.id, id));
-  return result[0] || null;
-}
-
-export async function createAffiliatePartner(data: InsertAffiliatePartner) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.insert(affiliatePartners).values(data);
-  return result[0].insertId;
-}
-
-export async function updateAffiliatePartner(id: number, data: Partial<InsertAffiliatePartner>) {
-  const db = await getDb();
-  if (!db) return false;
-  await db.update(affiliatePartners).set(data).where(eq(affiliatePartners.id, id));
-  return true;
-}
-
-export async function deleteAffiliatePartner(id: number) {
-  const db = await getDb();
-  if (!db) return false;
-  await db.delete(affiliatePartners).where(eq(affiliatePartners.id, id));
-  return true;
-}
-
-export async function getFeaturedAffiliatePartners() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(affiliatePartners)
-    .where(and(eq(affiliatePartners.isActive, true), eq(affiliatePartners.isFeatured, true)))
-    .orderBy(affiliatePartners.sortOrder, affiliatePartners.name);
-}
 
 
 // ============ PARTNER CLICK TRACKING ============
