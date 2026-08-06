@@ -115,13 +115,16 @@ const FulfillmentQueue = lazyWithRetry(() => import("./pages/admin/FulfillmentQu
 const AdminBackorders = lazyWithRetry(() => import("./pages/admin/Backorders"));
 const KPIDashboard = lazyWithRetry(() => import("./pages/admin/KPIDashboard"));
 
-// Loading spinner component for Suspense fallback
+// Loading spinner component for Suspense fallback.
+// This is the "wait screen" clients occasionally see between routes, so it uses the
+// brand tokens rather than the old slate/orange palette (Jason's review, 2026-08-05:
+// "when it does show, its the old formatting & colors").
 function LoadingSpinner() {
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+    <div className="min-h-screen bg-brand-dark flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-        <p className="text-slate-400 text-sm">Loading...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-gold"></div>
+        <p className="text-brand-dark-foreground text-sm">Loading...</p>
       </div>
     </div>
   );
