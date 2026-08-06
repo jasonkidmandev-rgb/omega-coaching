@@ -382,7 +382,9 @@ export default function ClientDashboard() {
   const resources = [
     {
       title: "Omega Elite Community",
-      description: "Join the community for support and tips",
+      // "Join or Login", not just "join" — existing members land here too and were
+      // being told to sign up for something they already have (Jason, 2026-08-05).
+      description: "Join or login for support and tips",
       icon: Users,
       href: "https://link.fastpaydirect.com/payment-link/6871a1cbd6ab80936ce6849c",
       external: true,
