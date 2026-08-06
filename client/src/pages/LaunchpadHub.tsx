@@ -12,7 +12,6 @@ import {
   GraduationCap,
   Calendar,
   Star,
-  CheckCircle,
   Sparkles,
   LayoutDashboard,
   User,
@@ -358,80 +357,6 @@ export default function LaunchpadHub() {
         </div>
       </section>
 
-      {/* Trust Signals Section - WHITE */}
-      <section className="py-16 md:py-20 px-4 bg-white">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Why Omega Longevity?</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Trusted by health optimizers who demand the best
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Expert-Curated Protocols</h3>
-                <p className="text-gray-600 text-sm">Developed by certified health optimization specialists</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Personalized Coaching</h3>
-                <p className="text-gray-600 text-sm">1:1 support tailored to your unique health goals</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Exclusive Discounts</h3>
-                <p className="text-gray-600 text-sm">10% off peptides and supplies for members</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Daily Protocol Tracking</h3>
-                <p className="text-gray-600 text-sm">Never miss a dose with smart reminders</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Community Access</h3>
-                <p className="text-gray-600 text-sm">Connect with like-minded health optimizers</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Vetted Partners</h3>
-                <p className="text-gray-600 text-sm">Only trusted suppliers and products</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* As Seen In / Press Badges Section - WHITE */}
       <section className="py-12 md:py-16 px-4 bg-white border-t border-gray-100">
         <div className="container max-w-6xl">
@@ -478,50 +403,6 @@ export default function LaunchpadHub() {
                 className="h-12 md:h-14 w-auto object-contain rounded-lg"
               />
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section - ORANGE/AMBER BACKGROUND */}
-      <section className="py-16 md:py-20 px-4 bg-brand-gold">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-brand-dark mb-4">How It Works</h2>
-            <p className="text-brand-dark/70 max-w-2xl mx-auto">
-              Get started in three simple steps
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
-                1
-              </div>
-              <h3 className="font-semibold text-brand-dark text-xl mb-2">Create Your Account</h3>
-              <p className="text-brand-dark/70">
-                Sign up in 10 seconds—no credit card required
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
-                2
-              </div>
-              <h3 className="font-semibold text-brand-dark text-xl mb-2">Get Your Protocol</h3>
-              <p className="text-brand-dark/70">
-                Receive personalized recommendations from our experts
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
-                3
-              </div>
-              <h3 className="font-semibold text-brand-dark text-xl mb-2">Start Your Journey</h3>
-              <p className="text-brand-dark/70">
-                Track daily, see results, and optimize your health
-              </p>
-            </div>
           </div>
         </div>
       </section>
