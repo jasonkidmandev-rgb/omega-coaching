@@ -45,9 +45,12 @@ and the reason.
 - **Keep the old coaching checkout, or retire it?** Purchases now run through the Omega
   Longevity funnel instead. Decides how much of the old payment flow is still worth
   building or maintaining.
-- **The "discountable" flag on products doesn't do anything right now** — every item
-  gets discounted regardless of the flag. Fixing it will raise some clients' totals, so
-  it needs your sign-off before we touch it.
+- ~~**The "discountable" flag on products doesn't do anything right now**~~ — **resolved
+  2026-08-05, no sign-off needed.** The only reason this was parked was that fixing it
+  raises client totals. Production holds no real clients; it is all test data, so there is
+  nobody to affect. Moved to `m3.md` as ordinary work. ⚠️ Several other items below are
+  worded around "don't disturb live client data" — the same reasoning may retire those
+  too, so re-read them before treating one as blocked.
 - **Which of these admin pages can we drop: Job Health, KPI Dashboard?** (Notification
   Analysis / History / Team Email Preferences resolved below, 2026-07-31.) Also still
   open: Email → Preview is likely redundant (Email → Templates already shows everything

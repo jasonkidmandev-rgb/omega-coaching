@@ -1,0 +1,95 @@
+Review doc:
+
+     First, we need to change the login main page that says review coaching plans or
+         something like that on the main humanedge.health site to direct that link to
+         www.omegalongevity.com and you can discard the old page that was there.
+
+     We need to get this changed to the new color scheme and also make it so we can choose
+         to "not show this again" (which i assume would be a cookie ... so we want it to show
+         again on other devices)... we also would need a link somewhere to "Install App on
+         Phone" or whatever we want to word it, in case somebody X's it out on their phone and
+         then later realized they wanted to do that, but now they can't find the install option.
+
+     I think this is on the looong document list, but I dont know if we want/need "program
+         assignment" because everything is custom... Also, I don't really know how it actually
+         links into the app/experience/coaching... If you could help me understand that, I can
+         decide on if we want to keep it. AFter all, we may want to get to a point where we have
+         "cookie cutter" templates ready for multiple "Programs" (program assignments)
+
+     Im curious is this is still necessary, again wondering what it links back to and why
+
+     I think i have in the long document (if not add it) that I want to configure differnet
+         categories as "client buys" and make them be sync'able, similar to the check all/uncheck
+         all in each category (which is super handy)... For example, everything in this category
+         90% of the time will be "Client buys" and its a pain and I always mess up on some of
+    these.
+
+         o On that same note, i believe its on the doc, but the full list of what the client gets
+             was not super helpful before, just FYI
+
+ These can probably be removed. The coaching package is really never used and i think its
+    pointless. Coaching PRICE is included in the protocol so its not necessary here
+
+ I need to verify that in the "Protocol Items" list, that the things marked ND (non-
+    discountable) are not being discounted in the other discount screen
+
+ I believe all of these were included in the document on what to do with them, if not let
+    me know
+
+ Did I say what to do with the PDF's? I dont think I like them. They are ugly and don't
+    give all the info.
+ Also not sure what Copy Link is useful for
+ Templates and Program Assignments are confusing (see above as well about Program
+
+    assignments)
+ Sometimes there is a "wait" blue screen that pops up. ZBecause the app is so much faster,
+
+    its very rare... but when it does show, its the old formatting & colors.
+ Im trying to sign in with client account jason@sossupport.net but I am not getting the
+
+    reset email... I checked junk folder, and the corporate spam filter system - its not
+
+    anywhere.
+ This seems to be working GREAT!
+
+ This doesn't seem to have the google places address population system
+ I added a new user for client testing, and I am not getting the welcome email- again i
+
+    checked spam
+ Needs centgered
+ Launchpad - Please check my notes in the big doc... i want to think that I said to remove
+    all this (except the featured podcast guest)
+
+ The rest of that page is the OLD branding - also the testimonials probably need updated
+    to simply match the new testimonials site?
+ This needs to goto calendly link
+
+ I think big document said to make changes
+         o Skim it down per the doc
+         o remove My Inventory
+
+ I want this to gather data from the weekly checkins when people put their weight etc. in it
+
+ Omega Longevity Peptide Coach
+         o This may be the wrong formatting?
+ This should be "Join or Login"
+ BEYOND THAT THE DASHBOARD ESTHETICS IS GREAT!!
+ SETTINGS:
+ I think this is wrong, need to copy the peptidecoach.pro info (gmail)
+
+ Templates:
+     This is awesome
+     This seems great, a little above my head and wondering if 829 is where we want to be or
+
+         is it gonna go lower (again, not sure what it means)
+     So does this mean we have one client record/user record etc. for any and all of the
+
+         same client? if so, that is so great
+
+     In summary, what percentage of the master doc we made for you is complete? I estimate
+         about 25-50%? Just curious and I dont expect you to have the answer completely - just
+         ballpark estimate
+
+Great work!!
+AND -- Vilma Brehonio shared this with me, which I believe takes care of alot of my thoughts above!
+

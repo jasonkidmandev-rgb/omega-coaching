@@ -543,3 +543,108 @@ error. Always print before/after line counts and check them.
 `typecheck:ratchet` reports a meaningless "0 errors". Verified instead that brace and
 paren balance was unchanged from HEAD in all five files, which confirms the cuts removed
 whole blocks. The CI ratchet is the real gate.
+
+---
+
+## jason-review-2026-08-05
+
+Jason walked the deployed app screen by screen and wrote comments next to screenshots.
+Source: `assets/jason-review-2026-08-05.pdf`. His original brief, which he calls "the long
+doc" / "the big document" / "the master doc", is `assets/jason-master-doc.pdf`.
+
+**Read the PDF, not the txt extraction, when acting on one of these.** Roughly half the
+comments are "this", "these", "is this still necessary" and mean nothing without the
+screenshot beside them. The txt is for grepping.
+
+### The five findings that changed decisions
+
+1. **Programs: the two documents contradict each other.** The master doc says remove it,
+   twice and flatly — *"its all pointless both here and in the protocol building... please
+   evaluate to make sure its not needed and get rid of it in both places"*, plus
+   *"Program Assignment - seems unnecessary remove but remove dependancies"*. The review
+   doc, two weeks later, says he doesn't know what it does and can't decide until he
+   understands it. He almost certainly had not seen the client-facing Program Roadmap when
+   he wrote the original note. Confirm with him before finishing the removal.
+
+2. **He predicted the affiliate trap himself**, in caps: *"JUST MAKE SURE THIS IS NOT IN
+   ANY WAY ASSOCIATED WITH BUILDING PROTOCOLS CAUSE THE MASTER TEMPLATE DIRECTS PEOPLE TO
+   SOME OF THESE AFFILIATES BUT I AM 99% SURE THAT IS THROUGH A DIFFERENT WAY."* He was
+   right — see `#m2-removals`. It also means he wants partners in **one** place
+   (omegalongevity.com/resources), so `/partners` should redirect there rather than
+   survive as-is.
+
+3. **The Masterclass blocker is answered by the master doc**, not the review doc: *"the
+   masterclass is now hosted on GHL on omegalongevity... We can link the masterclass in
+   the Dashboard/launchpad though and link it to omegalong... masterclass landing page."*
+   Still needs the exact URL from Jason or Alex, but the destination is known.
+
+4. **The Launchpad trim was marked done in M1 too early.** Master doc: *"EVERYTHING ABOVE
+   Your Ecosystem Platform is irrelevant."* `LaunchpadHub.tsx` still has "Why Omega
+   Longevity?" and "How It Works" above that section. Jason spotted it.
+
+5. **"I think I said this in the long doc" is right about half the time.** Correct for
+   Launchpad, client-buys defaults, Programs, Templates and the Team security hole. Wrong
+   for the protocol PDFs and for My Documents / My Inventory — neither appears anywhere in
+   the master doc. Always check before assuming a requirement is already specified.
+
+### Answers to the things he asked us to explain
+
+- **Program Assignment, what it links to.** A Program is a journey (12 months by default)
+  split into phases (Q1-Q4, 3 months each, `programs` + `program_phases`). A client
+  protocol carries `programId` + `currentPhaseId`. That drives: the roadmap on the client
+  protocol page, the program/phase name printed into the PDF and the protocol email, and
+  the "Sync with Template" button syncing against the phase's template instead of the
+  Master Template. **Nothing advances a phase automatically** — `advanceClientPhase` is
+  only reachable from the admin mutation, no cron, so a client can sit on a stale phase
+  indefinitely. If it stays, date-based advancement is the fix and `durationMonths` is
+  already on the phase.
+- **Reset Protocol Approval.** Sets status to draft, clears `approvedAt`, sets
+  `paymentStatus` back to pending, clears payment date/method, writes an audit event. For
+  approvals made in error or clients wanting changes post-approval. **Does not restore
+  deducted inventory** — a real gap if used after fulfilment.
+- **Copy Link.** Copies `/protocol/<accessToken>` to the clipboard. "Send Link" emails the
+  formatted version; this is for pasting into Teams/Voxer/SMS by hand. Worth keeping given
+  how that team communicates, just labelled better.
+- **"Is 829 where we want to be?"** He is misreading a number from a report. 829 is the
+  **test count** after Saboor deleted 61 files that tested their own copies of the logic
+  (1622 -> 829, zero real coverage lost). Lower was the goal.
+- **"What percentage of the master doc is complete?"** ~37%. Excluding 12 items explicitly
+  held for v2 and 9 "keep as-is" items needing no work, there are ~54 real items: 15 fully
+  done, 10 partial, 24 not started, 5 blocked on his decision. Counting a partial as half
+  gives 20/54. Caveat when quoting this: it counts items, not effort — the security work,
+  test-suite cleanup and environment sealing appear nowhere in his document.
+
+### The non-discountable flag
+
+`isDiscountable` is `tinyint` (0|1), and the code compared it against `false`, which never
+matches — documented in `shared/flags.ts`: *"The damage was real: non-discountable was
+ignored in pricing."* Jason asked us to verify ND items aren't discounted; they are. This
+was parked in `decisions.md` pending his sign-off because fixing it raises client totals.
+**That blocker is void — production holds no real clients, it is all test data.** Farjad
+confirmed 2026-08-05. Same reasoning probably retires other parked decisions worded around
+not disturbing live client data; worth a pass through `decisions.md`.
+
+### Email failures — check the env before the SMTP settings
+
+Two of his complaints are undelivered mail (password reset for `jason@sossupport.net`, and
+the welcome email for a new test user). He assumes the SMTP config is wrong, and the
+Settings screenshot does show `jason@vigilanttechs.com`.
+
+But `sideEffectsDisabled()` in `server/_core/appEnv.ts` suppresses **all** outbound email
+before SMTP is ever touched, and returns true when `APP_ENV=staging`. If the Railway
+service was set to staging because the site isn't live yet, no email can leave regardless
+of SMTP settings.
+
+Saboor's 2026-07-29 seal did **not** cause this — his log records that he verified all 8
+env combinations and that "Railway and staging behave exactly as before". A pre-existing
+`APP_ENV=staging` on the service would have been suppressing mail before that change too.
+
+**Definitive check, in the Railway deploy logs:**
+- `[Startup] APP_ENV=production — crons, email and live Stripe are ACTIVE.` → SMTP theory
+  holds, get the peptidecoach.pro credentials.
+- `[Startup] APP_ENV=staging — side effects suppressed` → one env var, not SMTP. Also look
+  for `[Email] SUPPRESSED (non-production) | to: jason@sossupport.net | subject: ...`,
+  which confirms it outright.
+
+Either way there is a decision behind it: if the deployment is deliberately sealed, Jason
+cannot test any email flow at all.

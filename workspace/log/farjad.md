@@ -4,6 +4,39 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-05
+- Went through Jason's screen-by-screen review of the deployed app and cross-checked every
+  claim against his original master brief. The cross-check was the useful part, because he
+  keeps saying "I think I said this in the long doc" and he's only right about half the
+  time. Correct for Launchpad, client-buys and Programs; wrong for the protocol PDFs and
+  for My Documents, neither of which appear in the brief at all. That distinction decides
+  whether something is already specified or still needs a spec from him.
+- Found the two documents contradict each other on Programs. The brief says remove it in
+  both places, flatly. The review, two weeks later, asks how it works because he can't
+  decide. He almost certainly hadn't seen the client-facing roadmap when he wrote the
+  original note, which is why holding that half back yesterday turned out right.
+- Caught that the Launchpad trim was marked done in M1 too early. His brief says everything
+  above "Your Ecosystem Platforms" goes; two sections above it are still live. He spotted
+  it before we did.
+- Also found the answer to the masterclass blocker sitting in his brief the whole time: it's
+  hosted on GHL at omegalongevity. Only the exact URL is still missing.
+- Ran down his two undelivered-email complaints far enough to know his own diagnosis is
+  probably wrong. He assumes the SMTP settings; but the environment seal suppresses all
+  outbound mail before SMTP is touched, and would do that if the Railway service is marked
+  staging because the site isn't live. Saboor's seal didn't cause it, his log shows he
+  verified Railway was unaffected. The Railway startup banner settles it in one line, so
+  that's the first check rather than swapping credentials blind.
+- Killed a parked decision by questioning its premise: the non-discountable pricing fix was
+  waiting on Jason's sign-off because correcting it raises client totals. There are no real
+  clients, the database is all test data, so there is nothing to sign off. It moves
+  straight into M3 as ordinary work.
+- Split the review into M2-sized and M3-sized items, created `m3.md` so the M3 ones had
+  somewhere to go rather than swelling the active milestone, and put both of Jason's PDFs
+  into `workspace/assets/` with text extractions. `docs/` is gitignored, so Saboor had
+  neither document; whoever picks up one of these tasks now gets Jason's actual wording
+  instead of a one-line summary, which matters because half his comments are annotations on
+  screenshots and mean nothing on their own.
+
 ## 2026-08-04
 - Started M2 with five removals off Jason's go list: Programs, Masterclass Videos,
   Affiliate Partners, Daily Tools, and payment reminders in the protocol build. The

@@ -4,8 +4,11 @@ Roughly one milestone per week. Farjad ~40h billed + planning, Saboor full-time.
 new requirement appears, add it under the most relevant milestone here (and into the
 active milestone's own file too if it belongs there).
 
-Each milestone gets its own file once it starts: `m1.md`, `m2.md`, and so on. The active
-one is **`m2.md`**.
+Each milestone gets its own file: `m1.md`, `m2.md`, `m3.md`. The active one is **`m2.md`**;
+`m3.md` exists early so M3-sized work found during M2 has somewhere to go.
+
+Jason's own documents (the master brief and his screen-by-screen review) are in
+`../assets/` — `docs/` is gitignored, so that folder is the only copy either dev has.
 
 Status refreshed 2026-08-04. Legend: `[x]` done · `[~]` partial/in progress · `[ ]` open.
 
@@ -24,25 +27,12 @@ basic to-dos), the client protocol page overhaul, the email-branding simplificat
 finishing the Team → People rename.
 
 ## M3 — Core workflows and accurate data (Week 3)
-- [x] Handle client-buys vs we-ship correctly in the protocol build.
-- [ ] Support 2 / 3 / 6-month protocol lengths.
-- [ ] Remove Program dependencies from the protocol build.
-- [~] Client-facing and internal notes on custom orders.
-- [ ] Custom-order Internal Notes should also surface outside the Custom Orders view
-      (e.g. on the client record), not just there.
-- [ ] Let staff view/change the shipping address at checkout.
-- [ ] Fix inaccurate product prices.
-- [~] Packing-slip insurance amount.
-- [ ] Build a fulfillment-friendly packing slip: address, instructions, stocked items
-      only, no membership fee, insurance kept off the slip, invoice access.
-- [ ] Break down drop-ship vs Omega-stocked items, with tracking.
-- [ ] Notify the team when a custom order is paid and ready to ship.
-- [x] Fix protocol pricing/totals accuracy.
-- [ ] Verify payment history is accurate; fix Payment Mode.
-- [ ] Fix inventory accuracy.
-- [ ] Consolidate the client check-in from 8-10 screens down to a few.
-- [ ] Surface progress photos on the check-in screen (display-size fix moved to M1).
-- [ ] Let a project's tasks/subtasks be added or removed from the Master template.
+Full task list lives in `m3.md`. Summary: make the app *correct* rather than just tidy —
+protocol lengths and pricing, inventory and payment-history accuracy, the fulfilment
+paperwork Kari works from, custom-order notes and addresses, the check-in consolidation,
+and the remaining Program dependencies. Plus the M3-sized items from Jason's 2026-08-05
+review (per-category client-buys, the non-discountable fix, My Metrics from check-ins,
+Site Settings, the protocol PDF rebuild).
 
 ## M4 — Data migration and go-live (Week 4)
 - [ ] Migrate client history from Peptidecoach.pro (messages, protocols, results).

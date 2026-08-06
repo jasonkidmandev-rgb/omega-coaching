@@ -21,6 +21,10 @@ hygiene. All coordination, planning, and technical notes belong here.
 - `claude/task-notes.md`, implementation detail behind milestone tasks. Claude-only —
   the milestone file stays a clean one-line-per-task list; the technical trail
   (checklists, exact values, edge cases) lives here instead, linked by heading.
+- `assets/`, Jason's own documents: his original master brief and his screen-by-screen
+  app review, as PDFs plus text extractions. `docs/` is gitignored, so this is the only
+  copy either of us has. Read his wording before starting a task that traces back to him;
+  see `assets/README.md`.
 - `log/farjad.md` and `log/saboor.md`, each person's daily log. **Edit only your own.**
 - `decisions.md`, open questions that need Farjad's or Jason's judgment call, plus a
   dated record of what was decided and why. If it's a choice someone has to make, it

@@ -1,0 +1,267 @@
+Jason
+
+     We need to be able to make the coaching process more efficient (see Loom)... This is one
+         of the two most CORE parts of this business and what I do.
+             o https://www.loom.com/share/03cd5bb43c744cf6816836a1661ad51b
+
+     We should be able to have privacy in our chats in the app. So, what if I want to send
+         something private to Erling or Ryan? Maybe they have private questions about Libido or
+         something? I don't know how this could integrate I don't want to overcomplicate either
+
+     If I send a message in the universal chat, I want it to show my name. If Lisa does, her
+         name, etc. Also, it would be cool if we could CHANGE the name who its coming from so
+         if i want to impersonate Lisa I could (this would simply be for setting boundaries on who
+         responds to what but we can still cover each others back? Maybe overkill)
+
+     We need to be able to have roles per person in the app. Kari = access to fulfillment and
+         the original protocol sometimes she needs to see original protocol to confirm things.
+             o There are things in fulfillment that if she could link to or have access to easier it
+                  would help her.
+
+     See if we have the ability for clients to access a peptide calculator in the app that we
+         could link to chats? This is because we are constantly training people on how many ML's
+         to add, how many units for xx MCG or MG.
+
+     I need more history and everything in my coaching check-in process
+             o See loom above, first bullet point
+
+     I need to be able to have more flexibility over creating a custom order!! Our custom
+         orders are pretty restrictive
+             o Our prices are not accurate on a lot of products which doesn't make sense on
+                  where the pricing came from
+             o We have no way to easily see the shipping address or CHANGE it in this process
+                  ­ allow client to update address in checkout
+             o We don't have a place to add custom notes(internal option and client facing
+                  options).
+             o We can't CHANGE the address ­ and the client needs an OPTION to change the
+                  address during the checkout process. ANd give them the option to change the
+                  address permanently in their client record or just for this one shipment
+
+     I need to be able to build custom check-in questions when building a new protocol ­ that
+         would be ideal. If their goal is energy, I want to use a different CHeck-in TEMPLATE vs
+         Weight loss, and so on.
+ I need the client check-ins to be easier/faster for them. Most questions need to be required
+    but if we could consolidate into a few screens instead of 8-10 screens where you have to
+    click next every time. (see Loom)
+
+ We need to have a master list in the app where things get assigned to other people
+
+         o For example, I'll get texts from Shan, Lisa. I'll get Teams msgs from Kari, or Lisa
+             or Vee. I'll get Voxer messages. I'll get text/voxer messages directly from clients.
+             I need a central place to delegate action items/todo's to the team members.
+
+                   It would be amazing if we could build in phone support for Siri to be able
+                      to add action items/assign to them to somebody as we think about them on
+                      the fly or get a text from a client. This would be awesome but probably
+                      super-next-level and not possible.
+
+ The client dashboard needs an overhaul, and only necessary info needs there
+
+ If a client adds a progress photo, a less important notification for Jason & Lisa would be
+    nice to have or just a notice somewhere on their checkin screen where we can see a list of
+    photos that we could click on. I didn't realize client name Erling LaSelle had dozens of
+    photos until a few weeks ago. Also, the photos display very large and not awesome. I
+    imagine the ability to upload them is not super easy. Very few clients have ever done it,
+    its probably a pain.
+
+ Lets get the color and font scheme updated to match www.omegalongevity.com
+
+ MY ACTION ITEMS ­ per person... no adoption on this yet. Is it done right? Needs
+    optimized.
+
+ We want to get Twilio for SMS texting integrated somehow and somehow choose
+    between messaging via text and messages/email but we dont want to make it complicated
+    in any way. If we texted them, and they reply, could it still go into the same messages?
+
+ How are you going to be able to import all the history/data from the last couple months
+    from Peptidecoach.pro when we go live? Is this something you can setup now a sync, so
+    it starts populating the old data AND when we add more stuff to peptide coach it
+    replicates? (Messages, protocols, coaching results, etc...)? Whats the plan of attack on
+    this.
+
+         o Update after our meeting this does represent a significant challenge. TBD.
+     Broadcasting messagesto everybody is important feature to add. (i.e. Jason is out of the
+         office X dates, reach out to LIsa)
+
+     COMPARE TO AUTOTASK ­ SHARE EXAMPLE
+
+     SUPER ADMIN button to switch
+
+     ACTION ITEMS FOR CLIENTS ­ during checkin responses OR chats
+
+     Protocol build (SEE LOOM)
+             o 2 months (8 weeks)
+             o 3 months (12 weeks)
+             o 6 months (24 weeks)
+             o Program Assignment - seems unnecessary remove but remove dependancies
+             o Payment reminders - seems unnecessary remove
+             o CLIENT BUYS - I need to be able to permanently on the fly make DEFAULT
+                  line items be CLIENT BUYS or WE SHIP...
+             o Sleep & Stress self ratings are messed up i.e. 7/5 (should be 7/10???)
+
+     LOOM LINK #2 - PROTOCOL BUILD SHOWING ISSUES TO SOLVE
+             o https://www.loom.com/share/4cab401be31842afb1e1ac86656705a4
+
+Lisa
+
+     We need a place to show credits to account (when overcharges, etc happen) and if this
+         could be applied at checkout, that would be amazing!
+
+     Need an at-a-glance place that shows date of strategy call, kickoff date, kick off call date,
+         end date, and final call. Reminders/highlights for scheduling would be amazing! (I.e. an
+         alert 2 weeks prior that scheduling link needs to be sent)
+
+     Ability to add/remove tasks and subtasks in individual projects / revisions from the
+         Master template for one-off circumstances.
+     Moving chat to the top of client dashboard for easier access - this is a primary resource      Formatted: Font color: Auto
+         that they use.
+                                                                                                    Formatted: Indent: Left: 1.27 cm,
+     Ability to edit messages in chat.                                                              No bullets or numbering
+     Photos uploaded to chat do not work (this may be fixed already?)                               Formatted: Font: (Default) Arial, 11
+     Discrepancies in protocol pricing Totals, invoices, etc.                                       pt
+     Custom orders Internal Notes do not show up anywhere but in custom orders.
+     Is it possible to have separate scheduling links to send to clients within the app that will
+
+         direct them to schedule the appropriate session? (i.e. kickoff session, three-week check-
+         in, final call)
+     Possibly a way to tag others in places such as internal notes?
+     Is it possible to have the packing slips break down via Omega Orders / drop ships once
+         they are tagged to where they are coming from? Sometimes this includes multiple drop
+         ship vendors.
+
+             o We need to be able to track each drop ship somewhere too in an efficient way.
+     Payment notification for custom orders so we know they are ready for shipping (we
+
+         currently have to just monitor it so we can notify Kari it is ready for shipment or so we
+         can place the drop ship order)
+         o
+
+Kari
+
+The packing slip should be for the fulfillment person. Easier to read without questioning. For
+example, include shipping instructions, the shipping address, and a list of products that are in
+inventory--excluding the membership fee or other products that I do not carry, if possible. Also,
+the amount of shipping insurance somewhere not on the packing slip. Somewhere. To access the
+invoices.
+
+Link pirate shipping to the software. If it can be done.
+
+Inventory seems to be off at times.
+
+Shannon
+
+     I want one place/screen where I can do almost if not everything for my role
+             o Or maybe 1 screen for new leads/pipeline
+             o One screen for existing clients for relationship building
+             o One screen for old clients (or part of the pipeline) to do check-ins to see if they
+                  want to do more coaching.
+
+     Know where (stage) every client is in their journey
+
+-----------------------------------
+
+TEAM & SETTINGS ASSIGNMENTS/FEEDBACK
+Go = Get rid of it
+Keep = I think its useful
+You decide = I just want you to do whatever you think is best (go/keep)
+
+     Audit Logs - go
+     calendly - keep
+     categories - keep (foundational to protocols)
+     coaching promos - keep
+     conact admin - go
+     data integrity - go
+     email branding - keep but simplify
+     Email Engagemetn - go
+     email preview - nice to look at but cant change it (LINK TO EMAIL BRANDING???)
+     Forms editor - keep
+     Integrations - Keep
+     Launchpad settings - get rid of this, clean up launchpad or get rid of launchpad - replace
+
+         it with OUR landing page per role/user? BUT the clients have their own launchpad right?
+         How would this work? Review their launchpad and see what you think. The idea behind
+         it was to give them a single page where they can be reminded about 1. Omega Elite link
+         for community & how to videos etc. 2. Peptidepro app - the web/phone app where their
+    daily calendar sites 3. get rid of practitioner they dont need to see this 4. Omega Free -
+    get rid of 5. Trusted partners - this can simply link to omegalongevity.com/resoures 6.
+    Podcast - yeah, this is a cool thing to promote and keep 7. real client real results - maybe
+    the sizzle reel here or some better testimonial exceprts but LINK to
+    omegalongevity.com's testimonial page which is way better 8. see coaching plans - this
+    can be less pronounced, and lead to omegalongevity.com/coaching-paths 9.
+    EVERYTHING ABOVE YOur Ecossytem Platform is irrelevant.
+
+ Masterclass videos - the masterclass is now hosted on GHL on omegalongevity... this can
+    be completely removed from here! We can link the masterclass in the
+    Dashboard/launchpad though and link it to omegalong... masterclass landing page.
+
+ Notification Analysis - You decide
+
+ Notification history - you decide
+
+ Onboarding wizard - go away. WE have no idea what this is for.
+
+ Peptide Cheat sheet: Lets mention this in the dashboard/Lauchpad and make a comment
+    to visit "Omega Longevity Elite" for the most up to date cheat sheet. However, i need the
+    data here exported in a image file (what it looks like currently as the end
+    product/webpage... so we can replicate it to the Omega Elite)
+
+ PROGRAMS - This was a attempt to scale... but this has only added MORE confusion.
+    This links to the protocol building. And, its never really used. I think its all pointless both
+    here and in the protocol building... please evaluate to make sure its not needed and get rid
+    of it in both places. EVERY protocol is so customized its hard to fit like this.
+
+ Protocol Items - Definately KEEP
+
+ Site Settings - There is some things here that look necessary and some things that may
+    not be... i would like for you to review this and decide what NEEDS to stay. Lets keep i
+    simple.
+
+ Team - I dont like how it lists all the clients under "team" thats a security risk so we
+    could accidentally mark a client as an admim. We are also not utilizing roles and we need
+    roles.
+
+ Team Email Preferences - You decide.
+
+ Templates - the idea is great, but honestly i have only ever used the Master Template. But
+    I think its necessary to keep the ability to add future templates as we grow. For example
+    if we do a discounted plan for cheap for friends and family maybe we would make a
+    future template for those kind of people. But for now, we dont use ANY of them except
+    master template.
+     Workflow template - this is part of Shannons role as pre-consult and Lisa's role as client
+         project mgmt... and it has WAY to much detail and needs to be SUPER simplified I
+         would say this is one that we need to collaborate on and perfect. This is going to impact
+         lisa and Shannon alot. But the actual section workflow template, probably needs to stay.
+
+DAILY TOOLS
+
+     We dont use these. Im sure they are valuable in some ways, but we dont know. We dont
+         use them. And i think the upgrades for Lisa and Shannon will replace thes.
+
+Marketing & Outreach
+
+     Our new affiliate partner page is on www.omegalongevity.com/resources and we only
+         want them in one place so this can go. JUST MAKE SURE THIS IS NOT IN ANY
+         WAY ASSOCIATED WITH BUILDING PROTOCOLS CAUSE THE MASTER
+         TEMPLATE DIRECTS PEOPLE TO SOME OF THESE AFFILIATES BUT I AM 99%
+         SURE THAT IS THROUGH A DIFFERENT WAY. IN WHICH CASE, THIS
+         SHOULD GO AWAY.
+
+     Web Traffic - This is actually super cool. Can be moved to Teams & Settings.
+
+Payments & Finance
+
+     Job Health - you decide
+     Payment history - KEEP IF IT IS WORKING this is super nice to see the trends. I can
+
+         already tell Payment Mode doesn't work. But I bet the total revenue was kind of accurate
+
+KPI Dashboard
+
+     I think this is cool IF it is reconciling Shan, Lisa, etc. all in one place. Otherwise its
+         probably redundant AFTER you have built out each individuals dashboards
+
+HOME - This page is dumb. Its just the launchpad
+
+ALEX COMMUNICATION / MARKETING/GHL on OUR SIDE - email Vee and she will
+liaison between you and Alex to make sure things are done timely.
+
