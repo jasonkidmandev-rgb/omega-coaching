@@ -295,7 +295,12 @@ export default function LaunchpadHub() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Two live cards, so this is a 2-column grid centred with mx-auto. It used to be
+              lg:grid-cols-3 from when Omega Store was visible, which left the remaining pair
+              hugging the left edge on desktop (Jason's review, 2026-08-05: "Needs centered").
+              If Omega Store is ever un-hidden below, restore lg:grid-cols-3 and widen to
+              max-w-6xl. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {/* Omega Store - hidden for compliance
             <div 
               className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center hover:bg-white/20 hover:shadow-lg hover:shadow-brand-gold/20 transition-all duration-300 group cursor-pointer hover:-translate-y-1"
