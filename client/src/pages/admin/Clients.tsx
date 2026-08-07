@@ -1095,9 +1095,14 @@ export default function AdminClients() {
                               </div>
                             ) : client.clientEmail && client.inviteSentAt ? (
                               <div className="flex items-center gap-2">
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium" title={`Invite sent on ${toLocaleDateStringMT(client.inviteSentAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}`}>
+                                {/* "Invited" read as a step still in progress. It actually means
+                                    the invite went out and they never set a password — which is
+                                    why a client can show this while also being Paid, Completed
+                                    and 100% profile, since none of those need a login
+                                    (Jason, 2026-08-05). */}
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium" title={`Invite sent on ${toLocaleDateStringMT(client.inviteSentAt, { year: 'numeric', month: 'numeric', day: 'numeric' })}. They have not created a password yet, so they cannot sign in. This does not affect their protocol, payment or profile.`}>
                                   <Mail className="h-3 w-3" />
-                                  Invited
+                                  No login yet
                                 </span>
                                 {(() => {
                                   const sentTime = new Date(client.inviteSentAt).getTime();
