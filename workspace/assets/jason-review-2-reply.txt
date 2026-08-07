@@ -1,0 +1,71 @@
+1.Farjad khalil - ok yes understood. So the 12 month program is something that I built out for 3-4 clients
+and although we used it at the beginning, they don't do their weekly checkins and the program got out
+of sorts on their end. Also it was so much work its not something ill offer anymore.. I will however offer
+them the friends and family coaching discount monthly option.
+
+So, i think we can kill it off. Also, their goals have changed thru the year so we didn't follow that
+template anyway (we generally have followed the theme, but this hasn't done much help)
+
+2.Reset Protocol Approval -
+This sounds beneficial. Highly beneficial. BUT the inventory thing sounds like a PITA. Is there a way we
+can have it reset inventory?
+3.OK I have a new feature that came across my mind this morning at the gym. I always get my ideas
+when I am alone or on vacation and not on any screens or todo lists LOL
+
+     one thing i am constantly struggling with is the client journey when clients are more then 3
+         months into it...
+              o In other words, client hires for 3 month protocol - easy peazy
+              o If they hire us for a renewal, its generally pretty easy, cause I can revert back to old
+                   messaging threads and the old protocol - but its starting to lose some efficiency
+              o If client is on a 3rd protocol or beyond - this is getting messy. I am losing valuable
+                   information from phase1, or phase 2 etc...
+                         What I think would be beneficial is the following idea: Having a "Client Journey
+                             Notes" type input area where I can put a timestamped note anytime/anywhere.
+                             This would be visible and useable on the checkins, on the client main page and
+                             even all the client sub pages...
+              o EXAMPLE IDEAS (ALL OF THE CLIENT PAGES SUCH AS)
+o
+o
+o
+o
+
+o And perhaps the most important for day to day/week to week is the client checkins
+o
+
+o WHY THIS IS CRUCIAL
+
+          I have to remember alot of things in my head. This doesn't scale. I need a
+              notepad/jot area for noting critical pieces - maybe future ideas, future plans,
+              information that needs to be seen regularly, etc...
+
+o ON THIS SAME NOTE but DIFFERENT ISSUE:
+
+          I need a better client check-in work flow. The current one in the OLD app i told
+              you to remove, is the client corner. Its far superior the to client checkins
+              (although it has major issues) ... but its way more convenient. I believe we need
+              to work over the client check-ins section to makeit more efficient (use the loom
+              video as well here for ideas)...
+
+o ON ANOTHER NOTE FOR CLIENT CHECKINS
+
+          I think one thing that I am always trying to recreate is how we run our I.T.
+              business. Every client is different. But we decide on what they need, and we put
+              in place the "contracts" and the contracts handle everything else. In this case,
+              it's almost like "ok client needs these things, so these are the things we are
+              watching out for (like the built in templates, but taking it a step further)... So, for
+              example maybe we give one client 10% off on ALL orders from us. Maybe we
+              are doing monthly friends and family coaching not the flagship. Etc. IDK - a way
+                             to take multiple variables and concise it down into 1 program input that sets the
+                             tone for teh client long term and would be applicable to the clietn as a whole,
+                             not just to the existing protocol. Does this make sense?
+4. Also I need to be able to snap and paste a screenshot into all messaging/chats
+5.Issue/Efficiency:
+
+     currently replying to a text thread.
+     I now have to open a new browser, and goto the client, goto INTAKE FORM and see what her
+
+         goals are. Then i have to goto the Protocol, PREVIEW it, and see if NAD+ was in the plan for her.
+     I need a better way to do this. Thats super inefficient
+6. This says "invited" but not "Linked" like the others. Yet it says paid. and her protocol is active. This is
+confusing, probably buggy. (maybe its fixed)
+

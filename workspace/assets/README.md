@@ -8,6 +8,7 @@ carries context the one-line task summary loses.
 |---|---|
 | `jason-master-doc.pdf` / `.txt` | **"the long doc"** / "the big document" / "the master doc". Written 2026-07-24. The original brief: Jason's asks, then Lisa's, Kari's and Shannon's, then a go/keep/decide pass over every admin nav item. Most of the milestone plan comes from this. |
 | `jason-review-2026-08-05.pdf` / `.txt` | **"the review doc"**. Jason walking through the deployed app screen by screen, writing comments next to screenshots. |
+| `jason-review-2-reply.pdf` / `.txt` | His reply after we answered the review doc. Numbered 1-6. Settles Programs (kill it), keeps Reset Protocol Approval, and introduces the "Client Journey Notes" idea, which is the largest new ask in any of these documents. ⚠️ His screenshot for point 6 is from the **old** peptidecoach.pro app, not ours. |
 
 The `.txt` files are `pdftotext -layout` extractions, kept so the content is greppable and
 readable without a PDF tool. **Read the PDF, not the txt, when a comment says "this" or
