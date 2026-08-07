@@ -446,6 +446,23 @@ export function TestimonialCarousel({ variant = "default" }: TestimonialCarousel
             </div>
           </div>
 
+          {/* Full testimonial library lives on omegalongevity.com, not here (Jason). */}
+          <div className="flex justify-center mt-8">
+            <a
+              href="https://omegalongevity.com/testimonials"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center gap-2 text-sm font-medium border-b pb-0.5 transition-colors ${
+                isNavy
+                  ? 'text-brand-gold border-brand-gold/40 hover:border-brand-gold'
+                  : 'text-amber-600 border-amber-600/40 hover:border-amber-600'
+              }`}
+            >
+              Read more client stories
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
+
           {/* Results Disclaimer */}
           <p className={`text-center text-xs mt-8 max-w-2xl mx-auto ${isNavy ? 'text-white/40' : 'text-gray-500'}`}>
             * Individual results may vary. Testimonials reflect personal experiences and are not guaranteed outcomes. 
