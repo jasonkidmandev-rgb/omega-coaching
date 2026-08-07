@@ -49,12 +49,17 @@ export default function Cover() {
               Log in
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
-            <button
-              onClick={() => setLocation("/transformation")}
+            {/* Coaching plans live on omegalongevity.com now, not in this app (Jason,
+                2026-08-07). The /transformation page is still routed and reachable, so
+                this is a one-line revert if the checkout links aren't ready there. */}
+            <a
+              href="https://omegalongevity.com/coaching-paths"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-medium text-slate-200 backdrop-blur-sm transition-colors hover:border-white/20 hover:bg-white/10 sm:w-auto"
             >
               New here? Learn about coaching
-            </button>
+            </a>
           </div>
         </main>
 
