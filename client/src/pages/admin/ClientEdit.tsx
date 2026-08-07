@@ -1480,9 +1480,12 @@ export default function AdminClientEdit() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
+                  {/* "Copy Link" alone read as a duplicate of "Send Link" next to it.
+                      This copies the client's protocol URL so it can be pasted into a
+                      text, Voxer or Teams message by hand (Jason, 2026-08-05). */}
                   <DropdownMenuItem onClick={copyLink}>
                     <Copy className="h-4 w-4 mr-2" />
-                    Copy Link
+                    Copy Protocol Link
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => window.open(`/protocol/${client.accessToken}`, "_blank")}>
                     <ExternalLink className="h-4 w-4 mr-2" />
