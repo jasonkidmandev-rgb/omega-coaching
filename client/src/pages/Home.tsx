@@ -36,6 +36,9 @@ export default function Home() {
   const consultUrl = "https://calendly.com/jason-vigilanttechs/20-minute-consult-95";
   const eliteUrl = "https://link.fastpaydirect.com/payment-link/6871a1cbd6ab80936ce6849c";
   const freeUrl = "https://members.omegalongevity.com/communities/groups/omega-community-group/home";
+  // Coaching plans live on omegalongevity.com now, not in this app (Jason, 2026-08-05).
+  // Same destination LaunchpadHub already uses.
+  const coachingPlansUrl = "https://omegalongevity.com/coaching-paths";
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -277,7 +280,7 @@ export default function Home() {
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-lg px-8 py-6 shadow-lg shadow-amber-500/25"
-                onClick={() => setLocation("/transformation")}
+                onClick={() => window.open(coachingPlansUrl, "_blank")}
               >
                 View Coaching Plans
                 <ArrowRight className="h-5 w-5 ml-2" />
@@ -536,7 +539,7 @@ export default function Home() {
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-                onClick={() => setLocation("/transformation")}
+                onClick={() => window.open(coachingPlansUrl, "_blank")}
               >
                 See Coaching Plans
                 <ArrowRight className="h-5 w-5 ml-2" />
@@ -795,8 +798,9 @@ export default function Home() {
                 Choose from self-guided to fully coached 90-day transformations
               </p>
               <a
-                href="/transformation"
-                onClick={(e) => { e.preventDefault(); setLocation("/transformation"); }}
+                href={coachingPlansUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-white font-semibold text-sm border-b border-white/50 pb-0.5 hover:border-white"
               >
                 See Plans & Pricing <ArrowRight className="h-3.5 w-3.5" />
