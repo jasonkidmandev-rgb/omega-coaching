@@ -1,11 +1,11 @@
 {
   "name": "Omega Longevity Peptide Coach",
-  "short_name": "Omega Longevity Peptide Coach",
+  "short_name": "Omega Longevity",
   "description": "Elite Level Health Optimization Coach Protocol Manager - Manage your personalized health protocols, peptides, and supplements.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#f97316",
+  "background_color": "#141b2e",
+  "theme_color": "#141b2e",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
