@@ -88,7 +88,6 @@ const CompareProtocols = lazyWithRetry(() => import("./pages/client/CompareProto
 const ClientCheckin = lazyWithRetry(() => import("./pages/client/Checkin"));
 const ClientCheckinLatest = lazyWithRetry(() => import("./pages/client/CheckinLatest"));
 const ClientDocuments = lazyWithRetry(() => import("./pages/client/Documents"));
-const ClientInventory = lazyWithRetry(() => import("./pages/client/Inventory"));
 const ClientMetrics = lazyWithRetry(() => import("./pages/client/Metrics"));
 // Client referrals removed
 const ClientSessions = lazyWithRetry(() => import("./pages/client/Sessions"));
@@ -308,7 +307,6 @@ function Router() {
         <Route path={"/checkin/latest"} component={ClientCheckinLatest} />
         <Route path={"/checkin/:id"} component={ClientCheckin} />
         <Route path={"/documents"} component={ClientDocuments} />
-        <Route path={"/inventory"} component={ClientInventory} />
         <Route path={"/metrics"} component={ClientMetrics} />
 
         {/* Sessions page */}

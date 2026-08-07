@@ -201,13 +201,6 @@ export default function LaunchpadHub() {
                     Documents
                   </button>
                   <button
-                    onClick={() => { setLocation('/inventory'); setMobileMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    Inventory
-                  </button>
-                  <button
                     onClick={() => { setLocation('/metrics'); setMobileMenuOpen(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-brand-gold/10 hover:text-brand-gold transition-colors"
                   >

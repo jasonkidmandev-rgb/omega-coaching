@@ -331,14 +331,7 @@ export default function ClientDashboard() {
       bg: "bg-indigo-50",
       onClick: () => setLocation('/documents'),
     },
-    {
-      title: "My Inventory",
-      description: "Track supplies & reorder",
-      icon: Package,
-      color: "text-orange-600",
-      bg: "bg-orange-50",
-      onClick: () => setLocation('/inventory'),
-    },
+    // My Inventory removed 2026-08-05 (Jason's review). The page went with it.
     {
       title: "My Metrics",
       description: "Weight, body fat & progress",
