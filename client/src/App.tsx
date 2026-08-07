@@ -94,7 +94,6 @@ const ClientSessions = lazyWithRetry(() => import("./pages/client/Sessions"));
 const Account = lazyWithRetry(() => import("./pages/Account"));
 const Order = lazyWithRetry(() => import("./pages/Order"));
 const OrderHistory = lazyWithRetry(() => import("./pages/OrderHistory"));
-const Partners = lazyWithRetry(() => import("./pages/Partners"));
 const PeptideCheatSheet = lazyWithRetry(() => import("./pages/PeptideCheatSheet"));
 const Promotions = lazyWithRetry(() => import("./pages/Promotions"));
 const WaiverRenewal = lazyWithRetry(() => import("./pages/WaiverRenewal"));
@@ -284,7 +283,10 @@ function Router() {
         <Route path={"/set-password"} component={SetPassword} />
         <Route path={"/forgot-password"} component={ForgotPassword} />
         <Route path={"/accept-invite"} component={AcceptInvite} />
-        <Route path={"/partners"} component={Partners} />
+        {/* Partners live on omegalongevity.com/resources now, and Jason wants them in one
+            place only. Kept as a redirect rather than deleted: five email templates and the
+            protocol PDF link here, and clients already hold those emails. */}
+        <Route path={"/partners"}>{() => { window.location.replace("https://omegalongevity.com/resources"); return null; }}</Route>
         <Route path={"/community"} component={CommunityChoice} />
         <Route path={"/intake"} component={IntakeLanding} />
         <Route path={"/masterclass"}>{() => { window.location.replace("/transformation"); return null; }}</Route>
