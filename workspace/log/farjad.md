@@ -4,6 +4,32 @@ Only Farjad edits this. Newest entry at top. Feeds the Fiverr delivery summary, 
 report to Jason/Vilma, and the timesheet. Written as one natural list of the day's work
 (planning/direction and build woven together).
 
+## 2026-08-07
+- Caught that a change shipped the day before was invisible in production. Jason's
+  "coaching plans" note was applied to `Home.tsx`, but that file has been unrouted since
+  2026-07-11, when the HumanEdge cover page replaced it at `/`. It is still imported in
+  `App.tsx`, so it reads as live to anyone searching the code, and it greps as live. The
+  catch came from checking the deployed site rather than trusting the code. Worth the
+  reminder that "found the string" is not "found the page".
+- Worked out what Jason actually means by "discard the old page that was there". He is
+  looking at `/transformation` as one page; it is really a sales page bolted on top of the
+  live payment flow. Traced what depends on it: Stripe cancel URLs, enrollment and
+  checkout-confirmation emails, the abandoned-checkout and enrollment-follow-up crons,
+  prospect SMS links, and the magic-link default destination. Confirmed the checkout page
+  is self-contained and driven purely by a `?plan=` parameter, which is what makes a clean
+  split possible: retire the sales page, keep the payment routes, and have
+  omegalongevity.com link straight into checkout.
+- That leaves one question only Jason can answer, which is where payment happens once
+  someone picks a plan on omegalongevity.com. Asked it directly rather than guessing,
+  because guessing wrong severs the buy path. Repointed the cover-page button as he asked
+  but deleted nothing, so the whole thing reverts in one line if the answer goes the other
+  way.
+- Linked the Launchpad testimonials out to omegalongevity.com/testimonials (URL from
+  Jason). Kept the existing carousel rather than replacing it, since the brief asks for
+  excerpts *and* a link, not a swap.
+- Logged the dead `Home.tsx` for deletion instead of deleting it now: some of its copy may
+  be worth salvaging depending on how `/transformation` is resolved.
+
 ## 2026-08-05
 - Went through Jason's screen-by-screen review of the deployed app and cross-checked every
   claim against his original master brief. The cross-check was the useful part, because he
